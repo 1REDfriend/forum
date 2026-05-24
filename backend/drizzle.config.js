@@ -7,7 +7,7 @@ exports.default = (0, drizzle_kit_1.defineConfig)({
     out: './src/db/migrations',
     dialect: 'postgresql',
     dbCredentials: {
-        url: process.env.DATABASE_URL,
+        url: process.env.USE_MOCK_DB === 'true' ? (process.env.MOCK_DATABASE_URL || process.env.DATABASE_URL) : process.env.DATABASE_URL,
     },
 });
 //# sourceMappingURL=drizzle.config.js.map

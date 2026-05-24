@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express from "express";
+import cors from "cors";
 import authRoutes from "./routes/auth.routes.js";
 import forumRoutes from "./routes/forum.routes.js";
 import threadRoutes from "./routes/thread.routes.js";
@@ -7,8 +8,9 @@ import postRoutes from "./routes/post.routes.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3636;
 
+app.use(cors());
 app.use(express.json());
 
 // Routes
