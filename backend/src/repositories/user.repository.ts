@@ -20,6 +20,11 @@ export class UserRepository {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
   }
+
+  async update(id: number, data: Partial<UserInsertType>): Promise<UserSelectType | undefined> {
+    const [user] = await db.update(users).set(data).where(eq(users.id, id)).returning();
+    return user;
+  }
 }
 
 export const userRepository = new UserRepository();

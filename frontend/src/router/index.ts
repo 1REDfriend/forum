@@ -10,16 +10,16 @@ const router = createRouter({
       component: () => import("../views/ForumHomeView.vue"),
     },
     {
-      path: '/forum/:forum',
-      name: 'forum',
-      component: () => import("../views/ForumView.vue"),
-      props: true
-    },
-    {
       path: '/forum/create',
       name: 'forum-create',
       component: () => import("../views/ForumCreate.vue"),
       meta: { requiresAuth: true }
+    },
+    {
+      path: '/forum/:forum',
+      name: 'forum',
+      component: () => import("../views/ForumView.vue"),
+      props: true
     },
     {
       path: '/forum/:forum/create-thread',
@@ -35,6 +35,23 @@ const router = createRouter({
       props: true
     },
     {
+      path: '/profile',
+      name: 'profile',
+      component: () => import("../views/ProfileView.vue"),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/user/:id',
+      name: 'user-profile',
+      component: () => import("../views/ProfileView.vue"),
+      props: true
+    },
+    {
+      path: '/search',
+      name: 'search',
+      component: () => import("../views/SearchView.vue"),
+    },
+    {
       path: '/login',
       name: 'login',
       component: () => import("../views/LoginView.vue"),
@@ -45,6 +62,22 @@ const router = createRouter({
       name: 'register',
       component: () => import("../views/RegisterView.vue"),
       meta: { requiresGuest: true }
+    },
+    {
+      path: '/forgot-password',
+      name: 'forgot-password',
+      component: () => import("../views/ForgotPasswordView.vue"),
+      meta: { requiresGuest: true }
+    },
+    {
+      path: '/reset-password',
+      name: 'reset-password',
+      component: () => import("../views/ResetPasswordView.vue"),
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: () => import("../views/NotFoundView.vue"),
     }
   ],
 })
@@ -54,7 +87,7 @@ router.beforeEach((to, from, next) => {
   const isAuthenticated = authStore.isAuthenticated
 
   if (to.meta.requiresAuth && !isAuthenticated) {
-    next({ name: 'login' })
+    next({ name: 'login', query: { redirect: to.fullPath } })
   } else if (to.meta.requiresGuest && isAuthenticated) {
     next({ name: 'home' })
   } else {

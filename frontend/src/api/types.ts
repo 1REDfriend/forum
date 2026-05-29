@@ -8,6 +8,8 @@ export interface User {
   email: string;
   googleId: string | null;
   authProvider: 'local' | 'google';
+  role: 'user' | 'admin';
+  avatar: string | null;
   createdAt: string;
 }
 
@@ -15,7 +17,15 @@ export interface Forum {
   id: number;
   name: string;
   description: string | null;
+  createdBy: number | null;
   createdAt: string;
+}
+
+export interface ForumWithStats extends Forum {
+  threadCount: number;
+  postCount: number;
+  lastPostAt: string | null;
+  lastPostAuthor: string | null;
 }
 
 // Thread representation returned by queries (includes author and forum info)
@@ -23,6 +33,13 @@ export interface ThreadDetail {
   id: number;
   title: string;
   content: string;
+  isPinned: boolean;
+  isLocked: boolean;
+  likeCount: number;
+  isLikedByMe: boolean;
+  replyCount: number;
+  lastPostAt: string | null;
+  lastPostAuthor: string | null;
   createdAt: string;
   author: {
     id: number;
@@ -41,6 +58,8 @@ export interface ThreadSimple {
   content: string;
   authorId: number;
   forumId: number;
+  isPinned: boolean;
+  isLocked: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -50,6 +69,9 @@ export interface PostDetail {
   id: number;
   content: string;
   createdAt: string;
+  updatedAt: string;
+  likeCount: number;
+  isLikedByMe: boolean;
   author: {
     id: number;
     name: string;
@@ -64,6 +86,44 @@ export interface PostSimple {
   authorId: number;
   createdAt: string;
   updatedAt: string;
+}
+
+// ==========================================
+// Pagination
+// ==========================================
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+// ==========================================
+// Search
+// ==========================================
+
+export interface SearchForumResult {
+  id: number;
+  name: string;
+  description: string | null;
+  type: 'forum';
+}
+
+export interface SearchThreadResult {
+  id: number;
+  title: string;
+  content: string;
+  authorName: string;
+  forumName: string;
+  forumId: number;
+  type: 'thread';
+}
+
+export interface SearchResponse {
+  forums: SearchForumResult[];
+  threads: SearchThreadResult[];
 }
 
 // ==========================================
@@ -85,8 +145,22 @@ export interface GoogleAuthDTO {
   idToken: string;
 }
 
+export interface ForgotPasswordDTO {
+  email: string;
+}
+
+export interface ResetPasswordDTO {
+  token: string;
+  password: string;
+}
+
 export interface CreateForumDTO {
   name: string;
+  description?: string;
+}
+
+export interface UpdateForumDTO {
+  name?: string;
   description?: string;
 }
 
@@ -96,9 +170,23 @@ export interface CreateThreadDTO {
   forumId: number;
 }
 
+export interface UpdateThreadDTO {
+  title?: string;
+  content?: string;
+}
+
 export interface CreatePostDTO {
   content: string;
   threadId: number;
+}
+
+export interface UpdatePostDTO {
+  content: string;
+}
+
+export interface UpdateUserDTO {
+  name?: string;
+  avatar?: string;
 }
 
 // ==========================================

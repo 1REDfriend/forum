@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "types": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "tsx watch src/index.ts",
@@ -11,8 +10,10 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "generate": "drizzle-kit generate",
+    "generate:mock": "cross-env USE_MOCK_DB=true drizzle-kit generate",
     "migrate": "drizzle-kit migrate",
     "migrate:mock": "cross-env USE_MOCK_DB=true drizzle-kit migrate",
+    "seed": "tsx src/db/seed.ts",
     "seed:mock": "cross-env USE_MOCK_DB=true tsx src/db/seed.ts"
   },
   "keywords": [],
@@ -20,13 +21,19 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@types/multer": "^2.1.0",
+    "@types/nodemailer": "^8.0.0",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
     "google-auth-library": "^10.6.2",
+    "helmet": "^8.2.0",
     "jsonwebtoken": "^9.0.3",
+    "multer": "^2.1.1",
+    "nodemailer": "^8.0.9",
     "pg": "^8.21.0",
     "zod": "^4.4.3"
   },

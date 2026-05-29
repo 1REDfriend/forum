@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { authApi } from '../api/index.js';
-import type { LoginDTO, RegisterDTO, User } from '../api/types.js';
+import { authApi, usersApi } from '../api/index.js';
+import type { LoginDTO, RegisterDTO, User, UpdateUserDTO } from '../api/types.js';
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null);
@@ -38,6 +38,12 @@ export const useAuthStore = defineStore('auth', () => {
     setAuth(response.user, response.token);
   };
 
+  const updateProfile = async (data: UpdateUserDTO) => {
+    const updatedUser = await usersApi.updateMe(data);
+    user.value = updatedUser;
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+  };
+
   const logout = () => {
     user.value = null;
     token.value = null;
@@ -52,6 +58,11 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.setItem('user', JSON.stringify(newUser));
   };
 
+  // Handle token expiry — called by API client on 401
+  const handleUnauthorized = () => {
+    logout();
+  };
+
   return {
     user,
     token,
@@ -59,6 +70,8 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     register,
     googleAuth,
+    updateProfile,
     logout,
+    handleUnauthorized,
   };
 });

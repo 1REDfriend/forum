@@ -42,8 +42,8 @@ const handleGoogleCallback = async (response: any) => {
 </script>
 
 <template>
-    <main class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 pt-24">
-        <div class="sm:mx-auto sm:w-full sm:max-w-md">
+    <main class="min-h-screen bg-gray-50 flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 pt-24">
+        <div class="w-full max-w-md">
             <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">Create a new account</h2>
             <p class="mt-2 text-center text-sm text-gray-600">
                 Or
@@ -53,7 +53,7 @@ const handleGoogleCallback = async (response: any) => {
             </p>
         </div>
 
-        <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="mt-8 w-full max-w-md mx-auto">
             <div class="bg-white py-8 px-4 shadow-sm sm:rounded-xl border border-gray-100 sm:px-10">
                 <form class="space-y-6" @submit.prevent="handleRegister">
                     <div v-if="error" class="p-3 bg-red-50 text-red-600 rounded-md text-sm">

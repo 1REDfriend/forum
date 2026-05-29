@@ -2,7 +2,10 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
 import { userRepository } from '../repositories/user.repository.js';
-import type { RegisterDTO, LoginDTO, GoogleAuthDTO } from '../types/index.js';
+import { passwordResetRepository } from '../repositories/passwordReset.repository.js';
+import type { RegisterDTO, LoginDTO, GoogleAuthDTO, ForgotPasswordDTO, ResetPasswordDTO } from '../types/index.js';
+import { ConflictError, UnauthorizedError, NotFoundError, BadRequestError } from '../utils/errors.js';
+import { sendPasswordResetEmail } from '../utils/mailer.js';
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || 'dummy-client-id');
 const jwtSecret = process.env.JWT_SECRET || 'fallback-secret-for-dev-only';
@@ -11,7 +14,7 @@ export class AuthService {
   async register(data: RegisterDTO) {
     const existingUser = await userRepository.findByEmail(data.email);
     if (existingUser) {
-      throw new Error('Email already in use');
+      throw ConflictError('Email already in use');
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -31,12 +34,12 @@ export class AuthService {
   async login(data: LoginDTO) {
     const user = await userRepository.findByEmail(data.email);
     if (!user || user.authProvider !== 'local' || !user.passwordHash) {
-      throw new Error('Invalid credentials');
+      throw UnauthorizedError('Invalid credentials');
     }
 
     const isMatch = await bcrypt.compare(data.password, user.passwordHash);
     if (!isMatch) {
-      throw new Error('Invalid credentials');
+      throw UnauthorizedError('Invalid credentials');
     }
 
     const token = this.generateToken(user.id);
@@ -44,8 +47,6 @@ export class AuthService {
   }
 
   async googleAuth(data: GoogleAuthDTO) {
-    // Note: In a real app, verify the aud (audience) matches your client ID
-    // If testing without a real frontend, this will fail unless mocked.
     let payload;
     try {
       const ticket = await googleClient.verifyIdToken({
@@ -54,12 +55,11 @@ export class AuthService {
       });
       payload = ticket.getPayload();
     } catch (error) {
-       // Mock for development if needed, but throwing for safety
-       throw new Error('Invalid Google Token');
+      throw UnauthorizedError('Invalid Google Token');
     }
 
     if (!payload || !payload.email) {
-      throw new Error('Invalid Google Token Payload');
+      throw UnauthorizedError('Invalid Google Token Payload');
     }
 
     const email = payload.email;
@@ -69,19 +69,54 @@ export class AuthService {
     let user = await userRepository.findByEmail(email);
 
     if (!user) {
-      // Create new user
       user = await userRepository.create({
         name,
         email,
         googleId,
         authProvider: 'google',
       });
-    } else {
-      // Update existing user with google ID if necessary (omitted for brevity, assume fine)
+    } else if (!user.googleId && googleId) {
+      user = (await userRepository.update(user.id, { googleId }))!;
     }
 
     const token = this.generateToken(user.id);
     return { user: this.sanitizeUser(user), token };
+  }
+
+  async forgotPassword(data: ForgotPasswordDTO) {
+    // Always return a success message to avoid user enumeration attacks
+    const user = await userRepository.findByEmail(data.email);
+    if (!user || user.authProvider !== 'local') {
+      return { message: 'If that email exists in our system, a reset link has been sent.' };
+    }
+
+    const token = await passwordResetRepository.createToken(user.id);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
+
+    await sendPasswordResetEmail(user.email, resetUrl);
+
+    return { message: 'If that email exists in our system, a reset link has been sent.' };
+  }
+
+  async resetPassword(data: ResetPasswordDTO) {
+    const tokenRow = await passwordResetRepository.findValidToken(data.token);
+    if (!tokenRow) {
+      throw BadRequestError('Invalid or expired reset token');
+    }
+
+    const user = await userRepository.findById(tokenRow.userId);
+    if (!user) {
+      throw NotFoundError('User not found');
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(data.password, salt);
+
+    await userRepository.update(user.id, { passwordHash });
+    await passwordResetRepository.markUsed(tokenRow.id);
+
+    return { message: 'Password has been reset successfully. You can now log in.' };
   }
 
   private generateToken(userId: number): string {

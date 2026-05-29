@@ -8,24 +8,23 @@ export class AuthApi {
     this.client = client;
   }
 
-  /**
-   * Register a new user locally.
-   */
   public register(data: RegisterDTO): Promise<AuthResponse> {
     return this.client.post<AuthResponse>('/auth/register', data);
   }
 
-  /**
-   * Log in user locally.
-   */
   public login(data: LoginDTO): Promise<AuthResponse> {
     return this.client.post<AuthResponse>('/auth/login', data);
   }
 
-  /**
-   * Log in or register user using Google ID token.
-   */
   public googleAuth(data: GoogleAuthDTO): Promise<AuthResponse> {
     return this.client.post<AuthResponse>('/auth/google', data);
+  }
+
+  public forgotPassword(email: string): Promise<{ message: string }> {
+    return this.client.post<{ message: string }>('/auth/forgot-password', { email });
+  }
+
+  public resetPassword(token: string, password: string): Promise<{ message: string }> {
+    return this.client.post<{ message: string }>('/auth/reset-password', { token, password });
   }
 }

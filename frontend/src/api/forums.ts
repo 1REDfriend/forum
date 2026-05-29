@@ -1,5 +1,5 @@
 import type { ApiClient } from './client.js';
-import type { Forum, CreateForumDTO } from './types.js';
+import type { Forum, ForumWithStats, CreateForumDTO, UpdateForumDTO } from './types.js';
 
 export class ForumsApi {
   private client: ApiClient;
@@ -9,10 +9,10 @@ export class ForumsApi {
   }
 
   /**
-   * Retrieve all forums.
+   * Retrieve all forums with stats (thread count, post count).
    */
-  public getAllForums(): Promise<Forum[]> {
-    return this.client.get<Forum[]>('/forums');
+  public getAllForums(): Promise<ForumWithStats[]> {
+    return this.client.get<ForumWithStats[]>('/forums');
   }
 
   /**
@@ -27,5 +27,19 @@ export class ForumsApi {
    */
   public createForum(data: CreateForumDTO): Promise<Forum> {
     return this.client.post<Forum>('/forums', data);
+  }
+
+  /**
+   * Update a forum (Authenticated, owner/admin only).
+   */
+  public updateForum(id: number, data: UpdateForumDTO): Promise<Forum> {
+    return this.client.put<Forum>(`/forums/${id}`, data);
+  }
+
+  /**
+   * Delete a forum (Authenticated, owner/admin only).
+   */
+  public deleteForum(id: number): Promise<void> {
+    return this.client.delete<void>(`/forums/${id}`);
   }
 }

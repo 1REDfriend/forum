@@ -1,17 +1,52 @@
 import { threadRepository } from '../repositories/thread.repository.js';
-import type { CreateThreadDTO } from '../types/index.js';
+import { userRepository } from '../repositories/user.repository.js';
+import { likeRepository } from '../repositories/like.repository.js';
+import { NotFoundError, ForbiddenError } from '../utils/errors.js';
+import type { CreateThreadDTO, UpdateThreadDTO } from '../types/index.js';
 
 export class ThreadService {
   async getAllThreads() {
     return await threadRepository.findAll();
   }
 
-  async getThreadById(id: number) {
+  async getThreadById(id: number, userId?: number) {
     const thread = await threadRepository.findById(id);
     if (!thread) {
-      throw new Error('Thread not found');
+      throw NotFoundError('Thread not found');
     }
-    return thread;
+    const [likeCount, isLikedByMe] = await Promise.all([
+      likeRepository.countThreadLikes(id),
+      userId ? likeRepository.findThreadLike(userId, id).then(r => !!r) : Promise.resolve(false),
+    ]);
+    return { ...thread, likeCount, isLikedByMe };
+  }
+
+  async getThreadsByForumId(forumId: number, page: number, limit: number, userId?: number) {
+    const [data, total] = await Promise.all([
+      threadRepository.findByForumId(forumId, page, limit),
+      threadRepository.countByForumId(forumId),
+    ]);
+
+    // Batch fetch like counts and user liked set
+    const threadIds = data.map((t) => t.id);
+    const [likeCounts, userLikedSet] = await Promise.all([
+      likeRepository.getThreadLikeCounts(threadIds),
+      userId ? likeRepository.getThreadLikesForUser(userId, threadIds) : Promise.resolve(new Set<number>()),
+    ]);
+
+    const enriched = data.map((t) => ({
+      ...t,
+      likeCount: likeCounts.get(t.id) ?? 0,
+      isLikedByMe: userLikedSet.has(t.id),
+    }));
+
+    return {
+      data: enriched,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async createThread(userId: number, data: CreateThreadDTO) {
@@ -21,6 +56,57 @@ export class ThreadService {
       forumId: data.forumId,
       authorId: userId,
     });
+  }
+
+  async updateThread(userId: number, threadId: number, data: UpdateThreadDTO) {
+    const thread = await threadRepository.findRawById(threadId);
+    if (!thread) {
+      throw NotFoundError('Thread not found');
+    }
+
+    const user = await userRepository.findById(userId);
+    if (thread.authorId !== userId && user?.role !== 'admin') {
+      throw ForbiddenError('You do not have permission to edit this thread');
+    }
+
+    const updateData: Record<string, any> = {};
+    if (data.title !== undefined) updateData.title = data.title;
+    if (data.content !== undefined) updateData.content = data.content;
+    return await threadRepository.update(threadId, updateData);
+  }
+
+  async deleteThread(userId: number, threadId: number) {
+    const thread = await threadRepository.findRawById(threadId);
+    if (!thread) {
+      throw NotFoundError('Thread not found');
+    }
+
+    const user = await userRepository.findById(userId);
+    if (thread.authorId !== userId && user?.role !== 'admin') {
+      throw ForbiddenError('You do not have permission to delete this thread');
+    }
+
+    await threadRepository.delete(threadId);
+  }
+
+  async pinThread(userId: number, threadId: number) {
+    const user = await userRepository.findById(userId);
+    if (user?.role !== 'admin') {
+      throw ForbiddenError('Only admins can pin threads');
+    }
+    const thread = await threadRepository.findRawById(threadId);
+    if (!thread) throw NotFoundError('Thread not found');
+    return await threadRepository.update(threadId, { isPinned: !thread.isPinned });
+  }
+
+  async lockThread(userId: number, threadId: number) {
+    const user = await userRepository.findById(userId);
+    if (user?.role !== 'admin') {
+      throw ForbiddenError('Only admins can lock threads');
+    }
+    const thread = await threadRepository.findRawById(threadId);
+    if (!thread) throw NotFoundError('Thread not found');
+    return await threadRepository.update(threadId, { isLocked: !thread.isLocked });
   }
 }
 

@@ -8,6 +8,20 @@
       "when": 1779343241780,
       "tag": "0000_typical_sabra",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1779721799249,
+      "tag": "0001_marvelous_synch",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779901304026,
+      "tag": "0002_abandoned_onslaught",
+      "breakpoints": true
     }
   ]
 }

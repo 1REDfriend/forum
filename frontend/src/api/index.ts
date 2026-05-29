@@ -3,14 +3,11 @@ import { AuthApi } from './auth.js';
 import { ForumsApi } from './forums.js';
 import { ThreadsApi } from './threads.js';
 import { PostsApi } from './posts.js';
+import { UsersApi, SearchApi } from './users.js';
+import { LikesApi, UploadApi } from './likes.js';
 
-// Resolve backend API base URL from Vite env variables or fallback to local port 3636
 const BASE_URL = (import.meta.env.VITE_API_URL as string) || 'http://localhost:3636';
 
-/**
- * Configure and instantiate default ApiClient.
- * Reads the jwt auth token dynamically from localStorage whenever a request is fired.
- */
 export const apiClient = new ApiClient({
   baseUrl: BASE_URL,
   getToken: () => {
@@ -22,13 +19,15 @@ export const apiClient = new ApiClient({
   },
 });
 
-// Instantiate singleton API domain handlers using dependency injection
 export const authApi = new AuthApi(apiClient);
 export const forumsApi = new ForumsApi(apiClient);
 export const threadsApi = new ThreadsApi(apiClient);
 export const postsApi = new PostsApi(apiClient);
+export const usersApi = new UsersApi(apiClient);
+export const searchApi = new SearchApi(apiClient);
+export const likesApi = new LikesApi(apiClient);
+export const uploadApi = new UploadApi(apiClient);
 
-// Re-export ApiClient definitions for customization if needed
 export * from './client.js';
 export * from './types.js';
 export default {
@@ -37,5 +36,9 @@ export default {
   forums: forumsApi,
   threads: threadsApi,
   posts: postsApi,
+  users: usersApi,
+  search: searchApi,
+  likes: likesApi,
+  upload: uploadApi,
 };
 export type { AuthResponse } from './types.js';

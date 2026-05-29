@@ -17,6 +17,9 @@
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.3.0",
+    "@types/dompurify": "^3.0.5",
+    "dompurify": "^3.4.7",
+    "marked": "^18.0.4",
     "pinia": "^3.0.4",
     "postcss": "^8.5.15",
     "tailwindcss": "^4.3.0",
