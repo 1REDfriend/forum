@@ -12,6 +12,7 @@ import userRoutes from "./routes/user.routes.js";
 import searchRoutes from "./routes/search.routes.js";
 import likeRoutes from "./routes/like.routes.js";
 import uploadRoutes from "./routes/upload.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import { apiRateLimiter } from "./middlewares/rateLimit.middleware.js";
 const __filename = fileURLToPath(import.meta.url);
@@ -47,6 +48,7 @@ app.use('/users', userRoutes);
 app.use('/search', searchRoutes);
 app.use('/likes', likeRoutes);
 app.use('/upload', uploadRoutes);
+app.use('/admin', adminRoutes);
 app.get("/", (_req, res) => {
     res.send("IT.FORUM — Express + Drizzle backend is running.");
 });
