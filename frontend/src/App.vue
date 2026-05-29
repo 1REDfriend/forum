@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
 import Navbar from './components/Navbar.vue';
+import { useThemeStore } from './stores/theme';
+
+// Initialize theme store immediately so watchEffect applies data-theme to <html>
+useThemeStore();
 </script>
 
 <template>

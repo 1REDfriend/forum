@@ -23,8 +23,11 @@
   --vt-c-text-dark-2: rgba(235, 235, 235, 0.64);
 }
 
-/* semantic color variables for this project */
-:root {
+/* ==========================================
+   LIGHT THEME (default)
+   ========================================== */
+:root,
+[data-theme="light"] {
   --color-background: var(--vt-c-white);
   --color-background-soft: var(--vt-c-white-soft);
   --color-background-mute: var(--vt-c-white-mute);
@@ -36,10 +39,50 @@
   --color-text: var(--vt-c-text-light-1);
 
   --section-gap: 160px;
+
+  /* ThemeToggle component variables */
+  --theme-toggle-bg: #f1f5f9;
+  --theme-toggle-border: #e2e8f0;
+  --theme-btn-color: #64748b;
+  --theme-btn-hover-bg: #e2e8f0;
+  --theme-btn-hover-color: #334155;
+  --theme-btn-active-bg: #ffffff;
+  --theme-btn-active-color: #4f46e5;
+  --theme-btn-active-shadow: rgba(0, 0, 0, 0.1);
 }
 
+/* ==========================================
+   DARK THEME — via data-theme attribute (manual or system)
+   ========================================== */
+[data-theme="dark"] {
+  --color-background: var(--vt-c-black);
+  --color-background-soft: var(--vt-c-black-soft);
+  --color-background-mute: var(--vt-c-black-mute);
+
+  --color-border: var(--vt-c-divider-dark-2);
+  --color-border-hover: var(--vt-c-divider-dark-1);
+
+  --color-heading: var(--vt-c-text-dark-1);
+  --color-text: var(--vt-c-text-dark-2);
+
+  /* ThemeToggle component variables */
+  --theme-toggle-bg: #1e293b;
+  --theme-toggle-border: #334155;
+  --theme-btn-color: #94a3b8;
+  --theme-btn-hover-bg: #334155;
+  --theme-btn-hover-color: #e2e8f0;
+  --theme-btn-active-bg: #334155;
+  --theme-btn-active-color: #818cf8;
+  --theme-btn-active-shadow: rgba(0, 0, 0, 0.4);
+}
+
+/* ==========================================
+   SYSTEM PREFERENCE FALLBACK
+   When mode === 'system', the JS will apply data-theme
+   But if JS hasn't loaded yet, respect system preference
+   ========================================== */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) {
     --color-background: var(--vt-c-black);
     --color-background-soft: var(--vt-c-black-soft);
     --color-background-mute: var(--vt-c-black-mute);
@@ -49,6 +92,15 @@
 
     --color-heading: var(--vt-c-text-dark-1);
     --color-text: var(--vt-c-text-dark-2);
+
+    --theme-toggle-bg: #1e293b;
+    --theme-toggle-border: #334155;
+    --theme-btn-color: #94a3b8;
+    --theme-btn-hover-bg: #334155;
+    --theme-btn-hover-color: #e2e8f0;
+    --theme-btn-active-bg: #334155;
+    --theme-btn-active-color: #818cf8;
+    --theme-btn-active-shadow: rgba(0, 0, 0, 0.4);
   }
 }
 
@@ -65,8 +117,8 @@ body {
   color: var(--color-text);
   background: var(--color-background);
   transition:
-    color 0.5s,
-    background-color 0.5s;
+    color 0.3s ease,
+    background-color 0.3s ease;
   line-height: 1.6;
   font-family:
     Inter,

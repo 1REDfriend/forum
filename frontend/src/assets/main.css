@@ -1,1 +1,70 @@
 @import './base.css';
+
+/* ==========================================
+   DARK MODE GLOBAL OVERRIDES
+   Override Tailwind's hardcoded light colors
+   when data-theme="dark" is set on <html>
+   ========================================== */
+
+/* Body & backgrounds */
+[data-theme="dark"] body,
+[data-theme="dark"] .bg-gray-50 {
+  background-color: #0f172a !important;
+}
+
+[data-theme="dark"] .bg-white {
+  background-color: #1e293b !important;
+}
+
+[data-theme="dark"] .bg-gray-100 {
+  background-color: #1e293b !important;
+}
+
+/* Text overrides */
+[data-theme="dark"] .text-gray-900,
+[data-theme="dark"] .text-slate-900 {
+  color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .text-gray-700,
+[data-theme="dark"] .text-slate-700 {
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .text-gray-600,
+[data-theme="dark"] .text-slate-600 {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .text-gray-500,
+[data-theme="dark"] .text-slate-500 {
+  color: #64748b !important;
+}
+
+/* Border overrides */
+[data-theme="dark"] .border-gray-100,
+[data-theme="dark"] .border-gray-200 {
+  border-color: #334155 !important;
+}
+
+/* Card / panel backgrounds */
+[data-theme="dark"] .bg-white\/90 {
+  background-color: rgba(15, 23, 42, 0.9) !important;
+}
+
+/* Smooth transition for theme switch */
+* {
+  transition-property: background-color, border-color, color;
+  transition-duration: 0.3s;
+  transition-timing-function: ease;
+}
+
+/* Prevent transition on images and interactive states */
+img,
+button,
+a,
+input,
+textarea,
+select {
+  transition-property: background-color, border-color, color, box-shadow, transform, opacity;
+}

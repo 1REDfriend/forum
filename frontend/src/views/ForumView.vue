@@ -72,6 +72,7 @@ const loadData = async (page = 1) => {
     currentPage.value = result.page;
     totalPages.value = result.totalPages;
     total.value = result.total;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     error.value = err.message || 'Failed to load threads';
   } finally {
@@ -102,12 +103,12 @@ const formatTimeAgo = (dateStr: string | null) => {
 </script>
 
 <template>
-  <main class="min-h-screen bg-gray-50 pb-12">
+  <main class="flex justify-center min-h-screen bg-gray-50 pb-12">
     <div class="w-full max-w-5xl mx-auto pt-24 px-4 sm:px-6">
 
       <!-- Breadcrumb -->
       <nav class="text-sm text-gray-500 mb-4 flex items-center gap-1">
-        <router-link to="/" class="hover:text-indigo-600">Home</router-link>
+        <router-link to="/forums" class="hover:text-indigo-600">Home</router-link>
         <span class="text-gray-300">›</span>
         <span class="text-gray-800 font-medium" v-if="forumData">{{ forumData.name }}</span>
       </nav>
@@ -153,7 +154,8 @@ const formatTimeAgo = (dateStr: string | null) => {
       <div v-else class="bg-white shadow-sm border border-gray-100 rounded-xl overflow-hidden">
 
         <!-- Column Headers -->
-        <div class="hidden md:grid grid-cols-12 gap-2 h-10 bg-gray-50 border-b border-gray-100 text-xs uppercase tracking-wider font-semibold text-gray-400 px-5 items-center select-none">
+        <div
+          class="hidden md:grid grid-cols-12 gap-2 h-10 bg-gray-50 border-b border-gray-100 text-xs uppercase tracking-wider font-semibold text-gray-400 px-5 items-center select-none">
           <div class="col-span-5">Topic</div>
           <div class="col-span-2 text-center">Author</div>
           <div class="col-span-1 text-center">Replies</div>
@@ -163,7 +165,8 @@ const formatTimeAgo = (dateStr: string | null) => {
         <!-- Empty -->
         <div v-if="threads.length === 0" class="p-10 text-center text-gray-400">
           <svg class="h-12 w-12 mx-auto mb-3 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
           </svg>
           <p class="font-medium text-gray-500">No threads yet</p>
           <p class="text-sm mt-1">Be the first to start a discussion!</p>
@@ -192,16 +195,17 @@ const formatTimeAgo = (dateStr: string | null) => {
             <!-- Title + badges -->
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-1.5 flex-wrap mb-0.5">
-                <span v-if="thread.isPinned" class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-700">📌</span>
-                <span v-if="thread.isLocked" class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-600">🔒</span>
+                <span v-if="thread.isPinned"
+                  class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-700">📌</span>
+                <span v-if="thread.isLocked"
+                  class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-600">🔒</span>
               </div>
-              <router-link :to="`/thread/${thread.id}`"
-                :class="[
-                  'font-bold text-base leading-tight block',
-                  isThreadUnread(thread)
-                    ? 'text-indigo-700 group-hover:text-indigo-800'
-                    : 'text-gray-800 group-hover:text-indigo-600'
-                ]" class="transition-colors">
+              <router-link :to="`/thread/${thread.id}`" :class="[
+                'font-bold text-base leading-tight block',
+                isThreadUnread(thread)
+                  ? 'text-indigo-700 group-hover:text-indigo-800'
+                  : 'text-gray-800 group-hover:text-indigo-600'
+              ]" class="transition-colors">
                 {{ thread.title }}
               </router-link>
               <!-- Mobile info -->
@@ -239,8 +243,7 @@ const formatTimeAgo = (dateStr: string | null) => {
             <div v-else class="text-xs text-gray-300 italic">No replies yet</div>
 
             <!-- Mark as Read button — hover reveal -->
-            <button v-if="isThreadUnread(thread)" @click="markThreadRead(thread, $event)"
-              title="Mark as read"
+            <button v-if="isThreadUnread(thread)" @click="markThreadRead(thread, $event)" title="Mark as read"
               class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 transition-all opacity-0 group-hover:opacity-100">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
@@ -266,13 +269,12 @@ const formatTimeAgo = (dateStr: string | null) => {
             class="px-3 py-2 text-sm rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
             ← Prev
           </button>
-          <button v-for="page in totalPages" :key="page" @click="goToPage(page)"
-            :class="[
-              'px-3 py-2 text-sm rounded-lg border transition-colors',
-              page === currentPage
-                ? 'bg-indigo-600 text-white border-indigo-600'
-                : 'border-gray-200 hover:bg-gray-50'
-            ]">
+          <button v-for="page in totalPages" :key="page" @click="goToPage(page)" :class="[
+            'px-3 py-2 text-sm rounded-lg border transition-colors',
+            page === currentPage
+              ? 'bg-indigo-600 text-white border-indigo-600'
+              : 'border-gray-200 hover:bg-gray-50'
+          ]">
             {{ page }}
           </button>
           <button @click="goToPage(currentPage + 1)" :disabled="currentPage >= totalPages"

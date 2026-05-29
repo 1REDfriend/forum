@@ -107,8 +107,8 @@ const formatDate = (dateStr: string | undefined) => {
 </script>
 
 <template>
-    <main class="min-h-screen bg-gray-50 pt-24 pb-12">
-        <div class="max-w-2xl mx-auto px-4 sm:px-6">
+    <main class="flex justify-center min-h-screen bg-gray-50 pt-24 pb-12">
+        <div class="w-screen max-w-4xl mx-auto px-4 sm:px-6">
 
             <div v-if="isLoading" class="bg-white rounded-xl border border-gray-100 p-8 animate-pulse">
                 <div class="flex items-center gap-6 mb-6">
@@ -122,7 +122,8 @@ const formatDate = (dateStr: string | undefined) => {
 
             <div v-else-if="error" class="bg-red-50 text-red-600 rounded-xl p-6 border border-red-100 text-center">
                 <p class="font-medium">{{ error }}</p>
-                <router-link to="/" class="text-indigo-600 hover:underline text-sm mt-2 inline-block">← Back to Home</router-link>
+                <router-link to="/" class="text-indigo-600 hover:underline text-sm mt-2 inline-block">← Back to
+                    Home</router-link>
             </div>
 
             <div v-else-if="profileUser" class="space-y-6">
@@ -133,31 +134,32 @@ const formatDate = (dateStr: string | undefined) => {
                         <div class="flex items-end gap-6 -mt-10 mb-6">
                             <!-- Avatar with upload overlay -->
                             <div class="relative group">
-                                <div v-if="avatarPreview || profileUser.avatar" class="w-20 h-20 rounded-full border-4 border-white shadow-md overflow-hidden">
-                                    <img :src="avatarPreview || profileUser.avatar || ''" class="w-full h-full object-cover" alt="Avatar" />
+                                <div v-if="avatarPreview || profileUser.avatar"
+                                    class="w-20 h-20 rounded-full border-4 border-white shadow-md overflow-hidden">
+                                    <img :src="avatarPreview || profileUser.avatar || ''"
+                                        class="w-full h-full object-cover" alt="Avatar" />
                                 </div>
-                                <div v-else class="w-20 h-20 rounded-full bg-indigo-600 text-white flex items-center justify-center text-2xl font-bold border-4 border-white shadow-md">
+                                <div v-else
+                                    class="w-20 h-20 rounded-full bg-indigo-600 text-white flex items-center justify-center text-2xl font-bold border-4 border-white shadow-md">
                                     {{ getInitials(profileUser.name) }}
                                 </div>
                                 <!-- Upload overlay (only for own profile) -->
                                 <label v-if="isOwnProfile"
                                     class="absolute inset-0 rounded-full flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                                     :class="{ 'opacity-100 pointer-events-none': isUploadingAvatar }"
-                                    title="Change avatar"
-                                >
-                                    <span v-if="isUploadingAvatar" class="text-white text-xs font-medium">Uploading...</span>
-                                    <svg v-else class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    title="Change avatar">
+                                    <span v-if="isUploadingAvatar"
+                                        class="text-white text-xs font-medium">Uploading...</span>
+                                    <svg v-else class="w-6 h-6 text-white" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                                     </svg>
-                                    <input
-                                        ref="avatarInputRef"
-                                        type="file"
-                                        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-                                        class="hidden"
-                                        @change="onAvatarFileChange"
-                                        :disabled="isUploadingAvatar"
-                                    />
+                                    <input ref="avatarInputRef" type="file"
+                                        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" class="hidden"
+                                        @change="onAvatarFileChange" :disabled="isUploadingAvatar" />
                                 </label>
                             </div>
                             <div class="pb-1">
@@ -172,26 +174,33 @@ const formatDate = (dateStr: string | undefined) => {
                             </div>
                         </div>
 
-                        <p v-if="avatarUploadError" class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2 mb-3 border border-red-100">{{ avatarUploadError }}</p>
-                        <div v-if="editError" class="p-3 bg-red-50 text-red-600 rounded-md text-sm mb-4">{{ editError }}</div>
+                        <p v-if="avatarUploadError"
+                            class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2 mb-3 border border-red-100">{{
+                                avatarUploadError }}</p>
+                        <div v-if="editError" class="p-3 bg-red-50 text-red-600 rounded-md text-sm mb-4">{{ editError }}
+                        </div>
 
                         <div class="flex items-center gap-6 text-sm text-gray-500 mb-4">
                             <span v-if="profileUser.createdAt">📅 Joined {{ formatDate(profileUser.createdAt) }}</span>
-                            <span v-if="(profileUser as any).role" class="bg-indigo-100 text-indigo-700 px-2.5 py-0.5 rounded-full font-medium text-xs uppercase">
+                            <span v-if="(profileUser as any).role"
+                                class="bg-indigo-100 text-indigo-700 px-2.5 py-0.5 rounded-full font-medium text-xs uppercase">
                                 {{ (profileUser as any).role }}
                             </span>
                         </div>
 
                         <div v-if="isOwnProfile" class="flex gap-2 flex-wrap">
                             <template v-if="!isEditing">
-                                <button @click="startEdit" class="px-4 py-2 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
+                                <button @click="startEdit"
+                                    class="px-4 py-2 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
                                     Edit Name
                                 </button>
                                 <p class="text-xs text-gray-400 self-center">Hover over your avatar to change it</p>
                             </template>
                             <template v-else>
-                                <button @click="cancelEdit" class="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">Cancel</button>
-                                <button @click="saveEdit" :disabled="isSaving" class="px-4 py-2 text-sm text-white bg-indigo-600 hover:bg-indigo-700 rounded-md disabled:opacity-50">
+                                <button @click="cancelEdit"
+                                    class="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">Cancel</button>
+                                <button @click="saveEdit" :disabled="isSaving"
+                                    class="px-4 py-2 text-sm text-white bg-indigo-600 hover:bg-indigo-700 rounded-md disabled:opacity-50">
                                     {{ isSaving ? 'Saving...' : 'Save Name' }}
                                 </button>
                             </template>
