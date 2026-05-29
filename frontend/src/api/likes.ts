@@ -37,4 +37,14 @@ export class UploadApi {
     const result = await this.client.post<{ url: string }>('/upload/avatar', formData);
     return result.url;
   }
+
+  /**
+   * Upload a content image (for markdown editor paste). Returns the URL.
+   */
+  public async uploadImage(file: File): Promise<string> {
+    const formData = new FormData();
+    formData.append('image', file);
+    const result = await this.client.post<{ url: string }>('/upload/image', formData);
+    return result.url;
+  }
 }

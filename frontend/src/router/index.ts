@@ -6,6 +6,11 @@ const router = createRouter({
   routes: [
     {
       path: '/',
+      name: 'landing',
+      component: () => import("../views/LandingHomeView.vue"),
+    },
+    {
+      path: '/forums',
       name: 'home',
       component: () => import("../views/ForumHomeView.vue"),
     },
@@ -33,6 +38,12 @@ const router = createRouter({
       name: 'thread-detail',
       component: () => import("../views/ThreadDetailView.vue"),
       props: true
+    },
+    {
+      path: '/admin',
+      name: 'admin',
+      component: () => import("../views/AdminDashboardView.vue"),
+      meta: { requiresAuth: true }
     },
     {
       path: '/profile',
