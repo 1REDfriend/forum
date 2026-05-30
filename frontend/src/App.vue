@@ -1,19 +1,32 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
+import { RouterView } from 'vue-router';
 import Navbar from './components/Navbar.vue';
 import { useThemeStore } from './stores/theme';
 
-// Initialize theme store immediately so watchEffect applies data-theme to <html>
+// Initialize theme store so watchEffect applies data-theme to <html> immediately
 useThemeStore();
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50 flex flex-col">
+  <div class="app-layout">
     <header>
       <Navbar />
     </header>
-    <div class="flex-1 w-full">
+    <main class="app-content">
       <RouterView />
-    </div>
+    </main>
   </div>
 </template>
+
+<style scoped>
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-content {
+  flex: 1;
+  width: 100%;
+}
+</style>
