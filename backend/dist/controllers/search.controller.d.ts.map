@@ -1,1 +1,0 @@
-{"version":3,"file":"search.controller.d.ts","sourceRoot":"","sources":["../../src/controllers/search.controller.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,OAAO,EAAE,QAAQ,EAAE,YAAY,EAAE,MAAM,SAAS,CAAC;AAG/D,qBAAa,gBAAgB;IACrB,MAAM,CAAC,GAAG,EAAE,OAAO,EAAE,GAAG,EAAE,QAAQ,EAAE,IAAI,EAAE,YAAY;CAa7D;AAED,eAAO,MAAM,gBAAgB,kBAAyB,CAAC"}
