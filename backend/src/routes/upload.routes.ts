@@ -1,25 +1,9 @@
 import { Router } from 'express';
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
 import { authenticate } from '../middlewares/auth.middleware.js';
 import { userRepository } from '../repositories/user.repository.js';
-import type { Request, Response, NextFunction } from 'express';
-
-// Ensure uploads directory exists
-const uploadsDir = path.join(process.cwd(), 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, uploadsDir),
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    const uniqueName = `avatar-${Date.now()}-${Math.round(Math.random() * 1e6)}${ext}`;
-    cb(null, uniqueName);
-  },
-});
+import { storage } from '../services/storage.service.js';
+import type { Request, Response, NextFunction, RequestHandler } from 'express';
 
 const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
@@ -30,59 +14,52 @@ const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFil
   }
 };
 
-const upload = multer({
-  storage,
+// Buffer the file in memory so the active storage driver (local disk or CDN) decides where it lands.
+const avatarUpload = multer({
+  storage: multer.memoryStorage(),
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
 });
 
-const contentStorage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, uploadsDir),
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase() || '.png';
-    const uniqueName = `img-${Date.now()}-${Math.round(Math.random() * 1e6)}${ext}`;
-    cb(null, uniqueName);
-  },
+const imageUpload = multer({
+  storage: multer.memoryStorage(),
+  fileFilter,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB for content images
 });
 
-const contentUpload = multer({
-  storage: contentStorage,
-  fileFilter,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max for content images
-});
+// Wrap a multer middleware so multer/validation errors return 400 instead of hitting the error handler as 500.
+const runMulter = (mw: RequestHandler): RequestHandler => (req, res, next) => {
+  mw(req, res, (err: unknown) => {
+    if (err instanceof multer.MulterError) {
+      res.status(400).json({ error: `Upload error: ${err.message}` });
+      return;
+    }
+    if (err) {
+      res.status(400).json({ error: err instanceof Error ? err.message : 'Upload failed' });
+      return;
+    }
+    next();
+  });
+};
 
 const router = Router();
 
 router.post(
   '/avatar',
   authenticate,
-  (req: Request, res: Response, next: NextFunction) => {
-    upload.single('avatar')(req, res, (err) => {
-      if (err instanceof multer.MulterError) {
-        res.status(400).json({ error: `Upload error: ${err.message}` });
-        return;
-      } else if (err) {
-        res.status(400).json({ error: err.message });
-        return;
-      }
-      next();
-    });
-  },
+  runMulter(avatarUpload.single('avatar')),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (!req.file) {
         res.status(400).json({ error: 'No file uploaded' });
         return;
       }
-
-      const userId = req.user!.userId;
-      const backendUrl = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 3636}`;
-      const avatarUrl = `${backendUrl}/uploads/${req.file.filename}`;
-
-      // Update user avatar in DB
-      await userRepository.update(userId, { avatar: avatarUrl });
-
-      res.status(200).json({ url: avatarUrl });
+      const { url } = await storage.upload(
+        { buffer: req.file.buffer, originalname: req.file.originalname, mimetype: req.file.mimetype },
+        'avatar'
+      );
+      await userRepository.update(req.user!.userId, { avatar: url });
+      res.status(200).json({ url });
     } catch (error) {
       next(error);
     }
@@ -93,27 +70,18 @@ router.post(
 router.post(
   '/image',
   authenticate,
-  (req: Request, res: Response, next: NextFunction) => {
-    contentUpload.single('image')(req, res, (err) => {
-      if (err instanceof multer.MulterError) {
-        res.status(400).json({ error: `Upload error: ${err.message}` });
-        return;
-      } else if (err) {
-        res.status(400).json({ error: err.message });
-        return;
-      }
-      next();
-    });
-  },
+  runMulter(imageUpload.single('image')),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (!req.file) {
         res.status(400).json({ error: 'No file uploaded' });
         return;
       }
-      const backendUrl = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 3636}`;
-      const imageUrl = `${backendUrl}/uploads/${req.file.filename}`;
-      res.status(200).json({ url: imageUrl });
+      const { url } = await storage.upload(
+        { buffer: req.file.buffer, originalname: req.file.originalname, mimetype: req.file.mimetype },
+        'img'
+      );
+      res.status(200).json({ url });
     } catch (error) {
       next(error);
     }
