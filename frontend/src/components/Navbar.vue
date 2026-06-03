@@ -3,7 +3,6 @@ import CodeIcon from './icons/CodeIcon.vue';
 import ForumIcon from './icons/ForumIcon.vue';
 import HomeIcon from './icons/HomeIcon.vue';
 import SearchIcon from './icons/SearchIcon.vue';
-import ThemeToggle from './ThemeToggle.vue';
 import UserDropdown from './UserDropdown.vue';
 </script>
 
@@ -30,7 +29,6 @@ import UserDropdown from './UserDropdown.vue';
 
     <!-- Right-side controls -->
     <div class="flex items-center gap-4">
-      <ThemeToggle />
       <UserDropdown />
     </div>
   </div>
@@ -44,11 +42,5 @@ import UserDropdown from './UserDropdown.vue';
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   transition: background 0.3s ease, border-color 0.3s ease;
-}
-
-[data-theme="dark"] .navbar {
-  background: rgba(24, 24, 24, 0.9);
-  border-bottom: 1px solid #334155;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 </style>

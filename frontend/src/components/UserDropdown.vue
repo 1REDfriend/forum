@@ -123,16 +123,7 @@ const handleLogout = () => {
   border: 1px solid #f1f5f9;
 }
 
-[data-theme="dark"] .user-dropdown {
-  background: #1e293b;
-  border: 1px solid #334155;
-}
-
 .user-dropdown__divider {
   border-color: #f1f5f9;
-}
-
-[data-theme="dark"] .user-dropdown__divider {
-  border-color: #334155;
 }
 </style>
