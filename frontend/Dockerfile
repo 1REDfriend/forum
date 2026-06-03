@@ -3,10 +3,7 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 COPY package*.json ./
-# Note: npm install (not ci) because the committed lock file is out of sync
-# (missing @emnapi/*), and --legacy-peer-deps sidesteps the vite-plugin-inspect
-# vs vite@8 peer conflict from vite-plugin-vue-devtools.
-RUN npm install --no-audit --no-fund --legacy-peer-deps
+RUN npm ci --no-audit --no-fund
 COPY . .
 
 # These are baked into the static bundle at build time (browser-facing values).
