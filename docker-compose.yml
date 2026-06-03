@@ -11,6 +11,64 @@ services:
       - "5843:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d dbname"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  backend:
+    build: ./backend
+    container_name: forum-backend
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: 3636
+      DATABASE_URL: postgres://user:password@db:5432/dbname
+      JWT_SECRET: ${JWT_SECRET:-please-change-this-in-env}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:8080}
+      BACKEND_URL: ${BACKEND_URL:-http://localhost:3636}
+      # File storage: 'cdn' forwards uploads to Axite over the internal docker network.
+      STORAGE_DRIVER: ${STORAGE_DRIVER:-cdn}
+      CDN_BASE_URL: ${CDN_BASE_URL:-http://axite-elysia:3000}
+      CDN_API_KEY: ${CDN_API_KEY:-}
+      # SMTP is optional — if unset the backend logs password-reset links to stdout.
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+    ports:
+      - "3636:3636"
+    networks:
+      - default
+      - axite
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3636}
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-}
+    container_name: forum-frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+
+networks:
+  # forum's own private network (db <-> backend <-> frontend)
+  default:
+  # Axite CDN's network (created by the cdn-axite stack) — lets the backend
+  # reach http://axite-elysia:3000 directly, bypassing Cloudflare.
+  axite:
+    external: true
+    name: axite-cdn-internal
 
 volumes:
   pgdata:

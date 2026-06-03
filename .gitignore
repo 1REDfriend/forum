@@ -2,3 +2,5 @@
 /frontend/.vscode
 /backend/node_modules
 backend/.env
+# root .env used by docker-compose (contains secrets — never commit)
+/.env
