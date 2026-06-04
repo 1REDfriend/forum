@@ -325,10 +325,6 @@ const formatCount = (n: number) => {
 .shape-1 { width: 500px; height: 500px; background: #c7d2fe; top: -150px; left: -100px; animation-delay: 0s; }
 .shape-2 { width: 400px; height: 400px; background: #ddd6fe; bottom: -100px; right: 200px; animation-delay: 3s; }
 .shape-3 { width: 300px; height: 300px; background: #bae6fd; top: 50%; right: -50px; animation-delay: 1.5s; }
-@keyframes float {
-  0%, 100% { transform: translateY(0px) scale(1); }
-  50% { transform: translateY(-30px) scale(1.05); }
-}
 
 .hero-content { flex: 1; max-width: 600px; position: relative; z-index: 1; }
 
@@ -406,10 +402,6 @@ const formatCount = (n: number) => {
   overflow: hidden;
   animation: float-card 6s ease-in-out infinite;
 }
-@keyframes float-card {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
 .card-header {
   display: flex;
   gap: 6px;
@@ -446,10 +438,6 @@ const formatCount = (n: number) => {
 }
 .badge-like { bottom: -20px; left: -20px; animation: pulse-badge 3s ease-in-out infinite; }
 .badge-reply { top: 30px; right: -30px; animation: pulse-badge 3s ease-in-out infinite 1.5s; }
-@keyframes pulse-badge {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-}
 
 /* ── Buttons ───────────────────────────────────────────────────────── */
 .btn-primary {

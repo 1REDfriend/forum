@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
 import { userRepository } from '../repositories/user.repository.js';
 import { passwordResetRepository } from '../repositories/passwordReset.repository.js';
+import { refreshTokenRepository } from '../repositories/refreshToken.repository.js';
 import type { RegisterDTO, LoginDTO, GoogleAuthDTO, ForgotPasswordDTO, ResetPasswordDTO } from '../types/index.js';
 import { ConflictError, UnauthorizedError, NotFoundError, BadRequestError } from '../utils/errors.js';
 import { sendPasswordResetEmail } from '../utils/mailer.js';
@@ -15,6 +16,9 @@ const jwtSecret =
         throw new Error('JWT_SECRET environment variable must be set in production');
       })()
     : 'fallback-secret-for-dev-only');
+
+// Short-lived access token; long-lived rotating refresh token (see refreshToken.repository).
+const ACCESS_TOKEN_TTL = '1h';
 
 export class AuthService {
   async register(data: RegisterDTO) {
@@ -33,8 +37,7 @@ export class AuthService {
       authProvider: 'local',
     });
 
-    const token = this.generateToken(user.id);
-    return { user: this.sanitizeUser(user), token };
+    return this.buildSession(user);
   }
 
   async login(data: LoginDTO) {
@@ -48,8 +51,7 @@ export class AuthService {
       throw UnauthorizedError('Invalid credentials');
     }
 
-    const token = this.generateToken(user.id);
-    return { user: this.sanitizeUser(user), token };
+    return this.buildSession(user);
   }
 
   async googleAuth(data: GoogleAuthDTO) {
@@ -85,8 +87,32 @@ export class AuthService {
       user = (await userRepository.update(user.id, { googleId }))!;
     }
 
-    const token = this.generateToken(user.id);
-    return { user: this.sanitizeUser(user), token };
+    return this.buildSession(user);
+  }
+
+  /**
+   * Exchange a refresh token for a fresh access + refresh pair (rotation:
+   * the presented refresh token is revoked so it can't be reused).
+   */
+  async refresh(refreshToken: string) {
+    const row = await refreshTokenRepository.findValid(refreshToken);
+    if (!row) {
+      throw UnauthorizedError('Invalid or expired refresh token');
+    }
+    const user = await userRepository.findById(row.userId);
+    if (!user) {
+      throw UnauthorizedError('Invalid refresh token');
+    }
+    await refreshTokenRepository.revokeById(row.id); // rotate
+    return this.buildSession(user);
+  }
+
+  /** Revoke a refresh token (logout). Always succeeds, even if the token is unknown. */
+  async logout(refreshToken?: string) {
+    if (refreshToken) {
+      await refreshTokenRepository.revokeRaw(refreshToken);
+    }
+    return { message: 'Logged out' };
   }
 
   async forgotPassword(data: ForgotPasswordDTO) {
@@ -125,8 +151,15 @@ export class AuthService {
     return { message: 'Password has been reset successfully. You can now log in.' };
   }
 
-  private generateToken(userId: number): string {
-    return jwt.sign({ userId }, jwtSecret, { expiresIn: '7d' });
+  /** Build the auth response: sanitized user + short access token + new refresh token. */
+  private async buildSession(user: { id: number }) {
+    const token = this.generateAccessToken(user.id);
+    const refreshToken = await refreshTokenRepository.issue(user.id);
+    return { user: this.sanitizeUser(user), token, refreshToken };
+  }
+
+  private generateAccessToken(userId: number): string {
+    return jwt.sign({ userId }, jwtSecret, { expiresIn: ACCESS_TOKEN_TTL });
   }
 
   private sanitizeUser(user: any) {

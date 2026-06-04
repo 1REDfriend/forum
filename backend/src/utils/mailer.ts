@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { logger } from './logger.js';
 
 const isConfigured =
   !!process.env.SMTP_HOST &&
@@ -35,10 +36,10 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string): Prom
 
   if (!transporter) {
     // In development without SMTP config, just log the link
-    console.log('\n========== PASSWORD RESET LINK (dev mode) ==========');
-    console.log(`To: ${to}`);
-    console.log(`Reset URL: ${resetUrl}`);
-    console.log('=====================================================\n');
+    logger.warn('SMTP not configured — password reset link logged instead of emailed', {
+      to,
+      resetUrl,
+    });
     return;
   }
 

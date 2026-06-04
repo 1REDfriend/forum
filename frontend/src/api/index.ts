@@ -18,11 +18,27 @@ export const apiClient = new ApiClient({
       return null;
     }
   },
-  // Called when an authenticated request gets 401 (expired/invalid session):
-  // clear the stored session and bounce to login.
+  getRefreshToken: () => {
+    try {
+      return localStorage.getItem('refreshToken');
+    } catch {
+      return null;
+    }
+  },
+  // Persist a rotated access + refresh pair after a successful silent refresh.
+  setTokens: (token: string, refreshToken: string) => {
+    try {
+      localStorage.setItem('token', token);
+      localStorage.setItem('refreshToken', refreshToken);
+    } catch {
+      /* ignore */
+    }
+  },
+  // Called when refresh fails / session is truly dead: clear it and bounce to login.
   onUnauthorized: () => {
     try {
       localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
     } catch {
       /* ignore */

@@ -30,6 +30,16 @@ export const ResetPasswordDTO = t.Object({
 });
 export type ResetPasswordDTO = typeof ResetPasswordDTO.static;
 
+export const RefreshDTO = t.Object({
+  refreshToken: t.String({ minLength: 1 }),
+});
+export type RefreshDTO = typeof RefreshDTO.static;
+
+export const LogoutDTO = t.Object({
+  refreshToken: t.Optional(t.String()),
+});
+export type LogoutDTO = typeof LogoutDTO.static;
+
 // ─── Forums ───────────────────────────────────────────────────────────────────
 export const CreateForumDTO = t.Object({
   name: t.String({ minLength: 1, maxLength: 100 }),

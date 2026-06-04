@@ -27,4 +27,8 @@ export class AuthApi {
   public resetPassword(token: string, password: string): Promise<{ message: string }> {
     return this.client.post<{ message: string }>('/auth/reset-password', { token, password });
   }
+
+  public logout(refreshToken: string | null): Promise<{ message: string }> {
+    return this.client.post<{ message: string }>('/auth/logout', { refreshToken });
+  }
 }

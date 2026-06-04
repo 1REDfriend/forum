@@ -206,6 +206,7 @@ export interface UpdateUserDTO {
 export interface AuthResponse {
   user: User;
   token: string;
+  refreshToken: string;
 }
 
 // ─── Tiers (rank) ────────────────────────────────────────────────────────────

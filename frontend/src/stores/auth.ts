@@ -25,17 +25,17 @@ export const useAuthStore = defineStore('auth', () => {
 
   const login = async (data: LoginDTO) => {
     const response = await authApi.login(data);
-    setAuth(response.user, response.token);
+    setAuth(response.user, response.token, response.refreshToken);
   };
 
   const register = async (data: RegisterDTO) => {
     const response = await authApi.register(data);
-    setAuth(response.user, response.token);
+    setAuth(response.user, response.token, response.refreshToken);
   };
 
   const googleAuth = async (idToken: string) => {
     const response = await authApi.googleAuth({ idToken });
-    setAuth(response.user, response.token);
+    setAuth(response.user, response.token, response.refreshToken);
   };
 
   const updateProfile = async (data: UpdateUserDTO) => {
@@ -62,16 +62,21 @@ export const useAuthStore = defineStore('auth', () => {
   };
 
   const logout = () => {
+    // Revoke the refresh token server-side (fire-and-forget) before clearing.
+    const rt = localStorage.getItem('refreshToken');
+    if (rt) void authApi.logout(rt).catch(() => {});
     user.value = null;
     token.value = null;
     localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
   };
 
-  const setAuth = (newUser: User, newToken: string) => {
+  const setAuth = (newUser: User, newToken: string, newRefreshToken: string) => {
     user.value = newUser;
     token.value = newToken;
     localStorage.setItem('token', newToken);
+    localStorage.setItem('refreshToken', newRefreshToken);
     localStorage.setItem('user', JSON.stringify(newUser));
   };
 

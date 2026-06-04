@@ -9,6 +9,7 @@ import { staticPlugin } from '@elysiajs/static';
 import { security } from './http/security.js';
 import { globalRateLimit } from './http/rateLimit.js';
 import { AppError } from './utils/errors.js';
+import { logger } from './utils/logger.js';
 
 import { authRoutes } from './routes/auth.routes.js';
 import { forumRoutes } from './routes/forum.routes.js';
@@ -83,7 +84,11 @@ new Elysia({ serve: { maxRequestBodySize: 16 * 1024 * 1024 } }) // ≥10MB image
       set.status = 404;
       return { error: 'Resource not found' };
     }
-    console.error('[Error]:', error);
+    logger.error('Unhandled error', {
+      name: (error as Error)?.name,
+      message: (error as Error)?.message,
+      stack: (error as Error)?.stack,
+    });
     set.status = 500;
     return { error: 'Internal Server Error' };
   })
@@ -101,5 +106,5 @@ new Elysia({ serve: { maxRequestBodySize: 16 * 1024 * 1024 } }) // ≥10MB image
   .use(uploadRoutes)
   .use(adminRoutes)
   .listen(port, () => {
-    console.log(`[IT.FORUM] Elysia server listening on port ${port}`);
+    logger.info(`IT.FORUM Elysia server listening on port ${port}`);
   });

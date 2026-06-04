@@ -6,6 +6,8 @@ import {
   GoogleAuthDTO,
   ForgotPasswordDTO,
   ResetPasswordDTO,
+  RefreshDTO,
+  LogoutDTO,
 } from '../types/index.js';
 import { loginRateLimit, registerRateLimit, forgotPasswordRateLimit } from '../http/rateLimit.js';
 
@@ -27,4 +29,6 @@ export const authRoutes = new Elysia({ prefix: '/auth', tags: ['Auth'] })
     body: ForgotPasswordDTO,
     beforeHandle: forgotPasswordRateLimit,
   })
-  .post('/reset-password', ({ body }) => authService.resetPassword(body), { body: ResetPasswordDTO });
+  .post('/reset-password', ({ body }) => authService.resetPassword(body), { body: ResetPasswordDTO })
+  .post('/refresh', ({ body }) => authService.refresh(body.refreshToken), { body: RefreshDTO })
+  .post('/logout', ({ body }) => authService.logout(body.refreshToken), { body: LogoutDTO });

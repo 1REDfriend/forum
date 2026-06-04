@@ -64,6 +64,18 @@ export const passwordResetTokens = pgTable("password_reset_tokens", {
   index("prt_token_idx").on(table.token),
 ]));
 
+export const refreshTokens = pgTable("refresh_tokens", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  tokenHash: text("token_hash").notNull().unique(), // sha256 of the raw token
+  expiresAt: timestamp("expires_at").notNull(),
+  revokedAt: timestamp("revoked_at"), // set on rotation or logout
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ([
+  index("rt_user_id_idx").on(table.userId),
+  index("rt_token_hash_idx").on(table.tokenHash),
+]));
+
 export const likes = pgTable("likes", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),

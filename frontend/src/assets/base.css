@@ -112,6 +112,11 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: 0;
 }
 
+/* BMW uses only 700 / 400 / 300 — weight 500 is absent. Collapse the
+   medium/semibold utilities so existing markup honors the brand scale. */
+.font-medium { font-weight: 400 !important; }
+.font-semibold { font-weight: 700 !important; }
+
 /* Rectangular mandate — square every radius utility except circular shapes.
    (Targeted so it never touches focus rings, which use ring-* / box-shadow vars.) */
 [class~="rounded"],
