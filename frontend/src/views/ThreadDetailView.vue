@@ -286,7 +286,9 @@ const formatDate = (dateStr: string) =>
 
       <!-- Main Thread Post -->
       <div class="flex flex-col sm:flex-row gap-4 items-start">
-        <ProfileCard :author="thread.author" class="w-full sm:w-44 sm:flex-shrink-0" />
+        <div class="w-full sm:w-52 sm:flex-shrink-0">
+          <ProfileCard :author="thread.author" />
+        </div>
         <div class="flex-1 min-w-0 w-full bg-white shadow-sm sm:rounded-xl border border-gray-100 overflow-hidden">
         <div class="p-6 border-b border-gray-100 bg-gray-50/50">
           <!-- View Mode -->
@@ -370,7 +372,9 @@ const formatDate = (dateStr: string) =>
         </div>
 
         <div v-for="post in posts" :key="post.id" class="flex flex-col sm:flex-row gap-4 items-start">
-          <ProfileCard :author="post.author" class="w-full sm:w-44 sm:flex-shrink-0" />
+          <div class="w-full sm:w-52 sm:flex-shrink-0">
+            <ProfileCard :author="post.author" />
+          </div>
           <div class="flex-1 min-w-0 w-full bg-white shadow-sm sm:rounded-xl border border-gray-100 overflow-hidden">
           <div class="px-6 py-3 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center text-sm">
             <span class="font-medium text-indigo-600">@{{ post.author.name }}</span>
