@@ -11,11 +11,8 @@
     "module": "NodeNext",
     "target": "ES2022",
     "moduleResolution": "NodeNext",
-    "types": [],
-    // For nodejs:
-    // "lib": ["esnext"],
-    // "types": ["node"],
-    // and npm install -D @types/node
+    // Bun runtime + Node compat types (Elysia, Buffer, process, fs, …)
+    "types": ["bun", "node"],
 
     // Other Outputs
     "sourceMap": true,

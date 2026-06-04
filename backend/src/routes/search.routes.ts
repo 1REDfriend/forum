@@ -1,8 +1,12 @@
-import { Router } from 'express';
-import { searchController } from '../controllers/search.controller.js';
+import { Elysia, t } from 'elysia';
+import { searchRepository } from '../repositories/search.repository.js';
 
-const router = Router();
-
-router.get('/', searchController.search);
-
-export default router;
+export const searchRoutes = new Elysia({ prefix: '/search', tags: ['Search'] }).get(
+  '/',
+  ({ query }) => {
+    const q = (query.q ?? '').trim();
+    if (!q) return { forums: [], threads: [] };
+    return searchRepository.search(q);
+  },
+  { query: t.Object({ q: t.Optional(t.String()) }) },
+);

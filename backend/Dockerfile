@@ -1,22 +1,18 @@
-# Forum backend — Express + Drizzle ORM.
-# Single stage on purpose: keeps drizzle-kit + tsx available so DB migrations
-# and seeding can run inside the container.
-FROM node:20-alpine
+# Forum backend — Elysia + Drizzle ORM, running on Bun.
+# Single stage on purpose: keeps drizzle-kit available so DB migrations run in-container.
+FROM oven/bun:1-alpine
 
 WORKDIR /app
 
-# Install all deps (dev included: needed for `tsc` build, drizzle-kit migrate, tsx seed)
-COPY package*.json ./
-RUN npm ci
+# Install all deps (dev included: drizzle-kit is needed for `migrate`).
+COPY package.json bun.lock* ./
+RUN bun install --frozen-lockfile
 
 # App source
 COPY . .
 
-# Compile TypeScript -> dist/
-RUN npm run build
-
 ENV NODE_ENV=production
 EXPOSE 3636
 
-# Apply pending migrations, then start the compiled server.
-CMD ["sh", "-c", "npm run migrate && node dist/index.js"]
+# Apply pending migrations, then start the server (Bun runs TypeScript directly).
+CMD ["sh", "-c", "bunx drizzle-kit migrate && bun src/index.ts"]

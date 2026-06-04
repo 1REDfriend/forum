@@ -1,10 +1,16 @@
-import { Router } from 'express';
-import { likeController } from '../controllers/like.controller.js';
-import { authenticate } from '../middlewares/auth.middleware.js';
+import { Elysia } from 'elysia';
+import { likeService } from '../services/like.service.js';
+import { auth } from '../http/auth.js';
+import { IdParam } from '../types/index.js';
 
-const router = Router();
-
-router.post('/thread/:id', authenticate, likeController.toggleThreadLike.bind(likeController));
-router.post('/post/:id', authenticate, likeController.togglePostLike.bind(likeController));
-
-export default router;
+export const likeRoutes = new Elysia({ prefix: '/likes', tags: ['Likes'] })
+  .use(auth)
+  .guard({ auth: true }, (app) =>
+    app
+      .post('/thread/:id', ({ user, params }) => likeService.toggleThreadLike(user.userId, params.id), {
+        params: IdParam,
+      })
+      .post('/post/:id', ({ user, params }) => likeService.togglePostLike(user.userId, params.id), {
+        params: IdParam,
+      }),
+  );

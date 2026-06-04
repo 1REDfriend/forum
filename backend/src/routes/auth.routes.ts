@@ -1,13 +1,30 @@
-import { Router } from 'express';
-import { authController } from '../controllers/auth.controller.js';
-import { loginRateLimiter, registerRateLimiter, forgotPasswordRateLimiter } from '../middlewares/rateLimit.middleware.js';
+import { Elysia } from 'elysia';
+import { authService } from '../services/auth.service.js';
+import {
+  RegisterDTO,
+  LoginDTO,
+  GoogleAuthDTO,
+  ForgotPasswordDTO,
+  ResetPasswordDTO,
+} from '../types/index.js';
+import { loginRateLimit, registerRateLimit, forgotPasswordRateLimit } from '../http/rateLimit.js';
 
-const router = Router();
-
-router.post('/register', registerRateLimiter, authController.register.bind(authController));
-router.post('/login', loginRateLimiter, authController.login.bind(authController));
-router.post('/google', authController.google.bind(authController));
-router.post('/forgot-password', forgotPasswordRateLimiter, authController.forgotPassword.bind(authController));
-router.post('/reset-password', authController.resetPassword.bind(authController));
-
-export default router;
+export const authRoutes = new Elysia({ prefix: '/auth', tags: ['Auth'] })
+  .post(
+    '/register',
+    ({ body, set }) => {
+      set.status = 201;
+      return authService.register(body);
+    },
+    { body: RegisterDTO, beforeHandle: registerRateLimit },
+  )
+  .post('/login', ({ body }) => authService.login(body), {
+    body: LoginDTO,
+    beforeHandle: loginRateLimit,
+  })
+  .post('/google', ({ body }) => authService.googleAuth(body), { body: GoogleAuthDTO })
+  .post('/forgot-password', ({ body }) => authService.forgotPassword(body), {
+    body: ForgotPasswordDTO,
+    beforeHandle: forgotPasswordRateLimit,
+  })
+  .post('/reset-password', ({ body }) => authService.resetPassword(body), { body: ResetPasswordDTO });
