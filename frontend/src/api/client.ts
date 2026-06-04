@@ -1,6 +1,7 @@
 export interface ApiClientConfig {
   baseUrl: string;
   getToken?: () => string | null;
+  onUnauthorized?: () => void;
 }
 
 export class ApiError extends Error {
@@ -18,10 +19,12 @@ export class ApiError extends Error {
 export class ApiClient {
   private baseUrl: string;
   private getToken?: () => string | null;
+  private onUnauthorized?: () => void;
 
   constructor(config: ApiClientConfig) {
     this.baseUrl = config.baseUrl.replace(/\/$/, ''); // Remove trailing slash if any
     this.getToken = config.getToken;
+    this.onUnauthorized = config.onUnauthorized;
   }
 
   private async request<T>(
@@ -31,15 +34,16 @@ export class ApiClient {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseUrl}${path.startsWith('/') ? path : `/${path}`}`;
-    
+
     const headers = new Headers(options.headers || {});
-    
+
     // Set content type to JSON by default if body data is provided
     if (data && !(data instanceof FormData)) {
       headers.set('Content-Type', 'application/json');
     }
 
     // Set authorization header if token resolver is configured
+    const hadToken = !!this.getToken?.();
     if (this.getToken) {
       const token = this.getToken();
       if (token) {
@@ -59,7 +63,7 @@ export class ApiClient {
 
     try {
       const response = await fetch(url, config);
-      
+
       let responseData: any = null;
       const contentType = response.headers.get('content-type');
       if (contentType && contentType.includes('application/json')) {
@@ -69,10 +73,15 @@ export class ApiClient {
       }
 
       if (!response.ok) {
-        const errorMessage = responseData && responseData.error 
-          ? responseData.error 
-          : responseData && responseData.message 
-            ? responseData.message 
+        // An authenticated request rejected with 401 → session is invalid/expired.
+        // (A 401 with no token is just a failed login attempt — leave it alone.)
+        if (response.status === 401 && hadToken) {
+          this.onUnauthorized?.();
+        }
+        const errorMessage = responseData && responseData.error
+          ? responseData.error
+          : responseData && responseData.message
+            ? responseData.message
             : `HTTP error! Status: ${response.status}`;
         throw new ApiError(response.status, errorMessage, responseData);
       }

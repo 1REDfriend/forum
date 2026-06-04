@@ -1,13 +1,13 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { authApi, usersApi } from '../api/index.js';
+import { authApi, usersApi, ApiError } from '../api/index.js';
 import type { LoginDTO, RegisterDTO, User, UpdateUserDTO } from '../api/types.js';
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null);
   const token = ref<string | null>(localStorage.getItem('token'));
-  
-  // Initialize user state from token if it exists (in a real app, you'd fetch /me here)
+
+  // Hydrate cached user immediately (avoids a flicker); refreshed from /me on app load.
   if (token.value) {
     try {
       const storedUser = localStorage.getItem('user');
@@ -44,6 +44,23 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.setItem('user', JSON.stringify(updatedUser));
   };
 
+  // Refresh the current user from the API (role/tier/profile may have changed
+  // server-side). Call on app startup so the UI never shows a stale role.
+  const fetchCurrentUser = async () => {
+    if (!token.value) return;
+    try {
+      const me = await usersApi.getMe();
+      user.value = me;
+      localStorage.setItem('user', JSON.stringify(me));
+    } catch (error) {
+      // 401 → the apiClient already cleared the session; mirror that locally.
+      if (error instanceof ApiError && error.status === 401) {
+        logout();
+      }
+      // Other errors (e.g. offline): keep the cached user.
+    }
+  };
+
   const logout = () => {
     user.value = null;
     token.value = null;
@@ -71,6 +88,7 @@ export const useAuthStore = defineStore('auth', () => {
     register,
     googleAuth,
     updateProfile,
+    fetchCurrentUser,
     logout,
     handleUnauthorized,
   };

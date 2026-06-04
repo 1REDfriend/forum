@@ -18,6 +18,19 @@ export const apiClient = new ApiClient({
       return null;
     }
   },
+  // Called when an authenticated request gets 401 (expired/invalid session):
+  // clear the stored session and bounce to login.
+  onUnauthorized: () => {
+    try {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    } catch {
+      /* ignore */
+    }
+    if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+      window.location.assign('/login');
+    }
+  },
 });
 
 export const authApi = new AuthApi(apiClient);

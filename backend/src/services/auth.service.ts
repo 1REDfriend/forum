@@ -8,7 +8,13 @@ import { ConflictError, UnauthorizedError, NotFoundError, BadRequestError } from
 import { sendPasswordResetEmail } from '../utils/mailer.js';
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || 'dummy-client-id');
-const jwtSecret = process.env.JWT_SECRET || 'fallback-secret-for-dev-only';
+const jwtSecret =
+  process.env.JWT_SECRET ||
+  (process.env.NODE_ENV === 'production'
+    ? (() => {
+        throw new Error('JWT_SECRET environment variable must be set in production');
+      })()
+    : 'fallback-secret-for-dev-only');
 
 export class AuthService {
   async register(data: RegisterDTO) {

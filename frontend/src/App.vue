@@ -1,6 +1,16 @@
 <script setup lang="ts">
+import { onMounted } from 'vue';
 import { RouterView } from 'vue-router';
 import Navbar from './components/Navbar.vue';
+import { useAuthStore } from './stores/auth';
+
+const authStore = useAuthStore();
+
+// Refresh the logged-in user (role/tier/profile) from the API on load so the UI
+// reflects server-side changes without requiring a logout/login.
+onMounted(() => {
+  void authStore.fetchCurrentUser();
+});
 </script>
 
 <template>
