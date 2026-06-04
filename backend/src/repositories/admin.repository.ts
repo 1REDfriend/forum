@@ -98,6 +98,7 @@ export class AdminRepository {
       name: users.name,
       email: users.email,
       role: users.role,
+      tier: users.tier,
       authProvider: users.authProvider,
       avatar: users.avatar,
       createdAt: users.createdAt,
@@ -135,6 +136,15 @@ export class AdminRepository {
     const [user] = await db
       .update(users)
       .set({ role })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async updateUserTier(id: number, tier: string) {
+    const [user] = await db
+      .update(users)
+      .set({ tier })
       .where(eq(users.id, id))
       .returning();
     return user;

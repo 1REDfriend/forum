@@ -5,6 +5,7 @@ import type {
   AdminStats, AdminUser, AdminForum, AdminThread, AdminPost, ActivityItem,
   PaginatedAdminResult,
 } from '../api/admin.js';
+import { TIERS } from '../api/types.js';
 import { useAuthStore } from '../stores/auth.js';
 import { useRouter } from 'vue-router';
 
@@ -144,6 +145,17 @@ const toggleUserRole = async (user: AdminUser) => {
     user.role = newRole;
   } catch (err: any) {
     alert(err.message || 'Failed to update role');
+  }
+};
+
+const setUserTier = async (user: AdminUser, tier: string) => {
+  const prev = user.tier;
+  user.tier = tier;
+  try {
+    await adminApi.updateUserTier(user.id, tier);
+  } catch (err: any) {
+    user.tier = prev;
+    alert(err.message || 'Failed to update tier');
   }
 };
 
@@ -334,6 +346,7 @@ onMounted(() => {
                 <th>User</th>
                 <th>Email</th>
                 <th>Role</th>
+                <th>Tier</th>
                 <th>Provider</th>
                 <th class="text-center">Threads</th>
                 <th class="text-center">Posts</th>
@@ -357,6 +370,16 @@ onMounted(() => {
                     :class="['role-badge', user.role === 'admin' ? 'role-admin' : 'role-user']"
                     :title="`Click to ${user.role === 'admin' ? 'demote to user' : 'promote to admin'}`"
                   >{{ user.role }}</button>
+                </td>
+                <td>
+                  <select
+                    :value="user.tier"
+                    @change="setUserTier(user, ($event.target as HTMLSelectElement).value)"
+                    class="tier-select"
+                    title="Set tier (rank)"
+                  >
+                    <option v-for="t in TIERS" :key="t" :value="t">{{ t }}</option>
+                  </select>
                 </td>
                 <td class="text-muted text-sm">{{ user.authProvider }}</td>
                 <td class="text-center text-sm">{{ user.threadCount }}</td>
@@ -800,6 +823,17 @@ onMounted(() => {
 .role-admin:hover { background: #fde68a; }
 .role-user { background: #e0e7ff; color: #4f46e5; }
 .role-user:hover { background: #c7d2fe; }
+.tier-select {
+  padding: 3px 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+  background: #f8fafc;
+  cursor: pointer;
+}
+.tier-select:focus { outline: none; border-color: #6366f1; }
 .badge-pin, .badge-lock { font-size: 14px; margin: 0 2px; }
 
 /* ── Links ──────────────────────────────────────────────────────────── */

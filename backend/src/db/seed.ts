@@ -20,11 +20,11 @@ async function seed() {
   const passwordHash = await bcrypt.hash('password123', 10);
 
   const createdUsers = await db.insert(users).values([
-    { name: 'Admin User', email: 'admin@forum.com', passwordHash, authProvider: 'local', role: 'admin' },
-    { name: 'John Tech', email: 'john@tech.com', passwordHash, authProvider: 'local' },
-    { name: 'Alice Coder', email: 'alice@code.com', passwordHash, authProvider: 'local' },
-    { name: 'Google Fan', email: 'fan@gmail.com', googleId: 'google-123', authProvider: 'google' },
-    { name: 'Somsak Dev', email: 'somsak@thai.dev', passwordHash, authProvider: 'local' },
+    { name: 'Admin User', email: 'admin@forum.com', passwordHash, authProvider: 'local', role: 'admin', tier: 'Diamond', bio: 'Site administrator. Keeping IT.FORUM tidy.' },
+    { name: 'John Tech', email: 'john@tech.com', passwordHash, authProvider: 'local', tier: 'Gold', bio: 'Backend dev — Node, Go, and a little Rust.' },
+    { name: 'Alice Coder', email: 'alice@code.com', passwordHash, authProvider: 'local', tier: 'Platinum', bio: 'Vue enthusiast & open-source contributor.' },
+    { name: 'Google Fan', email: 'fan@gmail.com', googleId: 'google-123', authProvider: 'google', tier: 'Silver', bio: 'Just here to learn 🙂' },
+    { name: 'Somsak Dev', email: 'somsak@thai.dev', passwordHash, authProvider: 'local', tier: 'Bronze', bio: 'น้องใหม่หัดเขียนโค้ด' },
   ]).returning();
 
   const admin = createdUsers[0]!;

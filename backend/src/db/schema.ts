@@ -7,8 +7,11 @@ export const users = pgTable("users", {
   passwordHash: text("password_hash"),
   googleId: text("google_id"),
   authProvider: text("auth_provider").notNull().default("local"), // 'local' or 'google'
-  role: text("role").notNull().default("user"), // 'user' or 'admin'
+  role: text("role").notNull().default("user"), // 'user' or 'admin' — set by admin
+  tier: text("tier").notNull().default("Bronze"), // rank, separate from role — set by admin
   avatar: text("avatar"),
+  banner: text("banner"), // profile cover image URL
+  bio: text("bio"), // profile description
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

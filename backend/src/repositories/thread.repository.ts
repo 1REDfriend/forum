@@ -17,6 +17,11 @@ const threadWithJoinsSelect = {
   author: {
     id: users.id,
     name: users.name,
+    avatar: users.avatar,
+    banner: users.banner,
+    bio: users.bio,
+    role: users.role,
+    tier: users.tier,
   },
   forum: {
     id: forums.id,

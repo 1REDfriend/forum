@@ -17,6 +17,7 @@ export interface AdminUser {
   name: string;
   email: string;
   role: 'user' | 'admin';
+  tier: string;
   authProvider: 'local' | 'google';
   avatar: string | null;
   createdAt: string;
@@ -107,6 +108,10 @@ export class AdminApi {
 
   updateUserRole(id: number, role: 'user' | 'admin'): Promise<AdminUser> {
     return this.client.patch<AdminUser>(`/admin/users/${id}/role`, { role });
+  }
+
+  updateUserTier(id: number, tier: string): Promise<AdminUser> {
+    return this.client.patch<AdminUser>(`/admin/users/${id}/tier`, { tier });
   }
 
   deleteUser(id: number): Promise<void> {

@@ -9,8 +9,22 @@ export interface User {
   googleId: string | null;
   authProvider: 'local' | 'google';
   role: 'user' | 'admin';
+  tier: string;
   avatar: string | null;
+  banner: string | null;
+  bio: string | null;
   createdAt: string;
+}
+
+// Author info shown on a post/thread profile card
+export interface PostAuthor {
+  id: number;
+  name: string;
+  avatar: string | null;
+  banner: string | null;
+  bio: string | null;
+  role: 'user' | 'admin';
+  tier: string;
 }
 
 export interface Forum {
@@ -41,10 +55,7 @@ export interface ThreadDetail {
   lastPostAt: string | null;
   lastPostAuthor: string | null;
   createdAt: string;
-  author: {
-    id: number;
-    name: string;
-  };
+  author: PostAuthor;
   forum: {
     id: number;
     name: string;
@@ -72,10 +83,7 @@ export interface PostDetail {
   updatedAt: string;
   likeCount: number;
   isLikedByMe: boolean;
-  author: {
-    id: number;
-    name: string;
-  };
+  author: PostAuthor;
 }
 
 // Simple Post representation returned upon creation
@@ -187,6 +195,8 @@ export interface UpdatePostDTO {
 export interface UpdateUserDTO {
   name?: string;
   avatar?: string;
+  banner?: string;
+  bio?: string;
 }
 
 // ==========================================
@@ -197,3 +207,26 @@ export interface AuthResponse {
   user: User;
   token: string;
 }
+
+// ─── Tiers (rank) ────────────────────────────────────────────────────────────
+export const TIERS = ['Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond'] as const;
+export type Tier = (typeof TIERS)[number];
+
+interface TierStyle {
+  bg: string;
+  color: string;
+  ring: string;
+}
+
+const TIER_STYLES: Record<string, TierStyle> = {
+  Bronze: { bg: '#f6e3d3', color: '#9a5b2e', ring: '#d9a978' },
+  Silver: { bg: '#e9edf2', color: '#566175', ring: '#c2ccd9' },
+  Gold: { bg: '#fdf0c9', color: '#a9790f', ring: '#f1c44b' },
+  Platinum: { bg: '#d7f3ea', color: '#0a7c66', ring: '#7fd8c2' },
+  Diamond: { bg: '#dcefff', color: '#0a6aa1', ring: '#7cc9f0' },
+};
+
+const DEFAULT_TIER_STYLE: TierStyle = TIER_STYLES.Bronze!;
+
+export const tierStyle = (tier?: string | null): TierStyle =>
+  TIER_STYLES[tier ?? ''] ?? DEFAULT_TIER_STYLE;

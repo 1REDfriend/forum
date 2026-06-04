@@ -71,11 +71,27 @@ export type UpdatePostDTO = z.infer<typeof UpdatePostDTOSchema>;
 
 export const UpdateUserDTOSchema = z.object({
   name: z.string().min(2).max(100).optional(),
-  avatar: z.string().optional(),
-}).refine((data) => data.name !== undefined || data.avatar !== undefined, {
-  message: 'At least one field (name or avatar) must be provided',
-});
+  avatar: z.string().max(2000).optional(),
+  banner: z.string().max(2000).optional(),
+  bio: z.string().max(500).optional(),
+}).refine(
+  (data) =>
+    data.name !== undefined ||
+    data.avatar !== undefined ||
+    data.banner !== undefined ||
+    data.bio !== undefined,
+  { message: 'At least one field must be provided' },
+);
 export type UpdateUserDTO = z.infer<typeof UpdateUserDTOSchema>;
+
+// ─── Tier (rank) — admin-assigned, separate from role ────────────────────────
+export const TIERS = ['Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond'] as const;
+export type Tier = (typeof TIERS)[number];
+
+export const UpdateUserTierDTOSchema = z.object({
+  tier: z.enum(TIERS),
+});
+export type UpdateUserTierDTO = z.infer<typeof UpdateUserTierDTOSchema>;
 
 export const PaginationQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),

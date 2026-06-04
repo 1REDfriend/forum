@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useAuthStore } from '../stores/auth.js';
 import { usersApi, uploadApi } from '../api/index.js';
 import type { User } from '../api/types.js';
+import { tierStyle } from '../api/types.js';
 
 const props = defineProps<{ id?: string }>();
 
@@ -12,6 +13,7 @@ const isLoading = ref(true);
 const error = ref('');
 const isEditing = ref(false);
 const editName = ref('');
+const editBio = ref('');
 const isSaving = ref(false);
 const editError = ref('');
 
@@ -21,10 +23,20 @@ const isUploadingAvatar = ref(false);
 const avatarUploadError = ref('');
 const avatarPreview = ref<string | null>(null);
 
+// Banner upload
+const bannerInputRef = ref<HTMLInputElement | null>(null);
+const isUploadingBanner = ref(false);
+const bannerUploadError = ref('');
+
 const isOwnProfile = computed(() => {
     if (props.id) return false;
     return authStore.isAuthenticated;
 });
+
+const ts = computed(() => tierStyle(profileUser.value?.tier));
+const bannerStyle = computed(() =>
+    profileUser.value?.banner ? { backgroundImage: `url(${JSON.stringify(profileUser.value.banner)})` } : {},
+);
 
 onMounted(async () => {
     try {
@@ -42,6 +54,7 @@ onMounted(async () => {
 
 const startEdit = () => {
     editName.value = profileUser.value?.name || '';
+    editBio.value = profileUser.value?.bio || '';
     isEditing.value = true;
     editError.value = '';
     avatarUploadError.value = '';
@@ -57,8 +70,8 @@ const saveEdit = async () => {
     isSaving.value = true;
     editError.value = '';
     try {
-        await authStore.updateProfile({ name: editName.value });
-        profileUser.value = { ...profileUser.value, name: editName.value };
+        await authStore.updateProfile({ name: editName.value, bio: editBio.value });
+        profileUser.value = { ...profileUser.value, name: editName.value, bio: editBio.value };
         isEditing.value = false;
     } catch (err: any) {
         editError.value = err.message || 'Failed to update profile';
@@ -72,17 +85,14 @@ const onAvatarFileChange = async (event: Event) => {
     const file = input.files?.[0];
     if (!file) return;
 
-    // Show preview immediately
     const reader = new FileReader();
     reader.onload = (e) => { avatarPreview.value = e.target?.result as string; };
     reader.readAsDataURL(file);
 
-    // Upload
     isUploadingAvatar.value = true;
     avatarUploadError.value = '';
     try {
         const url = await uploadApi.uploadAvatar(file);
-        // Update profile avatar via auth store
         await authStore.updateProfile({ avatar: url });
         profileUser.value = { ...profileUser.value, avatar: url };
         avatarPreview.value = null;
@@ -92,6 +102,25 @@ const onAvatarFileChange = async (event: Event) => {
     } finally {
         isUploadingAvatar.value = false;
         if (avatarInputRef.value) avatarInputRef.value.value = '';
+    }
+};
+
+const onBannerFileChange = async (event: Event) => {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    isUploadingBanner.value = true;
+    bannerUploadError.value = '';
+    try {
+        const url = await uploadApi.uploadImage(file);
+        await authStore.updateProfile({ banner: url });
+        profileUser.value = { ...profileUser.value, banner: url };
+    } catch (err: any) {
+        bannerUploadError.value = err.message || 'Banner upload failed. Please try again.';
+    } finally {
+        isUploadingBanner.value = false;
+        if (bannerInputRef.value) bannerInputRef.value.value = '';
     }
 };
 
@@ -129,13 +158,29 @@ const formatDate = (dateStr: string | undefined) => {
             <div v-else-if="profileUser" class="space-y-6">
                 <!-- Profile Card -->
                 <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-                    <div class="h-24 bg-gradient-to-r from-indigo-500 to-purple-600"></div>
+                    <!-- Banner -->
+                    <div class="relative h-32 group bg-indigo-100">
+                        <div class="absolute inset-0 bg-cover bg-center" :style="bannerStyle"></div>
+                        <div v-if="!profileUser.banner"
+                            class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600"></div>
+                        <!-- Banner upload (own profile) -->
+                        <label v-if="isOwnProfile"
+                            class="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white text-sm font-medium"
+                            :class="{ 'opacity-100 pointer-events-none': isUploadingBanner }" title="Change banner">
+                            <span v-if="isUploadingBanner">Uploading banner…</span>
+                            <span v-else>📷 Change banner</span>
+                            <input ref="bannerInputRef" type="file"
+                                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" class="hidden"
+                                @change="onBannerFileChange" :disabled="isUploadingBanner" />
+                        </label>
+                    </div>
+
                     <div class="px-8 pb-8">
-                        <div class="flex items-end gap-6 -mt-10 mb-6">
+                        <div class="flex items-end gap-6 -mt-10 mb-4">
                             <!-- Avatar with upload overlay -->
                             <div class="relative group">
                                 <div v-if="avatarPreview || profileUser.avatar"
-                                    class="w-20 h-20 rounded-full border-4 border-white shadow-md overflow-hidden">
+                                    class="w-20 h-20 rounded-full border-4 border-white shadow-md overflow-hidden bg-white">
                                     <img :src="avatarPreview || profileUser.avatar || ''"
                                         class="w-full h-full object-cover" alt="Avatar" />
                                 </div>
@@ -143,7 +188,6 @@ const formatDate = (dateStr: string | undefined) => {
                                     class="w-20 h-20 rounded-full bg-indigo-600 text-white flex items-center justify-center text-2xl font-bold border-4 border-white shadow-md">
                                     {{ getInitials(profileUser.name) }}
                                 </div>
-                                <!-- Upload overlay (only for own profile) -->
                                 <label v-if="isOwnProfile"
                                     class="absolute inset-0 rounded-full flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                                     :class="{ 'opacity-100 pointer-events-none': isUploadingAvatar }"
@@ -162,46 +206,66 @@ const formatDate = (dateStr: string | undefined) => {
                                         @change="onAvatarFileChange" :disabled="isUploadingAvatar" />
                                 </label>
                             </div>
-                            <div class="pb-1">
+                            <div class="pb-1 flex-1 min-w-0">
                                 <template v-if="!isEditing">
-                                    <h1 class="text-2xl font-bold text-gray-900">{{ profileUser.name }}</h1>
+                                    <h1 class="text-2xl font-bold text-gray-900 truncate">{{ profileUser.name }}</h1>
                                 </template>
                                 <template v-else>
                                     <input v-model="editName"
-                                        class="text-2xl font-bold text-gray-900 border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
+                                        class="text-2xl font-bold text-gray-900 border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 w-full max-w-xs" />
                                 </template>
-                                <p class="text-sm text-gray-500" v-if="profileUser.email">{{ profileUser.email }}</p>
+                                <p class="text-sm text-gray-500 truncate" v-if="profileUser.email">{{ profileUser.email }}</p>
                             </div>
                         </div>
 
                         <p v-if="avatarUploadError"
-                            class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2 mb-3 border border-red-100">{{
-                                avatarUploadError }}</p>
-                        <div v-if="editError" class="p-3 bg-red-50 text-red-600 rounded-md text-sm mb-4">{{ editError }}
+                            class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2 mb-3 border border-red-100">{{ avatarUploadError }}</p>
+                        <p v-if="bannerUploadError"
+                            class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2 mb-3 border border-red-100">{{ bannerUploadError }}</p>
+                        <div v-if="editError" class="p-3 bg-red-50 text-red-600 rounded-md text-sm mb-4">{{ editError }}</div>
+
+                        <!-- Badges: tier + role -->
+                        <div class="flex items-center flex-wrap gap-2 mb-4">
+                            <span class="px-2.5 py-0.5 rounded-full font-bold text-xs border"
+                                :style="{ background: ts.bg, color: ts.color, borderColor: ts.ring }">
+                                ★ {{ profileUser.tier || 'Bronze' }}
+                            </span>
+                            <span v-if="profileUser.role === 'admin'"
+                                class="bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-full font-bold text-xs uppercase">
+                                Admin
+                            </span>
+                            <span v-if="profileUser.createdAt" class="text-sm text-gray-500 ml-1">📅 Joined {{ formatDate(profileUser.createdAt) }}</span>
                         </div>
 
-                        <div class="flex items-center gap-6 text-sm text-gray-500 mb-4">
-                            <span v-if="profileUser.createdAt">📅 Joined {{ formatDate(profileUser.createdAt) }}</span>
-                            <span v-if="(profileUser as any).role"
-                                class="bg-indigo-100 text-indigo-700 px-2.5 py-0.5 rounded-full font-medium text-xs uppercase">
-                                {{ (profileUser as any).role }}
-                            </span>
+                        <!-- Bio -->
+                        <div class="mb-4">
+                            <template v-if="!isEditing">
+                                <p v-if="profileUser.bio" class="text-sm text-gray-700 whitespace-pre-line">{{ profileUser.bio }}</p>
+                                <p v-else class="text-sm text-gray-400 italic">No bio yet.</p>
+                            </template>
+                            <template v-else>
+                                <label class="block text-xs font-medium text-gray-500 mb-1">Bio / Description</label>
+                                <textarea v-model="editBio" rows="3" maxlength="500"
+                                    placeholder="Tell others about yourself…"
+                                    class="w-full text-sm text-gray-700 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 resize-y"></textarea>
+                                <p class="text-xs text-gray-400 mt-1">{{ editBio.length }}/500</p>
+                            </template>
                         </div>
 
                         <div v-if="isOwnProfile" class="flex gap-2 flex-wrap">
                             <template v-if="!isEditing">
                                 <button @click="startEdit"
                                     class="px-4 py-2 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
-                                    Edit Name
+                                    Edit Profile
                                 </button>
-                                <p class="text-xs text-gray-400 self-center">Hover over your avatar to change it</p>
+                                <p class="text-xs text-gray-400 self-center">Hover the avatar or banner to change images</p>
                             </template>
                             <template v-else>
                                 <button @click="cancelEdit"
                                     class="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">Cancel</button>
                                 <button @click="saveEdit" :disabled="isSaving"
                                     class="px-4 py-2 text-sm text-white bg-indigo-600 hover:bg-indigo-700 rounded-md disabled:opacity-50">
-                                    {{ isSaving ? 'Saving...' : 'Save Name' }}
+                                    {{ isSaving ? 'Saving...' : 'Save' }}
                                 </button>
                             </template>
                         </div>

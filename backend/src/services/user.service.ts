@@ -20,6 +20,10 @@ export class UserService {
       id: user.id,
       name: user.name,
       avatar: user.avatar,
+      banner: user.banner,
+      bio: user.bio,
+      role: user.role,
+      tier: user.tier,
       createdAt: user.createdAt,
     };
   }
@@ -33,6 +37,8 @@ export class UserService {
     const updateData: Record<string, any> = {};
     if (data.name !== undefined) updateData.name = data.name;
     if (data.avatar !== undefined) updateData.avatar = data.avatar;
+    if (data.banner !== undefined) updateData.banner = data.banner;
+    if (data.bio !== undefined) updateData.bio = data.bio;
     const updated = await userRepository.update(userId, updateData);
     return this.sanitizeUser(updated!);
   }

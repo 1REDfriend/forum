@@ -6,6 +6,7 @@ import { useAuthStore } from '../stores/auth.js';
 import { useRouter } from 'vue-router';
 import MarkdownRenderer from '../components/MarkdownRenderer.vue';
 import MarkdownEditor from '../components/MarkdownEditor.vue';
+import ProfileCard from '../components/ProfileCard.vue';
 
 const props = defineProps<{ id: string }>();
 
@@ -284,7 +285,9 @@ const formatDate = (dateStr: string) =>
       </nav>
 
       <!-- Main Thread Post -->
-      <div class="bg-white shadow-sm sm:rounded-xl border border-gray-100 overflow-hidden">
+      <div class="flex flex-col sm:flex-row gap-4 items-start">
+        <ProfileCard :author="thread.author" class="w-full sm:w-44 sm:flex-shrink-0" />
+        <div class="flex-1 min-w-0 w-full bg-white shadow-sm sm:rounded-xl border border-gray-100 overflow-hidden">
         <div class="p-6 border-b border-gray-100 bg-gray-50/50">
           <!-- View Mode -->
           <template v-if="!isEditingThread">
@@ -351,6 +354,7 @@ const formatDate = (dateStr: string) =>
             </div>
           </template>
         </div>
+        </div>
       </div>
 
       <!-- Error banner -->
@@ -365,8 +369,9 @@ const formatDate = (dateStr: string) =>
           <p>No replies yet. Be the first to respond!</p>
         </div>
 
-        <div v-for="post in posts" :key="post.id"
-          class="bg-white shadow-sm sm:rounded-xl border border-gray-100 overflow-hidden">
+        <div v-for="post in posts" :key="post.id" class="flex flex-col sm:flex-row gap-4 items-start">
+          <ProfileCard :author="post.author" class="w-full sm:w-44 sm:flex-shrink-0" />
+          <div class="flex-1 min-w-0 w-full bg-white shadow-sm sm:rounded-xl border border-gray-100 overflow-hidden">
           <div class="px-6 py-3 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center text-sm">
             <span class="font-medium text-indigo-600">@{{ post.author.name }}</span>
             <div class="flex items-center gap-3">
@@ -410,6 +415,7 @@ const formatDate = (dateStr: string) =>
                 {{ isSavingPost ? 'Saving...' : 'Save' }}
               </button>
             </div>
+          </div>
           </div>
         </div>
       </div>

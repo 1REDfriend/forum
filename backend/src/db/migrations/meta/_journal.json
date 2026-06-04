@@ -22,6 +22,13 @@
       "when": 1779901304026,
       "tag": "0002_abandoned_onslaught",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1780567294212,
+      "tag": "0003_mysterious_nekra",
+      "breakpoints": true
     }
   ]
 }

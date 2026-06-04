@@ -15,6 +15,7 @@ router.get('/activity', adminController.getRecentActivity.bind(adminController))
 // ─── Users ────────────────────────────────────────────────────────────────
 router.get('/users', adminController.getUsers.bind(adminController));
 router.patch('/users/:id/role', adminController.updateUserRole.bind(adminController));
+router.patch('/users/:id/tier', adminController.updateUserTier.bind(adminController));
 router.delete('/users/:id', adminController.deleteUser.bind(adminController));
 
 // ─── Forums ───────────────────────────────────────────────────────────────

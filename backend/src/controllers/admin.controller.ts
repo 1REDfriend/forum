@@ -3,6 +3,7 @@ import { adminRepository } from '../repositories/admin.repository.js';
 import { forumRepository } from '../repositories/forum.repository.js';
 import { threadRepository } from '../repositories/thread.repository.js';
 import { postRepository } from '../repositories/post.repository.js';
+import { UpdateUserTierDTOSchema } from '../types/index.js';
 import { z } from 'zod';
 
 const PaginationSchema = z.object({
@@ -51,6 +52,18 @@ export class AdminController {
 
       const { role } = z.object({ role: z.enum(['user', 'admin']) }).parse(req.body);
       const user = await adminRepository.updateUserRole(id, role);
+      if (!user) { res.status(404).json({ error: 'User not found' }); return; }
+      res.json(user);
+    } catch (error) { next(error); }
+  }
+
+  async updateUserTier(req: Request, res: Response, next: NextFunction) {
+    try {
+      const id = parseInt(req.params.id as string);
+      if (isNaN(id)) { res.status(400).json({ error: 'Invalid user ID' }); return; }
+
+      const { tier } = UpdateUserTierDTOSchema.parse(req.body);
+      const user = await adminRepository.updateUserTier(id, tier);
       if (!user) { res.status(404).json({ error: 'User not found' }); return; }
       res.json(user);
     } catch (error) { next(error); }

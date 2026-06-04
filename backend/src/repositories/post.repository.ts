@@ -21,6 +21,11 @@ export class PostRepository {
       author: {
         id: users.id,
         name: users.name,
+        avatar: users.avatar,
+        banner: users.banner,
+        bio: users.bio,
+        role: users.role,
+        tier: users.tier,
       }
     })
     .from(posts)
