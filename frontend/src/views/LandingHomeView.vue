@@ -723,4 +723,114 @@ const formatCount = (n: number) => {
   .top-forum-card { flex-wrap: wrap; }
   .section-inner { padding: 0 20px; }
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+   BMW corporate restyle (see DESIGN.md) — overrides the rules above.
+   Dark navy hero, single BMW blue, rectangular 0px, flat (no shadow), Inter
+   700 display / 300 body, 80px section rhythm.
+   ════════════════════════════════════════════════════════════════════════ */
+.landing { color: #3c3c3c; }
+
+/* HERO — dark navy band */
+.hero { background: #1a2129; color: #ffffff; }
+.hero-bg-shapes { display: none; }            /* no decorative blobs */
+.hero-badge {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.22);
+  color: #ffffff;
+  border-radius: 0;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.hero-title { color: #ffffff; font-weight: 700; letter-spacing: 0; line-height: 1.05; }
+.hero-gradient {
+  background: none;
+  -webkit-text-fill-color: #5a9bff;
+  color: #5a9bff;                             /* light BMW blue on navy */
+}
+.hero-desc { color: #bbbbbb; font-weight: 300; line-height: 1.55; }
+.hero-stats {
+  background: #262e38;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 0;
+  box-shadow: none;
+}
+.stat-val { color: #ffffff; font-weight: 700; }
+.stat-label { color: #bbbbbb; }
+.stat-divider { background: rgba(255,255,255,0.15); }
+
+/* Hero mock card — flat white plate, no float */
+.visual-card { border-radius: 0; }
+.card-main { border: 1px solid #e6e6e6; box-shadow: none; animation: none; }
+.card-header { background: #f7f7f7; border-bottom: 1px solid #e6e6e6; }
+.card-badge {
+  background: #ffffff; border: 1px solid #e6e6e6; box-shadow: none;
+  border-radius: 0; color: #262626; font-weight: 700; animation: none;
+}
+
+/* BUTTONS — rectangular, single blue, no shadow/transform */
+.btn-primary {
+  background: #1c69d4; color: #ffffff; font-weight: 700;
+  letter-spacing: 0.5px; border-radius: 0; box-shadow: none; padding: 14px 32px;
+}
+.btn-primary:hover { background: #0653b6; transform: none; box-shadow: none; }
+.btn-primary.btn-large { padding: 16px 40px; }
+/* secondary sits on the navy hero → on-dark outline style */
+.btn-secondary {
+  background: transparent; color: #ffffff; border: 1px solid #ffffff;
+  font-weight: 700; letter-spacing: 0.5px; border-radius: 0;
+}
+.btn-secondary:hover {
+  background: rgba(255,255,255,0.1); border-color: #ffffff;
+  transform: none; box-shadow: none;
+}
+
+/* SECTIONS — 80px rhythm, uppercase blue label, ink title */
+.section { padding: 80px 0; }
+.section-label { color: #1c69d4; font-weight: 700; letter-spacing: 1.5px; }
+.section-title { color: #262626; font-weight: 700; letter-spacing: 0; }
+.section-desc { color: #6b6b6b; font-weight: 300; }
+
+/* alternate band surfaces: hero(navy) → features(grey) → how(white) → top(grey) → cta(navy) */
+.features-section { background: #f7f7f7; }
+.how-section { background: #ffffff; }
+.top-forums-section { background: #f7f7f7; }
+
+/* FEATURE / STEP / FORUM cards — flat, hairline, square, blue hover border */
+.feature-card, .step, .top-forum-card {
+  border: 1px solid #e6e6e6; border-radius: 0; box-shadow: none;
+}
+.feature-card::before { display: none; }
+.feature-card:hover, .step:hover {
+  border-color: #1c69d4; transform: none; box-shadow: none;
+}
+.feature-title, .step-title, .top-forum-name { color: #262626; font-weight: 700; }
+.feature-desc, .step-desc, .top-forum-desc { color: #6b6b6b; font-weight: 300; }
+
+.step-num {
+  background: #1c69d4; border-radius: 9999px; box-shadow: none; font-weight: 700;
+}
+.step-arrow { color: #cccccc; }
+
+.top-forum-card { border-radius: 0; box-shadow: none; }
+.top-forum-card::before { background: #1c69d4; border-radius: 0; }
+.top-forum-card.rank-1::before { background: #d4af37; }
+.top-forum-card.rank-2::before { background: #aab1b8; }
+.top-forum-card.rank-3::before { background: #b87333; }
+.top-forum-card:hover { border-color: #1c69d4; transform: none; box-shadow: none; }
+.top-forum-avatar {
+  background: #1c69d4; border-radius: 0; font-weight: 700;   /* square forum tile */
+}
+.top-stat-val { color: #1c69d4; font-weight: 700; }
+.top-forum-arrow { color: #9a9a9a; }
+.see-all-link { color: #1c69d4; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; font-size: 13px; }
+.see-all-link:hover { color: #0653b6; }
+.skeleton-card { border: 1px solid #e6e6e6; border-radius: 0; }
+
+/* CTA — closing dark navy band */
+.cta-section { background: #1a2129; padding: 80px 32px; }
+.cta-section::before { display: none; }
+.cta-title { color: #ffffff; font-weight: 700; }
+.cta-desc { color: #bbbbbb; font-weight: 300; }
 </style>

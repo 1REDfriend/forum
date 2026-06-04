@@ -109,7 +109,7 @@ const handleLogout = () => {
       </router-link>
       <router-link
         to="/register"
-        class="text-sm bg-indigo-600 text-white px-4 py-2 rounded-full hover:bg-indigo-700 font-medium transition-colors shadow-sm"
+        class="text-sm bg-indigo-600 text-white px-5 py-2 hover:bg-indigo-700 font-bold tracking-wide uppercase transition-colors"
       >
         Register
       </router-link>
