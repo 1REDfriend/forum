@@ -1,88 +1,62 @@
 @import "tailwindcss";
 
 /* ============================================================================
-   BMW corporate design system (see DESIGN.md)
-   - Light canvas, BMW corporate blue #1c69d4 as the single primary action color
-   - Rectangular (0px radius) everything except circular avatars/icons
-   - Flat: no drop shadows; depth from color-block contrast + hairlines
-   - Inter (substitute for BMW Type Next): heavy 700 display vs Light 300 body
+   Modern startup — white / sky-blue, glassmorphism.
+   Frosted translucent surfaces, soft shadows, rounded corners, blue gradients.
+   (Tailwind's default radius + shadow scales are kept — no overrides — so all
+   existing rounded-*/shadow-* utilities render normally.)
    ============================================================================ */
 @theme {
-  /* Type — Inter, with system fallback */
   --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     Roboto, sans-serif;
 
-  /* Radius — rectangular. Everything 0; only `rounded-full` stays circular. */
-  --radius-xs: 0px;
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-  --radius-xl: 0px;
-  --radius-2xl: 0px;
-  --radius-3xl: 0px;
-  --radius-4xl: 0px;
+  /* Brand action color — remap indigo/violet/purple ramps to a vibrant sky-blue
+     so every existing *-indigo-* / gradient utility reads white-and-blue. */
+  --color-indigo-50: #eff6ff;
+  --color-indigo-100: #dbeafe;
+  --color-indigo-200: #bfdbfe;
+  --color-indigo-300: #93c5fd;
+  --color-indigo-400: #60a5fa;
+  --color-indigo-500: #3b82f6;
+  --color-indigo-600: #2563eb; /* primary */
+  --color-indigo-700: #1d4ed8; /* hover / active */
+  --color-indigo-800: #1e40af;
+  --color-indigo-900: #1e3a8a;
+  --color-indigo-950: #172554;
 
-  /* Elevation — flat. Kill every shadow token (rings stay; they use ring vars). */
-  --shadow-2xs: 0 0 #0000;
-  --shadow-xs: 0 0 #0000;
-  --shadow-sm: 0 0 #0000;
-  --shadow: 0 0 #0000;
-  --shadow-md: 0 0 #0000;
-  --shadow-lg: 0 0 #0000;
-  --shadow-xl: 0 0 #0000;
-  --shadow-2xl: 0 0 #0000;
-  --drop-shadow-sm: 0 0 #0000;
-  --drop-shadow: 0 0 #0000;
-  --drop-shadow-md: 0 0 #0000;
-  --drop-shadow-lg: 0 0 #0000;
-  --drop-shadow-xl: 0 0 #0000;
+  /* purple/violet → blue-cyan family (keeps gradients on-theme, no magenta) */
+  --color-violet-400: #38bdf8;
+  --color-violet-500: #0ea5e9;
+  --color-violet-600: #2563eb;
+  --color-purple-400: #38bdf8;
+  --color-purple-500: #0ea5e9;
+  --color-purple-600: #2563eb;
+  --color-purple-700: #1d4ed8;
 
-  /* Primary action color — remap the indigo ramp to BMW blue so every existing
-     `*-indigo-*` utility becomes corporate blue in one shot. */
-  --color-indigo-50: #eaf1fb;
-  --color-indigo-100: #d2e2f7;
-  --color-indigo-200: #a6c5ef;
-  --color-indigo-300: #79a8e7;
-  --color-indigo-400: #4d8bdf;
-  --color-indigo-500: #1c69d4;
-  --color-indigo-600: #1c69d4; /* primary */
-  --color-indigo-700: #0653b6; /* active / pressed */
-  --color-indigo-800: #06408c;
-  --color-indigo-900: #052f66;
-  --color-indigo-950: #04244d;
-
-  /* Old violet/purple gradients → collapse into the blue family (BMW = blue only) */
-  --color-violet-400: #4d8bdf;
-  --color-violet-500: #1c69d4;
-  --color-violet-600: #0653b6;
-  --color-purple-400: #4d8bdf;
-  --color-purple-500: #1c69d4;
-  --color-purple-600: #0653b6;
-  --color-purple-700: #06408c;
-
-  /* BMW custom palette (usable as bg-bmw-navy, text-bmw-blue, etc.) */
-  --color-bmw-blue: #1c69d4;
-  --color-bmw-blue-active: #0653b6;
-  --color-bmw-navy: #1a2129;
-  --color-bmw-navy-elevated: #262e38;
-  --color-bmw-ink: #262626;
-  --color-bmw-hairline: #e6e6e6;
-  --color-bmw-canvas: #ffffff;
-  --color-bmw-surface: #fafafa;
+  /* glass / brand helpers (bg-brand-500, text-sky, etc.) */
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-sky-accent: #0ea5e9;
 }
 
 :root {
-  --color-background: #ffffff;
-  --color-background-soft: #f7f7f7;
-  --color-background-mute: #ebebeb;
+  --color-background: #f4f8ff;
+  --color-background-soft: #eaf1ff;
+  --color-background-mute: #e2ecff;
 
-  --color-border: #e6e6e6; /* BMW hairline */
-  --color-border-hover: #cccccc;
+  --color-border: #e2e8f0;
+  --color-border-hover: #cbd5e1;
 
-  --color-heading: #262626; /* BMW ink */
-  --color-text: #3c3c3c; /* BMW body */
+  --color-heading: #0f172a;
+  --color-text: #334155;
 
-  --section-gap: 80px; /* BMW section rhythm */
+  --section-gap: 96px;
+
+  /* glass tokens */
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-bg-strong: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-shadow: 0 8px 32px rgba(30, 64, 175, 0.12);
 }
 
 *,
@@ -92,43 +66,63 @@
   margin: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   min-height: 100vh;
   color: var(--color-text);
-  background: var(--color-background);
-  line-height: 1.55;
+  /* soft white→sky-blue page wash + faint blue glow blobs (fixed) */
+  background:
+    radial-gradient(60rem 60rem at 80% -10%, rgba(56, 189, 248, 0.18), transparent 60%),
+    radial-gradient(50rem 50rem at -10% 20%, rgba(37, 99, 235, 0.14), transparent 55%),
+    linear-gradient(180deg, #f8fbff 0%, #eaf1ff 100%);
+  background-attachment: fixed;
+  line-height: 1.6;
   font-family: var(--font-sans);
   font-size: 15px;
-  font-weight: 300; /* BMW Light body */
+  font-weight: 400;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* BMW editorial signature: heavy 700 display vs Light 300 body. */
 h1, h2, h3, h4, h5, h6 {
   font-weight: 700;
   color: var(--color-heading);
-  letter-spacing: 0;
+  letter-spacing: -0.01em;
 }
 
-/* BMW uses only 700 / 400 / 300 — weight 500 is absent. Collapse the
-   medium/semibold utilities so existing markup honors the brand scale. */
-.font-medium { font-weight: 400 !important; }
-.font-semibold { font-weight: 700 !important; }
-
-/* Rectangular mandate — square every radius utility except circular shapes.
-   (Targeted so it never touches focus rings, which use ring-* / box-shadow vars.) */
-[class~="rounded"],
-[class*="rounded-xs"],
-[class*="rounded-sm"],
-[class*="rounded-md"],
-[class*="rounded-lg"],
-[class*="rounded-xl"],
-[class*="rounded-2xl"],
-[class*="rounded-3xl"] {
-  border-radius: 0 !important;
+/* ── Glassmorphism utilities ───────────────────────────────────────────────
+   Use `class="glass"` on cards/panels for the frosted look. */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
 }
-[class*="rounded-full"] {
-  border-radius: 9999px !important;
+.glass-strong {
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+/* subtle top highlight that sells the glass edge */
+.glass-hi {
+  position: relative;
+}
+.glass-hi::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
 }

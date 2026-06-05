@@ -713,112 +713,101 @@ const formatCount = (n: number) => {
 }
 
 /* ════════════════════════════════════════════════════════════════════════
-   BMW corporate restyle (see DESIGN.md) — overrides the rules above.
-   Dark navy hero, single BMW blue, rectangular 0px, flat (no shadow), Inter
-   700 display / 300 body, 80px section rhythm.
+   Glassmorphism — modern startup, white / sky-blue. Overrides the rules above.
+   Frosted translucent cards, soft blue shadows, rounded, blue→cyan gradients.
    ════════════════════════════════════════════════════════════════════════ */
-.landing { color: #3c3c3c; }
+.landing { color: #334155; }
 
-/* HERO — dark navy band */
-.hero { background: #1a2129; color: #ffffff; }
-.hero-bg-shapes { display: none; }            /* no decorative blobs */
+/* HERO — bright white→blue wash with soft sky blobs behind glass */
+.hero {
+  background: linear-gradient(160deg, #eff6ff 0%, #ffffff 45%, #e0f2fe 100%);
+}
+.shape-1 { background: #bfdbfe; }
+.shape-2 { background: #a5d8ff; }
+.shape-3 { background: #bae6fd; }
 .hero-badge {
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.22);
-  color: #ffffff;
-  border-radius: 0;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.22);
+  color: #2563eb;
 }
-.hero-title { color: #ffffff; font-weight: 700; letter-spacing: 0; line-height: 1.05; }
 .hero-gradient {
-  background: none;
-  -webkit-text-fill-color: #5a9bff;
-  color: #5a9bff;                             /* light BMW blue on navy */
+  background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 50%, #38bdf8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
-.hero-desc { color: #bbbbbb; font-weight: 300; line-height: 1.55; }
-.hero-stats {
-  background: #262e38;
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 0;
-  box-shadow: none;
-}
-.stat-val { color: #ffffff; font-weight: 700; }
-.stat-label { color: #bbbbbb; }
-.stat-divider { background: rgba(255,255,255,0.15); }
 
-/* Hero mock card — flat white plate, no float */
-.visual-card { border-radius: 0; }
-.card-main { border: 1px solid #e6e6e6; box-shadow: none; animation: none; }
-.card-header { background: #f7f7f7; border-bottom: 1px solid #e6e6e6; }
+/* Frosted glass surfaces */
+.hero-stats,
+.card-main,
+.feature-card,
+.step,
+.top-forum-card,
+.skeleton-card {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 8px 32px rgba(30, 64, 175, 0.10);
+}
+.card-header {
+  background: rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+}
 .card-badge {
-  background: #ffffff; border: 1px solid #e6e6e6; box-shadow: none;
-  border-radius: 0; color: #262626; font-weight: 700; animation: none;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 4px 16px rgba(30, 64, 175, 0.10);
+  color: #334155;
 }
 
-/* BUTTONS — rectangular, single blue, no shadow/transform */
+/* Buttons — blue→cyan gradient pill with a soft glow */
 .btn-primary {
-  background: #1c69d4; color: #ffffff; font-weight: 700;
-  letter-spacing: 0.5px; border-radius: 0; box-shadow: none; padding: 14px 32px;
+  background: linear-gradient(135deg, #2563eb, #0ea5e9);
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.35);
 }
-.btn-primary:hover { background: #0653b6; transform: none; box-shadow: none; }
-.btn-primary.btn-large { padding: 16px 40px; }
-/* secondary sits on the navy hero → on-dark outline style */
+.btn-primary:hover {
+  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.45);
+}
 .btn-secondary {
-  background: transparent; color: #ffffff; border: 1px solid #ffffff;
-  font-weight: 700; letter-spacing: 0.5px; border-radius: 0;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
 }
 .btn-secondary:hover {
-  background: rgba(255,255,255,0.1); border-color: #ffffff;
-  transform: none; box-shadow: none;
+  background: rgba(255, 255, 255, 0.85);
+  border-color: #93c5fd;
 }
 
-/* SECTIONS — 80px rhythm, uppercase blue label, ink title */
-.section { padding: 80px 0; }
-.section-label { color: #1c69d4; font-weight: 700; letter-spacing: 1.5px; }
-.section-title { color: #262626; font-weight: 700; letter-spacing: 0; }
-.section-desc { color: #6b6b6b; font-weight: 300; }
-
-/* alternate band surfaces: hero(navy) → features(grey) → how(white) → top(grey) → cta(navy) */
-.features-section { background: #f7f7f7; }
-.how-section { background: #ffffff; }
-.top-forums-section { background: #f7f7f7; }
-
-/* FEATURE / STEP / FORUM cards — flat, hairline, square, blue hover border */
-.feature-card, .step, .top-forum-card {
-  border: 1px solid #e6e6e6; border-radius: 0; box-shadow: none;
+/* Sections — let the page wash show through, blue labels */
+.features-section,
+.top-forums-section {
+  background: transparent;
 }
-.feature-card::before { display: none; }
-.feature-card:hover, .step:hover {
-  border-color: #1c69d4; transform: none; box-shadow: none;
-}
-.feature-title, .step-title, .top-forum-name { color: #262626; font-weight: 700; }
-.feature-desc, .step-desc, .top-forum-desc { color: #6b6b6b; font-weight: 300; }
+.section-label { color: #2563eb; }
 
-.step-num {
-  background: #1c69d4; border-radius: 9999px; box-shadow: none; font-weight: 700;
+/* Card hover — lift + blue glow */
+.feature-card:hover,
+.step:hover,
+.top-forum-card:hover {
+  border-color: rgba(59, 130, 246, 0.4);
+  box-shadow: 0 14px 44px rgba(37, 99, 235, 0.16);
 }
-.step-arrow { color: #cccccc; }
-
-.top-forum-card { border-radius: 0; box-shadow: none; }
-.top-forum-card::before { background: #1c69d4; border-radius: 0; }
-.top-forum-card.rank-1::before { background: #d4af37; }
-.top-forum-card.rank-2::before { background: #aab1b8; }
-.top-forum-card.rank-3::before { background: #b87333; }
-.top-forum-card:hover { border-color: #1c69d4; transform: none; box-shadow: none; }
-.top-forum-avatar {
-  background: #1c69d4; border-radius: 0; font-weight: 700;   /* square forum tile */
+.feature-card::before {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.06), transparent);
 }
-.top-stat-val { color: #1c69d4; font-weight: 700; }
-.top-forum-arrow { color: #9a9a9a; }
-.see-all-link { color: #1c69d4; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; font-size: 13px; }
-.see-all-link:hover { color: #0653b6; }
-.skeleton-card { border: 1px solid #e6e6e6; border-radius: 0; }
+.step-num { box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35); }
+.top-forum-avatar { box-shadow: 0 6px 16px rgba(37, 99, 235, 0.30); }
+.top-stat-val { color: #2563eb; }
+.see-all-link { color: #2563eb; }
+.see-all-link:hover { color: #1d4ed8; }
 
-/* CTA — closing dark navy band */
-.cta-section { background: #1a2129; padding: 80px 32px; }
-.cta-section::before { display: none; }
-.cta-title { color: #ffffff; font-weight: 700; }
-.cta-desc { color: #bbbbbb; font-weight: 300; }
+/* CTA — soft glass blue band */
+.cta-section {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.10), rgba(14, 165, 233, 0.12));
+}
 </style>

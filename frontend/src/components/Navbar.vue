@@ -36,9 +36,11 @@ import UserDropdown from './UserDropdown.vue';
 
 <style scoped>
 .navbar {
-  background: #ffffff;
-  border-bottom: 1px solid #e6e6e6; /* BMW hairline */
-  box-shadow: none;
-  transition: border-color 0.3s ease;
+  background: rgba(255, 255, 255, 0.6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 24px rgba(30, 64, 175, 0.08);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 </style>
