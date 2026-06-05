@@ -41,7 +41,7 @@ const bannerStyle = computed(() =>
         <span
           class="pcard-badge pcard-tier"
           :style="{ background: ts.bg, color: ts.color, borderColor: ts.ring }"
-        >★ {{ author.tier }}</span>
+        >{{ ts.icon }} {{ ts.label }}</span>
       </div>
 
       <p v-if="author.bio" class="pcard-bio">{{ author.bio }}</p>

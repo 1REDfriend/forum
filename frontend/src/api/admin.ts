@@ -60,6 +60,17 @@ export interface AdminPost {
   forumId: number;
 }
 
+export interface AdminReport {
+  id: number;
+  reporterId: number;
+  reporterName: string;
+  targetType: 'thread' | 'post' | 'user';
+  targetId: number;
+  reason: string;
+  status: 'open' | 'reviewed' | 'dismissed';
+  createdAt: string;
+}
+
 export interface ActivityItem {
   type: 'thread' | 'post';
   id: number;
@@ -145,5 +156,21 @@ export class AdminApi {
 
   deletePost(id: number): Promise<void> {
     return this.client.delete<void>(`/admin/posts/${id}`);
+  }
+
+  // Reports
+  getReports(page = 1, limit = 20, status?: string): Promise<PaginatedAdminResult<AdminReport>> {
+    const q = new URLSearchParams({ page: String(page), limit: String(limit) });
+    if (status) q.set('status', status);
+    return this.client.get<PaginatedAdminResult<AdminReport>>(`/admin/reports?${q}`);
+  }
+
+  resolveReport(id: number, status: 'open' | 'reviewed' | 'dismissed'): Promise<AdminReport> {
+    return this.client.patch<AdminReport>(`/admin/reports/${id}`, { status });
+  }
+
+  // Badges
+  grantBadge(userId: number, badgeKey: string): Promise<{ message: string }> {
+    return this.client.post<{ message: string }>(`/admin/users/${userId}/badges`, { badgeKey });
   }
 }

@@ -7,6 +7,7 @@ import { useRouter } from 'vue-router';
 import MarkdownRenderer from '../components/MarkdownRenderer.vue';
 import MarkdownEditor from '../components/MarkdownEditor.vue';
 import ProfileCard from '../components/ProfileCard.vue';
+import ReportButton from '../components/ReportButton.vue';
 
 const props = defineProps<{ id: string }>();
 
@@ -329,6 +330,7 @@ const formatDate = (dateStr: string) =>
                   <button @click="showDeleteConfirm('thread', thread.id)"
                     class="text-sm text-gray-500 hover:text-red-600 transition-colors px-2 py-1">Delete</button>
                 </template>
+                <ReportButton v-if="!isThreadOwnerOrAdmin" target-type="thread" :target-id="thread.id" />
               </div>
             </div>
           </template>
@@ -400,6 +402,7 @@ const formatDate = (dateStr: string) =>
                 <button @click="showDeleteConfirm('post', post.id)"
                   class="text-gray-400 hover:text-red-600 transition-colors">Delete</button>
               </template>
+              <ReportButton v-if="!isPostOwnerOrAdmin(post) && editingPostId !== post.id" target-type="post" :target-id="post.id" />
             </div>
           </div>
           <!-- Post View Mode -->

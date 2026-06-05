@@ -4,6 +4,7 @@ import { OAuth2Client } from 'google-auth-library';
 import { userRepository } from '../repositories/user.repository.js';
 import { passwordResetRepository } from '../repositories/passwordReset.repository.js';
 import { refreshTokenRepository } from '../repositories/refreshToken.repository.js';
+import { streakService } from './streak.service.js';
 import type { RegisterDTO, LoginDTO, GoogleAuthDTO, ForgotPasswordDTO, ResetPasswordDTO } from '../types/index.js';
 import { ConflictError, UnauthorizedError, NotFoundError, BadRequestError } from '../utils/errors.js';
 import { sendPasswordResetEmail } from '../utils/mailer.js';
@@ -153,6 +154,7 @@ export class AuthService {
 
   /** Build the auth response: sanitized user + short access token + new refresh token. */
   private async buildSession(user: { id: number }) {
+    await streakService.touch(user.id); // bump login streak (once/day)
     const token = this.generateAccessToken(user.id);
     const refreshToken = await refreshTokenRepository.issue(user.id);
     return { user: this.sanitizeUser(user), token, refreshToken };

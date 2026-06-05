@@ -209,25 +209,56 @@ export interface AuthResponse {
   refreshToken: string;
 }
 
-// ─── Tiers (rank) ────────────────────────────────────────────────────────────
-export const TIERS = ['Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond'] as const;
-export type Tier = (typeof TIERS)[number];
+// ─── Tiers (journey/growth) — mirrors backend src/domain/tiers.ts ─────────────
+export type Tier = string;
 
-interface TierStyle {
+export interface TierDef {
+  key: string;
+  label: string;
+  icon: string;
+  minScore: number;
   bg: string;
   color: string;
   ring: string;
 }
 
-const TIER_STYLES: Record<string, TierStyle> = {
-  Bronze: { bg: '#f6e3d3', color: '#9a5b2e', ring: '#d9a978' },
-  Silver: { bg: '#e9edf2', color: '#566175', ring: '#c2ccd9' },
-  Gold: { bg: '#fdf0c9', color: '#a9790f', ring: '#f1c44b' },
-  Platinum: { bg: '#d7f3ea', color: '#0a7c66', ring: '#7fd8c2' },
-  Diamond: { bg: '#dcefff', color: '#0a6aa1', ring: '#7cc9f0' },
-};
+export const TIERS: TierDef[] = [
+  { key: 'wanderer',  label: 'เริ่มเดินทาง', icon: '🌱', minScore: 0,    bg: '#dcfce7', color: '#166534', ring: '#86efac' },
+  { key: 'sprout',    label: 'ก้าวแรก',      icon: '🌿', minScore: 60,   bg: '#ccfbf1', color: '#0f766e', ring: '#5eead4' },
+  { key: 'growing',   label: 'เติบโต',       icon: '🌳', minScore: 180,  bg: '#e0f2fe', color: '#075985', ring: '#7dd3fc' },
+  { key: 'strong',    label: 'แข็งแกร่ง',    icon: '🏔️', minScore: 450,  bg: '#e0e7ff', color: '#3730a3', ring: '#a5b4fc' },
+  { key: 'conqueror', label: 'ผู้พิชิต',     icon: '👑', minScore: 1000, bg: '#fef3c7', color: '#92400e', ring: '#fcd34d' },
+];
 
-const DEFAULT_TIER_STYLE: TierStyle = TIER_STYLES.Bronze!;
+export const TIER_MAP: Record<string, TierDef> = Object.fromEntries(TIERS.map((t) => [t.key, t]));
+const DEFAULT_TIER: TierDef = TIERS[0]!;
 
-export const tierStyle = (tier?: string | null): TierStyle =>
-  TIER_STYLES[tier ?? ''] ?? DEFAULT_TIER_STYLE;
+/** Resolve a tier key → its display def (label/icon/colors). Falls back to the first tier. */
+export const tierStyle = (tier?: string | null): TierDef => TIER_MAP[tier ?? ''] ?? DEFAULT_TIER;
+
+export interface Badge {
+  key: string;
+  label: string;
+  desc: string;
+  icon: string;
+  awardedAt?: string;
+}
+
+export interface ProfileStats {
+  posts: number;
+  threads: number;
+  likesReceived: number;
+  accountAgeDays: number;
+  loginStreak: number;
+  longestStreak: number;
+  reports: number;
+}
+
+export interface TierProgress {
+  score: number;
+  tier: string; // stored key (monotonic)
+  currentTier: TierDef;
+  nextTier: TierDef | null;
+  progress: number; // 0..1
+  pointsToNext: number;
+}

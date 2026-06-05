@@ -124,6 +124,30 @@ export const AdminPagination = t.Object({
 
 export const IdParam = t.Object({ id: t.Numeric() });
 
+// ─── Reports & badges ─────────────────────────────────────────────────────────
+export const ReportDTO = t.Object({
+  targetType: t.Union([t.Literal('thread'), t.Literal('post'), t.Literal('user')]),
+  targetId: t.Integer({ minimum: 1 }),
+  reason: t.String({ minLength: 3, maxLength: 500 }),
+});
+export type ReportDTO = typeof ReportDTO.static;
+
+export const ReportStatusDTO = t.Object({
+  status: t.Union([t.Literal('open'), t.Literal('reviewed'), t.Literal('dismissed')]),
+});
+export type ReportStatusDTO = typeof ReportStatusDTO.static;
+
+export const ReportQuery = t.Object({
+  page: t.Numeric({ minimum: 1, default: 1 }),
+  limit: t.Numeric({ minimum: 1, maximum: 100, default: 20 }),
+  status: t.Optional(t.String()),
+});
+
+export const GrantBadgeDTO = t.Object({
+  badgeKey: t.String({ minLength: 1, maxLength: 50 }),
+});
+export type GrantBadgeDTO = typeof GrantBadgeDTO.static;
+
 // User payload stored in JWT
 export interface JwtPayload {
   userId: number;

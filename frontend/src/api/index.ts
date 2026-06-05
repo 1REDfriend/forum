@@ -6,6 +6,7 @@ import { PostsApi } from './posts.js';
 import { UsersApi, SearchApi } from './users.js';
 import { LikesApi, UploadApi } from './likes.js';
 import { AdminApi } from './admin.js';
+import { ReportsApi } from './reports.js';
 
 const BASE_URL = (import.meta.env.VITE_API_URL as string) || 'http://localhost:3636';
 
@@ -58,6 +59,7 @@ export const searchApi = new SearchApi(apiClient);
 export const likesApi = new LikesApi(apiClient);
 export const uploadApi = new UploadApi(apiClient);
 export const adminApi = new AdminApi(apiClient);
+export const reportsApi = new ReportsApi(apiClient);
 
 export * from './client.js';
 export * from './types.js';

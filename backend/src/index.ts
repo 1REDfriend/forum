@@ -20,6 +20,7 @@ import { searchRoutes } from './routes/search.routes.js';
 import { likeRoutes } from './routes/like.routes.js';
 import { uploadRoutes } from './routes/upload.routes.js';
 import { adminRoutes } from './routes/admin.routes.js';
+import { reportRoutes } from './routes/report.routes.js';
 
 const port = Number(process.env.PORT) || 3636;
 
@@ -105,6 +106,7 @@ new Elysia({ serve: { maxRequestBodySize: 16 * 1024 * 1024 } }) // ≥10MB image
   .use(likeRoutes)
   .use(uploadRoutes)
   .use(adminRoutes)
+  .use(reportRoutes)
   .listen(port, () => {
     logger.info(`IT.FORUM Elysia server listening on port ${port}`);
   });

@@ -2,13 +2,23 @@
 import { ref, onMounted, computed } from 'vue';
 import { useAuthStore } from '../stores/auth.js';
 import { usersApi, uploadApi } from '../api/index.js';
-import type { User } from '../api/types.js';
+import type { User, TierDef, Badge, ProfileStats } from '../api/types.js';
 import { tierStyle } from '../api/types.js';
+
+interface ProfileData extends Partial<User> {
+    score?: number;
+    stats?: ProfileStats;
+    currentTier?: TierDef;
+    nextTier?: TierDef | null;
+    progress?: number;
+    pointsToNext?: number;
+    badges?: Badge[];
+}
 
 const props = defineProps<{ id?: string }>();
 
 const authStore = useAuthStore();
-const profileUser = ref<Partial<User> | null>(null);
+const profileUser = ref<ProfileData | null>(null);
 const isLoading = ref(true);
 const error = ref('');
 const isEditing = ref(false);
@@ -34,6 +44,7 @@ const isOwnProfile = computed(() => {
 });
 
 const ts = computed(() => tierStyle(profileUser.value?.tier));
+const progressPct = computed(() => Math.round((profileUser.value?.progress ?? 0) * 100));
 const bannerStyle = computed(() =>
     profileUser.value?.banner ? { backgroundImage: `url(${JSON.stringify(profileUser.value.banner)})` } : {},
 );
@@ -228,7 +239,7 @@ const formatDate = (dateStr: string | undefined) => {
                         <div class="flex items-center flex-wrap gap-2 mb-4">
                             <span class="px-2.5 py-0.5 rounded-full font-bold text-xs border"
                                 :style="{ background: ts.bg, color: ts.color, borderColor: ts.ring }">
-                                ★ {{ profileUser.tier || 'Bronze' }}
+                                {{ ts.icon }} {{ ts.label }}
                             </span>
                             <span v-if="profileUser.role === 'admin'"
                                 class="bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-full font-bold text-xs uppercase">
@@ -268,6 +279,63 @@ const formatDate = (dateStr: string | undefined) => {
                                     {{ isSaving ? 'Saving...' : 'Save' }}
                                 </button>
                             </template>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tier journey -->
+                <div class="glass rounded-2xl p-6">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="text-4xl">{{ ts.icon }}</div>
+                        <div class="min-w-0">
+                            <p class="text-xs text-gray-500">ระดับการเดินทาง</p>
+                            <h2 class="text-xl font-bold" :style="{ color: ts.color }">{{ ts.label }}</h2>
+                        </div>
+                        <div class="ml-auto text-right">
+                            <p class="text-2xl font-extrabold text-gray-900">{{ profileUser.score ?? 0 }}</p>
+                            <p class="text-xs text-gray-500">คะแนน</p>
+                        </div>
+                    </div>
+                    <div class="h-3 rounded-full bg-gray-200/70 overflow-hidden">
+                        <div class="h-full rounded-full transition-all"
+                            :style="{ width: progressPct + '%', background: `linear-gradient(90deg, ${ts.color}, #38bdf8)` }">
+                        </div>
+                    </div>
+                    <p v-if="profileUser.nextTier" class="text-xs text-gray-500 mt-2">
+                        อีก <span class="font-bold text-gray-700">{{ profileUser.pointsToNext }}</span> คะแนน ถึง
+                        <span class="font-bold">{{ profileUser.nextTier.icon }} {{ profileUser.nextTier.label }}</span>
+                    </p>
+                    <p v-else class="text-xs text-gray-500 mt-2">🎉 ถึงระดับสูงสุดแล้ว!</p>
+                </div>
+
+                <!-- Stats -->
+                <div v-if="profileUser.stats" class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div class="glass rounded-2xl p-4 text-center">
+                        <p class="text-2xl font-extrabold text-gray-900">{{ profileUser.stats.threads + profileUser.stats.posts }}</p>
+                        <p class="text-xs text-gray-500 mt-1">📝 โพสต์/กระทู้</p>
+                    </div>
+                    <div class="glass rounded-2xl p-4 text-center">
+                        <p class="text-2xl font-extrabold text-gray-900">{{ profileUser.stats.likesReceived }}</p>
+                        <p class="text-xs text-gray-500 mt-1">👍 Like ที่ได้รับ</p>
+                    </div>
+                    <div class="glass rounded-2xl p-4 text-center">
+                        <p class="text-2xl font-extrabold text-gray-900">{{ profileUser.stats.accountAgeDays }}</p>
+                        <p class="text-xs text-gray-500 mt-1">📅 วันกับเรา</p>
+                    </div>
+                    <div class="glass rounded-2xl p-4 text-center">
+                        <p class="text-2xl font-extrabold text-gray-900">{{ profileUser.stats.loginStreak }} 🔥</p>
+                        <p class="text-xs text-gray-500 mt-1">🎯 Streak</p>
+                    </div>
+                </div>
+
+                <!-- Badges -->
+                <div v-if="profileUser.badges && profileUser.badges.length" class="glass rounded-2xl p-6">
+                    <h2 class="text-lg font-bold text-gray-900 mb-4">🏅 เหรียญตรา</h2>
+                    <div class="flex flex-wrap gap-3">
+                        <div v-for="b in profileUser.badges" :key="b.key" :title="b.desc"
+                            class="flex items-center gap-2 bg-white/70 border border-white/60 rounded-xl px-3 py-2">
+                            <span class="text-2xl">{{ b.icon }}</span>
+                            <span class="text-sm font-semibold text-gray-700">{{ b.label }}</span>
                         </div>
                     </div>
                 </div>

@@ -4,7 +4,17 @@ import { adminRepository } from '../repositories/admin.repository.js';
 import { forumRepository } from '../repositories/forum.repository.js';
 import { threadRepository } from '../repositories/thread.repository.js';
 import { postRepository } from '../repositories/post.repository.js';
-import { AdminPagination, IdParam, UpdateUserRoleDTO, UpdateUserTierDTO } from '../types/index.js';
+import { reportService } from '../services/report.service.js';
+import { badgeService } from '../services/badge.service.js';
+import {
+  AdminPagination,
+  IdParam,
+  UpdateUserRoleDTO,
+  UpdateUserTierDTO,
+  ReportQuery,
+  ReportStatusDTO,
+  GrantBadgeDTO,
+} from '../types/index.js';
 
 export const adminRoutes = new Elysia({ prefix: '/admin', tags: ['Admin'] })
   .use(auth)
@@ -107,5 +117,30 @@ export const adminRoutes = new Elysia({ prefix: '/admin', tags: ['Admin'] })
           return new Response(null, { status: 204 });
         },
         { params: IdParam },
+      )
+      // ─── Reports ───────────────────────────────────────────────────────────
+      .get(
+        '/reports',
+        async ({ query }) => {
+          const { page, limit, status } = query;
+          const result = await reportService.list(page, limit, status);
+          return { ...result, page, limit, totalPages: Math.ceil(result.total / limit) };
+        },
+        { query: ReportQuery },
+      )
+      .patch(
+        '/reports/:id',
+        ({ params, body }) => reportService.resolve(params.id, body.status),
+        { params: IdParam, body: ReportStatusDTO },
+      )
+      // ─── Badges (grant) ────────────────────────────────────────────────────
+      .post(
+        '/users/:id/badges',
+        async ({ params, body }) => {
+          const ok = await badgeService.grant(params.id, body.badgeKey);
+          if (!ok) return status(400, { error: 'Unknown badge' });
+          return { message: 'Badge granted' };
+        },
+        { params: IdParam, body: GrantBadgeDTO },
       ),
   );

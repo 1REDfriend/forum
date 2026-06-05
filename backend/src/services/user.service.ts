@@ -1,14 +1,38 @@
 import { userRepository } from '../repositories/user.repository.js';
 import { NotFoundError } from '../utils/errors.js';
 import type { UpdateUserDTO } from '../types/index.js';
+import { tierService } from './tier.service.js';
+import { badgeService } from './badge.service.js';
 
 export class UserService {
+  /** Recompute score/tier (monotonic), sync badges, and assemble the profile payload. */
+  private async withProgression(base: Record<string, any>, userId: number, storedTier: string) {
+    const t = await tierService.sync(userId, storedTier);
+    const badges = await badgeService.syncAndGet(userId, {
+      posts: t.stats.threads + t.stats.posts,
+      likesReceived: t.stats.likesReceived,
+      accountAgeDays: t.stats.accountAgeDays,
+      longestStreak: t.stats.longestStreak,
+    });
+    return {
+      ...base,
+      tier: t.tier,
+      score: t.score,
+      stats: t.stats,
+      currentTier: t.currentTier,
+      nextTier: t.nextTier,
+      progress: t.progress,
+      pointsToNext: t.pointsToNext,
+      badges,
+    };
+  }
+
   async getProfile(userId: number) {
     const user = await userRepository.findById(userId);
     if (!user) {
       throw NotFoundError('User not found');
     }
-    return this.sanitizeUser(user);
+    return this.withProgression(this.sanitizeUser(user), user.id, user.tier);
   }
 
   async getPublicProfile(userId: number) {
@@ -16,7 +40,7 @@ export class UserService {
     if (!user) {
       throw NotFoundError('User not found');
     }
-    return {
+    const base = {
       id: user.id,
       name: user.name,
       avatar: user.avatar,
@@ -26,6 +50,7 @@ export class UserService {
       tier: user.tier,
       createdAt: user.createdAt,
     };
+    return this.withProgression(base, user.id, user.tier);
   }
 
   async updateProfile(userId: number, data: UpdateUserDTO) {

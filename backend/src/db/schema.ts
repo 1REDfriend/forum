@@ -1,4 +1,4 @@
-import { pgTable, serial, text, timestamp, integer, boolean, index, unique } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, timestamp, integer, boolean, index, unique, date } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -8,7 +8,12 @@ export const users = pgTable("users", {
   googleId: text("google_id"),
   authProvider: text("auth_provider").notNull().default("local"), // 'local' or 'google'
   role: text("role").notNull().default("user"), // 'user' or 'admin' — set by admin
-  tier: text("tier").notNull().default("Bronze"), // rank, separate from role — set by admin
+  tier: text("tier").notNull().default("wanderer"), // journey tier — auto-computed, monotonic; admin can override
+  score: integer("score").notNull().default(0), // latest computed score snapshot
+  lastLoginDate: date("last_login_date"), // for login streak
+  loginStreak: integer("login_streak").notNull().default(0),
+  longestStreak: integer("longest_streak").notNull().default(0),
+  tierUpdatedAt: timestamp("tier_updated_at"),
   avatar: text("avatar"),
   banner: text("banner"), // profile cover image URL
   bio: text("bio"), // profile description
@@ -88,4 +93,29 @@ export const likes = pgTable("likes", {
   index("likes_post_id_idx").on(table.postId),
   unique("likes_user_thread_unique").on(table.userId, table.threadId),
   unique("likes_user_post_unique").on(table.userId, table.postId),
+]));
+
+export const reports = pgTable("reports", {
+  id: serial("id").primaryKey(),
+  reporterId: integer("reporter_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  targetType: text("target_type").notNull(), // 'thread' | 'post' | 'user'
+  targetId: integer("target_id").notNull(),
+  reason: text("reason").notNull(),
+  status: text("status").notNull().default("open"), // 'open' | 'reviewed' | 'dismissed'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ([
+  index("reports_target_idx").on(table.targetType, table.targetId),
+  index("reports_status_idx").on(table.status),
+  // one report per reporter per target
+  unique("reports_reporter_target_unique").on(table.reporterId, table.targetType, table.targetId),
+]));
+
+export const userBadges = pgTable("user_badges", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  badgeKey: text("badge_key").notNull(),
+  awardedAt: timestamp("awarded_at").defaultNow().notNull(),
+}, (table) => ([
+  index("user_badges_user_idx").on(table.userId),
+  unique("user_badges_user_key_unique").on(table.userId, table.badgeKey),
 ]));

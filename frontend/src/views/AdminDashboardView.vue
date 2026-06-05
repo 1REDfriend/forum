@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { adminApi } from '../api/index.js';
 import type {
-  AdminStats, AdminUser, AdminForum, AdminThread, AdminPost, ActivityItem,
+  AdminStats, AdminUser, AdminForum, AdminThread, AdminPost, ActivityItem, AdminReport,
   PaginatedAdminResult,
 } from '../api/admin.js';
 import { TIERS } from '../api/types.js';
@@ -13,7 +13,7 @@ const authStore = useAuthStore();
 const router = useRouter();
 
 // ─── Sidebar tabs ─────────────────────────────────────────────────────────────
-type Tab = 'overview' | 'users' | 'forums' | 'threads' | 'posts';
+type Tab = 'overview' | 'users' | 'forums' | 'threads' | 'posts' | 'reports';
 const activeTab = ref<Tab>('overview');
 
 // ─── Stats ────────────────────────────────────────────────────────────────────
@@ -102,11 +102,31 @@ const loadPosts = async () => {
 
 // ─── Tab change ───────────────────────────────────────────────────────────────
 
+// Reports
+const reports = ref<PaginatedAdminResult<AdminReport> | null>(null);
+const reportsLoading = ref(false);
+const reportsPage = ref(1);
+const reportsStatus = ref('open');
+const loadReports = async () => {
+  reportsLoading.value = true;
+  try {
+    reports.value = await adminApi.getReports(reportsPage.value, 15, reportsStatus.value || undefined);
+  } finally {
+    reportsLoading.value = false;
+  }
+};
+const resolveReport = async (id: number, status: 'reviewed' | 'dismissed') => {
+  await adminApi.resolveReport(id, status);
+  loadReports();
+};
+const setReportsPage = (p: number) => { reportsPage.value = p; loadReports(); };
+
 watch(activeTab, (tab) => {
   if (tab === 'users' && !users.value) loadUsers();
   if (tab === 'forums' && !forums.value) loadForums();
   if (tab === 'threads' && !threads.value) loadThreads();
   if (tab === 'posts' && !posts.value) loadPosts();
+  if (tab === 'reports' && !reports.value) loadReports();
 });
 
 // ─── Search debounce ──────────────────────────────────────────────────────────
@@ -206,6 +226,7 @@ const sidebarItems: { key: Tab; label: string; icon: string }[] = [
   { key: 'forums', label: 'Forums', icon: '🗂️' },
   { key: 'threads', label: 'Threads', icon: '💬' },
   { key: 'posts', label: 'Posts', icon: '📝' },
+  { key: 'reports', label: 'Reports', icon: '🚩' },
 ];
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
@@ -378,7 +399,7 @@ onMounted(() => {
                     class="tier-select"
                     title="Set tier (rank)"
                   >
-                    <option v-for="t in TIERS" :key="t" :value="t">{{ t }}</option>
+                    <option v-for="t in TIERS" :key="t.key" :value="t.key">{{ t.icon }} {{ t.label }}</option>
                   </select>
                 </td>
                 <td class="text-muted text-sm">{{ user.authProvider }}</td>
@@ -562,6 +583,54 @@ onMounted(() => {
             <button @click="setPostsPage(postsPage - 1)" :disabled="postsPage <= 1" class="page-btn">←</button>
             <span class="page-info">{{ postsPage }} / {{ posts.totalPages }} ({{ posts.total }} total)</span>
             <button @click="setPostsPage(postsPage + 1)" :disabled="postsPage >= posts.totalPages" class="page-btn">→</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── Reports ─────────────────────────────────────────────────────── -->
+      <div v-else-if="activeTab === 'reports'" class="tab-content">
+        <h1 class="page-title">Reports</h1>
+        <div class="section-card">
+          <div style="display:flex; gap:8px; margin-bottom:14px">
+            <button v-for="s in ['open', 'reviewed', 'dismissed']" :key="s"
+              @click="reportsStatus = s; reportsPage = 1; loadReports()" class="page-btn"
+              :style="reportsStatus === s ? { background: '#2563eb', color: '#fff', borderColor: '#2563eb' } : {}">
+              {{ s }}
+            </button>
+          </div>
+          <div v-if="reportsLoading" class="sk-lines"><div v-for="i in 6" :key="i" class="sk-line" /></div>
+          <table v-else-if="reports && reports.data.length > 0" class="data-table">
+            <thead>
+              <tr><th>Reporter</th><th>Target</th><th>Reason</th><th>Status</th><th>Created</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              <tr v-for="r in reports.data" :key="r.id">
+                <td class="text-muted text-sm">@{{ r.reporterName }}</td>
+                <td class="text-sm">
+                  <router-link v-if="r.targetType === 'thread'" :to="`/thread/${r.targetId}`" class="link-primary">thread #{{ r.targetId }}</router-link>
+                  <router-link v-else-if="r.targetType === 'user'" :to="`/user/${r.targetId}`" class="link-primary">user #{{ r.targetId }}</router-link>
+                  <span v-else class="text-muted">{{ r.targetType }} #{{ r.targetId }}</span>
+                </td>
+                <td class="text-sm text-muted" style="max-width:240px">{{ truncate(r.reason, 100) }}</td>
+                <td>
+                  <span class="text-sm" :style="{ color: r.status === 'open' ? '#dc2626' : r.status === 'reviewed' ? '#2563eb' : '#6b7280' }">● {{ r.status }}</span>
+                </td>
+                <td class="text-muted text-sm">{{ formatDateTime(r.createdAt) }}</td>
+                <td>
+                  <div class="row-actions">
+                    <button v-if="r.status === 'open'" @click="resolveReport(r.id, 'reviewed')" class="btn-view-sm" title="mark reviewed">✓</button>
+                    <button v-if="r.status !== 'dismissed'" @click="resolveReport(r.id, 'dismissed')" class="btn-danger-sm" title="dismiss">✕</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <p v-else-if="!reportsLoading" class="empty-text">No reports.</p>
+
+          <div v-if="reports && reports.totalPages > 1" class="pagination">
+            <button @click="setReportsPage(reportsPage - 1)" :disabled="reportsPage <= 1" class="page-btn">←</button>
+            <span class="page-info">{{ reportsPage }} / {{ reports.totalPages }} ({{ reports.total }} total)</span>
+            <button @click="setReportsPage(reportsPage + 1)" :disabled="reportsPage >= reports.totalPages" class="page-btn">→</button>
           </div>
         </div>
       </div>
