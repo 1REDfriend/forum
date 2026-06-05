@@ -3,6 +3,8 @@ import { ref, onMounted } from 'vue';
 import { forumsApi } from '../api/index.js';
 import type { ForumWithStats } from '../api/types.js';
 import { useAuthStore } from '../stores/auth.js';
+import { motion, px } from 'motion-v';
+import { fadeLeft, fadeUp, heroContainer, scaleIn } from '@/components/animations/Animation.ts';
 
 const authStore = useAuthStore();
 const forums = ref<ForumWithStats[]>([]);
@@ -70,24 +72,31 @@ const formatCount = (n: number) => {
 </script>
 
 <template>
-  <div class="landing">
+  <motion.div class="landing" 
+  :variants="heroContainer" 
+  initial="hidden"
+  animate="show"
+    >
     <!-- ══ HERO ══════════════════════════════════════════════════════════════ -->
     <section class="hero">
       <div class="hero-bg-shapes">
         <div class="shape shape-1" />
+        <div class="shape shape-1_1" />
         <div class="shape shape-2" />
         <div class="shape shape-3" />
       </div>
       <div class="hero-content">
-        <div class="hero-badge">🚀 Community Forum Platform</div>
-        <h1 class="hero-title">
+        <motion.div class="hero-badge" :variants="scaleIn">🚀 Community Forum Platform</motion.div>
+        <motion.h1 class="hero-title" 
+        :variants="fadeUp"
+        >
           พื้นที่แลกเปลี่ยน<br />
           <span class="hero-gradient">ความรู้และไอเดีย</span>
-        </h1>
-        <p class="hero-desc">
-          ระบบฟอรัมที่ออกแบบมาเพื่อชุมชน — ตั้งกระทู้ ตอบคำถาม แบ่งปันประสบการณ์<br />
-          พร้อมฟีเจอร์ครบครันตั้งแต่ Markdown จนถึงการอัปโหลดรูปภาพ
-        </p>
+        </motion.h1>
+        <motion.p class="hero-desc" :variants="fadeLeft">
+          ระบบฟอรัมที่ออกแบบมาเพื่อชุมชน ตั้งกระทู้ ตอบคำถาม แบ่งปันประสบการณ์<br />
+          พร้อมฟีเจอร์ตั้งแต่ Markdown จนถึงการอัปโหลดรูปภาพ
+        </motion.p>
         <div class="hero-actions">
           <router-link v-if="!authStore.isAuthenticated" to="/register" class="btn-primary">
             เริ่มต้นใช้งาน ฟรี →
@@ -101,20 +110,20 @@ const formatCount = (n: number) => {
         </div>
         <!-- Stats bar -->
         <div class="hero-stats">
-          <div class="stat-item">
+          <motion.div class="stat-item" :variants="fadeUp">
             <span class="stat-val">{{ isLoading ? '…' : forums.length }}</span>
             <span class="stat-label">ฟอรัม</span>
-          </div>
+          </motion.div>
           <div class="stat-divider" />
-          <div class="stat-item">
-            <span class="stat-val">24/7</span>
+          <motion.div class="stat-item" :variants="fadeUp">
+            <span class="stat-val">24h</span>
             <span class="stat-label">เปิดให้บริการ</span>
-          </div>
+          </motion.div>
           <div class="stat-divider" />
-          <div class="stat-item">
-            <span class="stat-val">100%</span>
+          <motion.div class="stat-item" :variants="fadeUp">
+            <span class="stat-val">99%</span>
             <span class="stat-label">ฟรี</span>
-          </div>
+          </motion.div>
         </div>
       </div>
       <!-- Hero illustration -->
@@ -154,10 +163,13 @@ const formatCount = (n: number) => {
 
     <!-- ══ FEATURES ══════════════════════════════════════════════════════════ -->
     <section class="section features-section">
-      <div class="section-inner">
+      <motion.div class="section-inner" 
+      :initial="{ opacity: 0, scale: 0.8, y: 40}"
+      :whileInView="{ opacity: 1, scale: 1, y: 0}"
+      >
         <div class="section-label">ฟีเจอร์หลัก</div>
-        <h2 class="section-title">ครบทุกสิ่งที่ชุมชนต้องการ</h2>
-        <p class="section-desc">ระบบฟอรัมที่พัฒนามาอย่างครบถ้วน พร้อมใช้งานได้ทันที</p>
+        <h2 class="section-title">ฟีดเจอร์ที่มีทั้งหมด</h2>
+        <p class="section-desc">ระบบฟอรัมที่พัฒนามาอย่างครบคัน พร้อมใช้งานได้ทันที</p>
         <div class="features-grid">
           <div v-for="f in features" :key="f.title" class="feature-card">
             <div class="feature-icon">{{ f.icon }}</div>
@@ -165,14 +177,17 @@ const formatCount = (n: number) => {
             <p class="feature-desc">{{ f.desc }}</p>
           </div>
         </div>
-      </div>
+      </motion.div>
     </section>
 
     <!-- ══ HOW IT WORKS ══════════════════════════════════════════════════════ -->
     <section class="section how-section">
-      <div class="section-inner">
-        <div class="section-label">วิธีใช้งาน</div>
-        <h2 class="section-title">เริ่มต้นง่าย ใน 3 ขั้นตอน</h2>
+      <motion.div class="section-inner section-glass rounded-xl"
+      :initial="{ opacity: 0, scale: 0.8, y: 40}"
+      :whileInView="{ opacity: 1, scale: 1, y: 0}"
+      >
+        <div class="section-label pt-4">วิธีใช้งาน</div>
+        <h2 class="section-title">เริ่มต้นง่าย ใน <span class="text-blue-500">3</span> ขั้นตอน</h2>
         <div class="steps">
           <div class="step">
             <div class="step-num">1</div>
@@ -192,7 +207,7 @@ const formatCount = (n: number) => {
             <p class="step-desc">ตอบกระทู้ กด Like และสร้างคอนเทนต์ที่มีคุณภาพกับชุมชน</p>
           </div>
         </div>
-        <div class="how-cta">
+        <div class="how-cta pb-4">
           <router-link v-if="!authStore.isAuthenticated" to="/register" class="btn-primary">
             สมัครสมาชิก ฟรี →
           </router-link>
@@ -200,12 +215,15 @@ const formatCount = (n: number) => {
             ไปที่ฟอรัม →
           </router-link>
         </div>
-      </div>
+      </motion.div>
     </section>
 
     <!-- ══ TOP 3 FORUMS ══════════════════════════════════════════════════════ -->
     <section class="section top-forums-section">
-      <div class="section-inner">
+      <motion.div class="section-inner" 
+      :initial="{ opacity: 0, scale: 0.8, y: 40}"
+      :whileInView="{ opacity: 1, scale: 1, y: 0}"
+      >
         <div class="section-label">🏆 ยอดนิยม</div>
         <h2 class="section-title">ฟอรัมที่มีคนเข้าชมมากที่สุด</h2>
         <p class="section-desc">ร่วมพูดคุยในฟอรัมยอดนิยมที่มีการอัปเดตอยู่เสมอ</p>
@@ -270,7 +288,7 @@ const formatCount = (n: number) => {
         <div class="see-all-wrap">
           <router-link to="/forums" class="see-all-link">ดูฟอรัมทั้งหมด →</router-link>
         </div>
-      </div>
+      </motion.div>
     </section>
 
     <!-- ══ CTA FOOTER ════════════════════════════════════════════════════════ -->
@@ -288,7 +306,7 @@ const formatCount = (n: number) => {
         </div>
       </div>
     </section>
-  </div>
+  </motion.div>
 </template>
 
 <style scoped>
@@ -296,8 +314,8 @@ const formatCount = (n: number) => {
 .landing {
   min-height: 100vh;
   font-family: 'Inter', 'Outfit', sans-serif;
-  background: #ffffff;
-  color: #1e293b;
+  background: transparent;
+  color: #cbd5e1;
   overflow-x: hidden;
 }
 
@@ -311,7 +329,7 @@ const formatCount = (n: number) => {
   gap: 48px;
   padding: 120px 64px 80px;
   overflow: hidden;
-  background: linear-gradient(160deg, #f8faff 0%, #ffffff 50%, #f5f3ff 100%);
+  background: linear-gradient(160deg, #0b1d3a 0%, #060d1c 50%, #0a1428 100%);
 }
 
 .hero-bg-shapes { position: absolute; inset: 0; pointer-events: none; }
@@ -322,9 +340,10 @@ const formatCount = (n: number) => {
   opacity: 0.35;
   animation: float 8s ease-in-out infinite;
 }
-.shape-1 { width: 500px; height: 500px; background: #c7d2fe; top: -150px; left: -100px; animation-delay: 0s; }
-.shape-2 { width: 400px; height: 400px; background: #ddd6fe; bottom: -100px; right: 200px; animation-delay: 3s; }
-.shape-3 { width: 300px; height: 300px; background: #bae6fd; top: 50%; right: -50px; animation-delay: 1.5s; }
+.shape-1 { width: 1000px; height: 1000px; background: #335dd1; top: -500px; left: -450px; animation-delay: 0s; }
+.shape-1_1 { width: 500px; height: 500px; background: #31bbc0; top: -300px; left: 250px; animation-delay: 0s; }
+.shape-2 { width: 400px; height: 400px; background: #0c4a6e; bottom: -100px; right: 200px; animation-delay: 3s; }
+.shape-3 { width: 300px; height: 300px; background: #155e75; top: 50%; right: -50px; animation-delay: 1.5s; }
 
 .hero-content { flex: 1; max-width: 600px; position: relative; z-index: 1; }
 
@@ -332,9 +351,9 @@ const formatCount = (n: number) => {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(99,102,241,0.08);
-  border: 1px solid rgba(99,102,241,0.2);
-  color: #6366f1;
+  background: rgba(56, 189, 248, 0.10);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  color: #7dd3fc;
   font-size: 13px;
   font-weight: 600;
   padding: 6px 16px;
@@ -348,10 +367,10 @@ const formatCount = (n: number) => {
   line-height: 1.15;
   letter-spacing: -0.02em;
   margin: 0 0 20px;
-  color: #0f172a;
+  color: #f1f5f9;
 }
 .hero-gradient {
-  background: linear-gradient(135deg, #6366f1 0%, #a78bfa 50%, #38bdf8 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 50%, #38bdf8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -360,7 +379,7 @@ const formatCount = (n: number) => {
 .hero-desc {
   font-size: 1.05rem;
   line-height: 1.8;
-  color: #64748b;
+  color: #94a3b8;
   margin: 0 0 36px;
 }
 
@@ -376,16 +395,18 @@ const formatCount = (n: number) => {
   align-items: center;
   gap: 24px;
   padding: 16px 24px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
   width: fit-content;
 }
 .stat-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-.stat-val { font-size: 1.4rem; font-weight: 800; color: #0f172a; }
+.stat-val { font-size: 1.4rem; font-weight: 800; color: #f1f5f9; }
 .stat-label { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
-.stat-divider { width: 1px; height: 32px; background: #e2e8f0; }
+.stat-divider { width: 1px; height: 32px; background: rgba(255, 255, 255, 0.12); }
 
 /* Hero visual */
 .hero-visual {
@@ -395,9 +416,11 @@ const formatCount = (n: number) => {
 }
 .visual-card { border-radius: 16px; }
 .card-main {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 8px 40px rgba(99,102,241,0.10), 0 2px 8px rgba(0,0,0,0.06);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
   padding: 0;
   overflow: hidden;
   animation: float-card 6s ease-in-out infinite;
@@ -406,8 +429,8 @@ const formatCount = (n: number) => {
   display: flex;
   gap: 6px;
   padding: 12px 16px;
-  background: #f8fafc;
-  border-bottom: 1px solid #f1f5f9;
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 .card-dot { width: 10px; height: 10px; border-radius: 50%; }
 .card-dot.red { background: #ef4444; }
@@ -420,20 +443,22 @@ const formatCount = (n: number) => {
   display: flex; align-items: center; justify-content: center; font-size: 16px;
 }
 .mock-text { flex: 1; display: flex; flex-direction: column; gap: 6px; }
-.mock-line { height: 8px; border-radius: 4px; background: #f1f5f9; }
+.mock-line { height: 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.10); }
 .mock-line.wide { width: 85%; }
 .mock-line.medium { width: 55%; }
 .mock-line.short { width: 35%; }
 
 .card-badge {
   position: absolute;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  background: rgba(15, 23, 42, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px rgba(30, 64, 175, 0.10);
   padding: 8px 14px;
   font-size: 13px;
   font-weight: 600;
-  color: #334155;
+  color: #cbd5e1;
   white-space: nowrap;
 }
 .badge-like { bottom: -20px; left: -20px; animation: pulse-badge 3s ease-in-out infinite; }
@@ -445,18 +470,18 @@ const formatCount = (n: number) => {
   align-items: center;
   gap: 8px;
   padding: 12px 28px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, #2563eb, #0ea5e9);
   color: white;
   font-size: 15px;
   font-weight: 600;
   border-radius: 100px;
   text-decoration: none;
   transition: all 0.25s;
-  box-shadow: 0 4px 24px rgba(99,102,241,0.35);
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.35);
 }
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(99,102,241,0.45);
+  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.45);
 }
 .btn-primary.btn-large { padding: 16px 40px; font-size: 16px; }
 
@@ -465,20 +490,19 @@ const formatCount = (n: number) => {
   align-items: center;
   gap: 8px;
   padding: 12px 28px;
-  background: #ffffff;
-  color: #4f46e5;
+  background: rgba(255, 255, 255, 0.06);
+  color: #93c5fd;
   font-size: 15px;
   font-weight: 600;
   border-radius: 100px;
   text-decoration: none;
-  border: 1.5px solid #c7d2fe;
+  border: 1px solid rgba(255, 255, 255, 0.18);
   transition: all 0.25s;
 }
 .btn-secondary:hover {
-  background: #f5f3ff;
-  border-color: #a5b4fc;
+  background: rgba(255, 255, 255, 0.13);
+  border-color: rgba(147, 197, 253, 0.5);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(99,102,241,0.12);
 }
 
 /* ── Section common ─────────────────────────────────────────────────── */
@@ -489,56 +513,67 @@ const formatCount = (n: number) => {
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #6366f1;
+  color: #60a5fa;
   margin-bottom: 12px;
 }
 .section-title {
   font-size: clamp(1.8rem, 3vw, 2.5rem);
   font-weight: 800;
-  color: #0f172a;
+  color: #f1f5f9;
   margin: 0 0 12px;
   letter-spacing: -0.02em;
 }
 .section-desc {
   font-size: 1rem;
-  color: #64748b;
+  color: #94a3b8;
   margin: 0 0 56px;
+}
+.section-glass {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(41, 185, 241, 0.32);
+  border-bottom: 1px solid rgba(131, 220, 255, 0.26);
+  box-shadow: 0 7px 32px rgba(123, 7, 231, 0.1);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 /* ── Features ───────────────────────────────────────────────────────── */
-.features-section { background: #f8fafc; }
+.features-section { background: transparent; }
 .features-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 24px;
 }
 .feature-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 20px;
   padding: 28px;
   transition: all 0.3s;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
 }
 .feature-card::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(99,102,241,0.05), transparent);
+  background: linear-gradient(135deg, rgba(31, 247, 218, 0.15), transparent);
   opacity: 0;
   transition: opacity 0.3s;
 }
 .feature-card:hover {
-  border-color: #c7d2fe;
+  border-color: rgba(96, 165, 250, 0.45);
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(99,102,241,0.12);
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.55);
 }
 .feature-card:hover::before { opacity: 1; }
 .feature-icon { font-size: 2rem; margin-bottom: 16px; }
-.feature-title { font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0 0 8px; }
-.feature-desc { font-size: 0.9rem; color: #64748b; line-height: 1.7; margin: 0; }
+.feature-title { font-size: 1.05rem; font-weight: 700; color: #f1f5f9; margin: 0 0 8px; }
+.feature-desc { font-size: 0.9rem; color: #94a3b8; line-height: 1.7; margin: 0; }
 
 /* ── How it works ───────────────────────────────────────────────────── */
 .steps {
@@ -553,16 +588,18 @@ const formatCount = (n: number) => {
   min-width: 200px;
   text-align: center;
   padding: 32px 24px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 20px;
   transition: all 0.3s;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
 }
 .step:hover {
-  border-color: #c7d2fe;
+  border-color: rgba(96, 165, 250, 0.45);
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(99,102,241,0.12);
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.55);
 }
 .step-num {
   width: 52px; height: 52px;
@@ -575,35 +612,37 @@ const formatCount = (n: number) => {
   align-items: center;
   justify-content: center;
   margin: 0 auto 16px;
-  box-shadow: 0 4px 20px rgba(99,102,241,0.3);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
 }
-.step-title { font-size: 1rem; font-weight: 700; color: #0f172a; margin: 0 0 8px; }
-.step-desc { font-size: 0.875rem; color: #64748b; line-height: 1.6; margin: 0; }
+.step-title { font-size: 1rem; font-weight: 700; color: #f1f5f9; margin: 0 0 8px; }
+.step-desc { font-size: 0.875rem; color: #94a3b8; line-height: 1.6; margin: 0; }
 .step-arrow {
   font-size: 1.5rem;
-  color: #a5b4fc;
+  color: #60a5fa;
   padding-top: 48px;
   flex-shrink: 0;
 }
 .how-cta { text-align: center; }
 
 /* ── Top Forums ─────────────────────────────────────────────────────── */
-.top-forums-section { background: #f8fafc; }
+.top-forums-section { background: transparent; }
 .top-forums-grid { display: flex; flex-direction: column; gap: 16px; margin-bottom: 32px; }
 .top-forum-card {
   display: flex;
   align-items: center;
   gap: 20px;
   padding: 24px 28px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 20px;
   text-decoration: none;
   color: inherit;
   transition: all 0.3s;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
 }
 .top-forum-card::before {
   content: '';
@@ -616,9 +655,9 @@ const formatCount = (n: number) => {
 .top-forum-card.rank-2::before { background: linear-gradient(135deg, #c0c0c0, #9ca3af); }
 .top-forum-card.rank-3::before { background: linear-gradient(135deg, #cd7f32, #a16207); }
 .top-forum-card:hover {
-  border-color: #c7d2fe;
+  border-color: rgba(96, 165, 250, 0.45);
   transform: translateX(6px);
-  box-shadow: 0 4px 20px rgba(99,102,241,0.12);
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.55);
 }
 
 .top-rank { font-size: 1.8rem; flex-shrink: 0; }
@@ -630,19 +669,20 @@ const formatCount = (n: number) => {
   display: flex; align-items: center; justify-content: center;
   font-size: 1.3rem; font-weight: 800;
   color: white; flex-shrink: 0;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.30);
 }
 .top-forum-info { min-width: 0; }
 .top-forum-name {
   font-size: 1.05rem; font-weight: 700;
-  color: #0f172a; margin: 0 0 4px;
+  color: #f1f5f9; margin: 0 0 4px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.top-forum-desc { font-size: 0.85rem; color: #64748b; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.top-forum-desc { font-size: 0.85rem; color: #94a3b8; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .top-forum-stats { display: flex; gap: 24px; flex-shrink: 0; }
 .top-stat { display: flex; flex-direction: column; align-items: center; }
-.top-stat-val { font-size: 1.2rem; font-weight: 800; color: #6366f1; }
+.top-stat-val { font-size: 1.2rem; font-weight: 800; color: #60a5fa; }
 .top-stat-label { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
-.top-forum-arrow { color: #a5b4fc; font-size: 1.2rem; flex-shrink: 0; transition: transform 0.2s; }
+.top-forum-arrow { color: #60a5fa; font-size: 1.2rem; flex-shrink: 0; transition: transform 0.2s; }
 .top-forum-card:hover .top-forum-arrow { transform: translateX(4px); }
 
 /* Skeletons */
@@ -651,33 +691,36 @@ const formatCount = (n: number) => {
   align-items: center;
   gap: 20px;
   padding: 24px 28px;
-  background: #ffffff;
-  border: 1px solid #f1f5f9;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 20px;
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
   animation: shimmer 1.5s ease-in-out infinite;
 }
 @keyframes shimmer {
   0%, 100% { opacity: 0.6; }
   50% { opacity: 1; }
 }
-.sk-rank { width: 36px; height: 36px; border-radius: 8px; background: #f1f5f9; flex-shrink: 0; }
+.sk-rank { width: 36px; height: 36px; border-radius: 8px; background: rgba(255, 255, 255, 0.10); flex-shrink: 0; }
 .sk-body { flex: 1; display: flex; flex-direction: column; gap: 8px; }
-.sk-line { height: 10px; border-radius: 4px; background: #f1f5f9; }
+.sk-line { height: 10px; border-radius: 4px; background: rgba(255, 255, 255, 0.10); }
 .sk-line.wide { width: 50%; }
 .sk-line.medium { width: 35%; }
 .sk-stats { display: flex; gap: 12px; margin-top: 4px; }
-.sk-stat { width: 60px; height: 28px; border-radius: 6px; background: #f8fafc; }
+.sk-stat { width: 60px; height: 28px; border-radius: 6px; background: rgba(255, 255, 255, 0.10); }
 
 .top-forums-empty { text-align: center; color: #94a3b8; padding: 48px; }
 .see-all-wrap { text-align: center; margin-top: 8px; }
 .see-all-link {
-  color: #6366f1;
+  color: #60a5fa;
   text-decoration: none;
   font-size: 14px;
   font-weight: 600;
   transition: color 0.2s;
 }
-.see-all-link:hover { color: #4f46e5; }
+.see-all-link:hover { color: #93c5fd; }
 
 /* ── CTA ────────────────────────────────────────────────────────────── */
 .cta-section {
@@ -685,17 +728,17 @@ const formatCount = (n: number) => {
   text-align: center;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(160deg, #f5f3ff 0%, #eff6ff 100%);
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.16), rgba(14, 165, 233, 0.12));
 }
 .cta-section::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at 50% 50%, rgba(99,102,241,0.08) 0%, transparent 70%);
+  background: radial-gradient(ellipse at 50% 50%, rgba(56, 189, 248, 0.12) 0%, transparent 70%);
 }
 .cta-inner { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; }
-.cta-title { font-size: clamp(1.8rem, 3vw, 2.5rem); font-weight: 800; color: #0f172a; margin: 0 0 16px; }
-.cta-desc { font-size: 1rem; color: #64748b; margin: 0 0 40px; }
+.cta-title { font-size: clamp(1.8rem, 3vw, 2.5rem); font-weight: 800; color: #f1f5f9; margin: 0 0 16px; }
+.cta-desc { font-size: 1rem; color: #94a3b8; margin: 0 0 40px; }
 .cta-actions { display: flex; justify-content: center; }
 
 /* ── Responsive ─────────────────────────────────────────────────────── */
@@ -710,104 +753,5 @@ const formatCount = (n: number) => {
   .step-arrow { display: none; }
   .top-forum-card { flex-wrap: wrap; }
   .section-inner { padding: 0 20px; }
-}
-
-/* ════════════════════════════════════════════════════════════════════════
-   Glassmorphism — modern startup, white / sky-blue. Overrides the rules above.
-   Frosted translucent cards, soft blue shadows, rounded, blue→cyan gradients.
-   ════════════════════════════════════════════════════════════════════════ */
-.landing { color: #334155; }
-
-/* HERO — bright white→blue wash with soft sky blobs behind glass */
-.hero {
-  background: linear-gradient(160deg, #eff6ff 0%, #ffffff 45%, #e0f2fe 100%);
-}
-.shape-1 { background: #bfdbfe; }
-.shape-2 { background: #a5d8ff; }
-.shape-3 { background: #bae6fd; }
-.hero-badge {
-  background: rgba(37, 99, 235, 0.08);
-  border: 1px solid rgba(37, 99, 235, 0.22);
-  color: #2563eb;
-}
-.hero-gradient {
-  background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 50%, #38bdf8 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* Frosted glass surfaces */
-.hero-stats,
-.card-main,
-.feature-card,
-.step,
-.top-forum-card,
-.skeleton-card {
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(16px) saturate(160%);
-  -webkit-backdrop-filter: blur(16px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 8px 32px rgba(30, 64, 175, 0.10);
-}
-.card-header {
-  background: rgba(255, 255, 255, 0.4);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.5);
-}
-.card-badge {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 4px 16px rgba(30, 64, 175, 0.10);
-  color: #334155;
-}
-
-/* Buttons — blue→cyan gradient pill with a soft glow */
-.btn-primary {
-  background: linear-gradient(135deg, #2563eb, #0ea5e9);
-  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.35);
-}
-.btn-primary:hover {
-  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.45);
-}
-.btn-secondary {
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  color: #2563eb;
-  border: 1px solid #bfdbfe;
-}
-.btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.85);
-  border-color: #93c5fd;
-}
-
-/* Sections — let the page wash show through, blue labels */
-.features-section,
-.top-forums-section {
-  background: transparent;
-}
-.section-label { color: #2563eb; }
-
-/* Card hover — lift + blue glow */
-.feature-card:hover,
-.step:hover,
-.top-forum-card:hover {
-  border-color: rgba(59, 130, 246, 0.4);
-  box-shadow: 0 14px 44px rgba(37, 99, 235, 0.16);
-}
-.feature-card::before {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.06), transparent);
-}
-.step-num { box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35); }
-.top-forum-avatar { box-shadow: 0 6px 16px rgba(37, 99, 235, 0.30); }
-.top-stat-val { color: #2563eb; }
-.see-all-link { color: #2563eb; }
-.see-all-link:hover { color: #1d4ed8; }
-
-/* CTA — soft glass blue band */
-.cta-section {
-  background: linear-gradient(135deg, rgba(37, 99, 235, 0.10), rgba(14, 165, 233, 0.12));
 }
 </style>

@@ -30,7 +30,7 @@ const handleLogout = () => {
   <div class="flex items-center gap-4">
     <!-- Authenticated state -->
     <template v-if="isAuthenticated">
-      <span class="text-sm text-slate-600 font-medium hidden md:block">
+      <span class="text-sm text-slate-300 font-medium hidden md:block">
         Hello, {{ user?.name }}
       </span>
 
@@ -46,7 +46,7 @@ const handleLogout = () => {
             v-if="user?.avatar"
             :src="user.avatar"
             alt="Profile"
-            class="w-9 h-9 rounded-full border border-gray-200 hover:border-indigo-400 transition-colors object-cover"
+            class="w-9 h-9 rounded-full border border-white/15 hover:border-sky-400 transition-colors object-cover"
           />
           <div
             v-else
@@ -66,7 +66,7 @@ const handleLogout = () => {
             v-if="user?.role === 'admin'"
             to="/admin"
             @click="closeDropdown"
-            class="block px-4 py-2.5 text-sm text-amber-700 hover:bg-amber-50 transition-colors font-semibold"
+            class="block px-4 py-2.5 text-sm text-amber-300 hover:bg-amber-500/10 transition-colors font-semibold"
             role="menuitem"
           >
             ⚙️ Admin Panel
@@ -74,7 +74,7 @@ const handleLogout = () => {
           <router-link
             to="/profile"
             @click="closeDropdown"
-            class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+            class="block px-4 py-2.5 text-sm text-slate-200 hover:bg-white/5 transition-colors"
             role="menuitem"
           >
             👤 My Profile
@@ -82,7 +82,7 @@ const handleLogout = () => {
           <div class="user-dropdown__divider border-t my-1" />
           <button
             @click="handleLogout"
-            class="block w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
+            class="block w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
             role="menuitem"
           >
             🚪 Logout
@@ -103,7 +103,7 @@ const handleLogout = () => {
     <template v-else>
       <router-link
         to="/login"
-        class="text-sm text-slate-600 hover:text-indigo-600 font-medium transition-colors"
+        class="text-sm text-slate-300 hover:text-sky-400 font-medium transition-colors"
       >
         Login
       </router-link>
@@ -119,11 +119,13 @@ const handleLogout = () => {
 
 <style scoped>
 .user-dropdown {
-  background: #ffffff;
-  border: 1px solid #f1f5f9;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
 }
 
 .user-dropdown__divider {
-  border-color: #f1f5f9;
+  border-color: rgba(255, 255, 255, 0.1);
 }
 </style>

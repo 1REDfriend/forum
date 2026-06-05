@@ -277,7 +277,7 @@ onMounted(() => {
         </div>
         <div v-else-if="stats" class="stat-grid">
           <div class="stat-card">
-            <div class="stat-icon" style="background:#e0e7ff;color:#4f46e5">👥</div>
+            <div class="stat-icon" style="background:rgba(99, 102, 241, 0.18);color:#93c5fd">👥</div>
             <div>
               <p class="stat-label">Total Users</p>
               <p class="stat-value">{{ stats.totalUsers.toLocaleString() }}</p>
@@ -664,7 +664,7 @@ onMounted(() => {
 .admin-layout {
   display: flex;
   min-height: 100vh;
-  background: #f8fafc;
+  background: rgba(255, 255, 255, 0.04);
   padding-top: 64px; /* navbar height */
   font-family: 'Inter', 'Outfit', sans-serif;
 }
@@ -728,7 +728,7 @@ onMounted(() => {
 }
 .back-link {
   font-size: 12px;
-  color: #64748b;
+  color: #94a3b8;
   text-decoration: none;
   transition: color 0.15s;
 }
@@ -750,7 +750,7 @@ onMounted(() => {
 .page-title {
   font-size: 1.5rem;
   font-weight: 800;
-  color: #0f172a;
+  color: #f1f5f9;
   margin: 0 0 24px;
 }
 
@@ -772,8 +772,8 @@ onMounted(() => {
 }
 
 .stat-card {
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 16px;
   padding: 20px;
   display: flex;
@@ -783,7 +783,7 @@ onMounted(() => {
   transition: box-shadow 0.2s;
 }
 .stat-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
-.sk-card { height: 84px; background: #f1f5f9; animation: shimmer 1.5s ease-in-out infinite; }
+.sk-card { height: 84px; background: rgba(255, 255, 255, 0.08); animation: shimmer 1.5s ease-in-out infinite; }
 @keyframes shimmer { 0%,100% { opacity:0.5; } 50% { opacity:1; } }
 
 .stat-icon {
@@ -792,14 +792,14 @@ onMounted(() => {
   display: flex; align-items: center; justify-content: center;
   font-size: 1.3rem; flex-shrink: 0;
 }
-.stat-label { font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin: 0; }
-.stat-value { font-size: 1.6rem; font-weight: 800; color: #0f172a; margin: 2px 0 0; line-height: 1; }
+.stat-label { font-size: 12px; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin: 0; }
+.stat-value { font-size: 1.6rem; font-weight: 800; color: #f1f5f9; margin: 2px 0 0; line-height: 1; }
 .stat-sub { font-size: 11px; color: #22c55e; margin: 4px 0 0; font-weight: 500; }
 
 /* ── Section Card ───────────────────────────────────────────────────── */
 .section-card {
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 1px 4px rgba(0,0,0,0.04);
@@ -807,9 +807,9 @@ onMounted(() => {
 .section-title {
   font-size: 1rem;
   font-weight: 700;
-  color: #0f172a;
+  color: #f1f5f9;
   padding: 16px 20px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   margin: 0;
 }
 
@@ -822,18 +822,18 @@ onMounted(() => {
   padding: 10px 20px;
   transition: background 0.15s;
 }
-.activity-item:hover { background: #f8fafc; }
+.activity-item:hover { background: rgba(255, 255, 255, 0.04); }
 .activity-badge {
   width: 32px; height: 32px; border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
   font-size: 14px; flex-shrink: 0;
 }
-.badge-thread { background: #e0e7ff; }
-.badge-post { background: #fce7f3; }
+.badge-thread { background: rgba(99, 102, 241, 0.18); }
+.badge-post { background: rgba(236, 72, 153, 0.18); }
 .activity-info { flex: 1; min-width: 0; }
-.activity-text { font-size: 13px; color: #374151; margin: 0 0 2px; line-height: 1.5; }
+.activity-text { font-size: 13px; color: #cbd5e1; margin: 0 0 2px; line-height: 1.5; }
 .activity-meta { font-size: 11px; color: #9ca3af; margin: 0; }
-.activity-link { color: #4f46e5; text-decoration: none; font-weight: 600; }
+.activity-link { color: #93c5fd; text-decoration: none; font-weight: 600; }
 .activity-link:hover { text-decoration: underline; }
 .activity-actions { flex-shrink: 0; }
 
@@ -850,20 +850,20 @@ onMounted(() => {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #64748b;
-  background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   white-space: nowrap;
 }
 .data-table td {
   padding: 10px 16px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   vertical-align: middle;
 }
 .data-table tr:last-child td { border-bottom: none; }
-.data-table tr:hover td { background: #f8fafc; }
+.data-table tr:hover td { background: rgba(255, 255, 255, 0.04); }
 .text-center { text-align: center; }
-.text-muted { color: #64748b; }
+.text-muted { color: #94a3b8; }
 .text-sm { font-size: 12px; }
 .font-medium { font-weight: 600; }
 
@@ -888,28 +888,28 @@ onMounted(() => {
   border: none;
   transition: all 0.15s;
 }
-.role-admin { background: #fef3c7; color: #b45309; }
-.role-admin:hover { background: #fde68a; }
-.role-user { background: #e0e7ff; color: #4f46e5; }
-.role-user:hover { background: #c7d2fe; }
+.role-admin { background: rgba(245, 158, 11, 0.16); color: #fcd34d; }
+.role-admin:hover { background: rgba(245, 158, 11, 0.26); }
+.role-user { background: rgba(99, 102, 241, 0.18); color: #93c5fd; }
+.role-user:hover { background: rgba(99, 102, 241, 0.3); }
 .tier-select {
   padding: 3px 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 8px;
   font-size: 12px;
   font-weight: 600;
-  color: #334155;
-  background: #f8fafc;
+  color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.04);
   cursor: pointer;
 }
 .tier-select:focus { outline: none; border-color: #6366f1; }
 .badge-pin, .badge-lock { font-size: 14px; margin: 0 2px; }
 
 /* ── Links ──────────────────────────────────────────────────────────── */
-.link-primary { color: #4f46e5; text-decoration: none; font-weight: 600; }
+.link-primary { color: #93c5fd; text-decoration: none; font-weight: 600; }
 .link-primary:hover { text-decoration: underline; }
-.link-muted { color: #64748b; text-decoration: none; }
-.link-muted:hover { color: #4f46e5; }
+.link-muted { color: #94a3b8; text-decoration: none; }
+.link-muted:hover { color: #93c5fd; }
 
 /* ── Row Actions ────────────────────────────────────────────────────── */
 .row-actions { display: flex; gap: 4px; align-items: center; }
@@ -917,33 +917,33 @@ onMounted(() => {
   display: flex; align-items: center; justify-content: center;
   width: 28px; height: 28px;
   border-radius: 6px;
-  background: #f1f5f9;
-  color: #374151;
+  background: rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
   text-decoration: none;
   font-size: 13px;
   border: none;
   cursor: pointer;
   transition: all 0.15s;
 }
-.btn-view-sm:hover { background: #e0e7ff; }
+.btn-view-sm:hover { background: rgba(99, 102, 241, 0.18); }
 .btn-danger-sm {
   width: 28px; height: 28px;
   border-radius: 6px;
-  background: #fef2f2;
-  color: #dc2626;
+  background: rgba(239, 68, 68, 0.14);
+  color: #fca5a5;
   font-size: 13px;
   border: none;
   cursor: pointer;
   transition: all 0.15s;
   display: flex; align-items: center; justify-content: center;
 }
-.btn-danger-sm:hover { background: #fee2e2; }
+.btn-danger-sm:hover { background: rgba(239, 68, 68, 0.24); }
 
 /* ── Search ─────────────────────────────────────────────────────────── */
 .search-box { display: flex; align-items: center; }
 .search-input {
   padding: 8px 14px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 8px;
   font-size: 13px;
   outline: none;
@@ -959,27 +959,27 @@ onMounted(() => {
   justify-content: center;
   gap: 12px;
   padding: 16px;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 .page-btn {
   padding: 6px 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 8px;
-  background: white;
+  background: rgba(255, 255, 255, 0.05);
   cursor: pointer;
   font-size: 13px;
   transition: all 0.15s;
 }
-.page-btn:hover:not(:disabled) { border-color: #6366f1; color: #4f46e5; }
+.page-btn:hover:not(:disabled) { border-color: #6366f1; color: #93c5fd; }
 .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.page-info { font-size: 12px; color: #64748b; }
+.page-info { font-size: 12px; color: #94a3b8; }
 
 /* ── Buttons ────────────────────────────────────────────────────────── */
 .btn-create {
   display: inline-flex;
   align-items: center;
   padding: 8px 18px;
-  background: #4f46e5;
+  background: #93c5fd;
   color: white;
   font-size: 13px;
   font-weight: 600;
@@ -991,7 +991,7 @@ onMounted(() => {
 
 /* ── Skeletons ──────────────────────────────────────────────────────── */
 .sk-lines { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
-.sk-line { height: 14px; background: #f1f5f9; border-radius: 6px; animation: shimmer 1.5s ease-in-out infinite; }
+.sk-line { height: 14px; background: rgba(255, 255, 255, 0.08); border-radius: 6px; animation: shimmer 1.5s ease-in-out infinite; }
 .sk-line:nth-child(2n) { width: 80%; }
 .sk-line:nth-child(3n) { width: 60%; }
 
@@ -1006,22 +1006,23 @@ onMounted(() => {
   backdrop-filter: blur(4px);
 }
 .modal {
-  background: white;
+  background: rgba(15, 23, 42, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 16px;
   padding: 28px;
   max-width: 420px;
   width: 90%;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
 }
-.modal-title { font-size: 1.1rem; font-weight: 800; color: #0f172a; margin: 0 0 10px; }
-.modal-body { font-size: 14px; color: #374151; line-height: 1.6; margin: 0 0 24px; }
+.modal-title { font-size: 1.1rem; font-weight: 800; color: #f1f5f9; margin: 0 0 10px; }
+.modal-body { font-size: 14px; color: #cbd5e1; line-height: 1.6; margin: 0 0 24px; }
 .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
 .btn-cancel {
-  padding: 8px 18px; border: 1px solid #e2e8f0; border-radius: 8px;
-  background: white; font-size: 13px; font-weight: 600; cursor: pointer;
+  padding: 8px 18px; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05); font-size: 13px; font-weight: 600; cursor: pointer;
   transition: background 0.15s;
 }
-.btn-cancel:hover { background: #f8fafc; }
+.btn-cancel:hover { background: rgba(255, 255, 255, 0.04); }
 .btn-danger {
   padding: 8px 18px; background: #dc2626; color: white; border: none;
   border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;

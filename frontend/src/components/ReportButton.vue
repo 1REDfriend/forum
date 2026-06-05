@@ -43,7 +43,7 @@ const submit = async () => {
   <span v-if="auth.isAuthenticated">
     <button
       @click="open = true"
-      class="text-xs text-gray-400 hover:text-red-500 transition-colors"
+      class="text-xs text-slate-500 hover:text-red-400 transition-colors"
       title="รายงาน"
     >
       🚩 รายงาน
@@ -57,19 +57,19 @@ const submit = async () => {
       >
         <div class="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
         <div class="glass-strong relative rounded-2xl p-6 w-full max-w-sm">
-          <h3 class="text-lg font-bold text-gray-900 mb-1">รายงานเนื้อหา</h3>
-          <p class="text-xs text-gray-500 mb-3">ช่วยบอกเหตุผลที่รายงาน</p>
+          <h3 class="text-lg font-bold text-slate-100 mb-1">รายงานเนื้อหา</h3>
+          <p class="text-xs text-slate-400 mb-3">ช่วยบอกเหตุผลที่รายงาน</p>
           <textarea
             v-model="reason"
             rows="3"
             maxlength="500"
             placeholder="เช่น สแปม, เนื้อหาไม่เหมาะสม…"
-            class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-y bg-white/70"
+            class="w-full text-sm text-slate-100 placeholder-slate-500 border border-white/15 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400 resize-y bg-white/5"
           ></textarea>
-          <p v-if="error" class="text-xs text-red-500 mt-1">{{ error }}</p>
-          <p v-if="done" class="text-xs text-green-600 mt-1">{{ done }}</p>
+          <p v-if="error" class="text-xs text-red-300 mt-1">{{ error }}</p>
+          <p v-if="done" class="text-xs text-green-400 mt-1">{{ done }}</p>
           <div class="flex gap-2 justify-end mt-4">
-            <button @click="open = false" class="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">
+            <button @click="open = false" class="px-3 py-1.5 text-sm text-slate-400 hover:bg-white/10 rounded-lg">
               ยกเลิก
             </button>
             <button

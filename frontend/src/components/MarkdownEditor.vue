@@ -219,10 +219,10 @@ const handleFileInputChange = async (event: Event) => {
 
 <style scoped>
 .markdown-editor {
-  border: 1px solid #d1d5db;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 8px;
   overflow: hidden;
-  background: white;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .toolbar {
@@ -230,8 +230,8 @@ const handleFileInputChange = async (event: Event) => {
   align-items: center;
   gap: 2px;
   padding: 6px 8px;
-  background: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   flex-wrap: wrap;
 }
 
@@ -239,15 +239,15 @@ const handleFileInputChange = async (event: Event) => {
   padding: 3px 8px;
   font-size: 12px;
   font-weight: 600;
-  color: #374151;
-  background: white;
-  border: 1px solid #d1d5db;
+  color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.15s;
   font-family: monospace;
 }
-.toolbar-btn:hover { background: #e5e7eb; color: #1f2937; }
+.toolbar-btn:hover { background: rgba(255, 255, 255, 0.1); color: #f1f5f9; }
 
 .toolbar-sep {
   flex: 1;
@@ -257,14 +257,14 @@ const handleFileInputChange = async (event: Event) => {
   padding: 3px 12px;
   font-size: 12px;
   font-weight: 500;
-  color: #6b7280;
+  color: #94a3b8;
   background: transparent;
-  border: 1px solid #d1d5db;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.15s;
 }
-.tab-btn:hover { color: #4f46e5; }
+.tab-btn:hover { color: #93c5fd; }
 .tab-active {
   background: #4f46e5 !important;
   color: white !important;
@@ -285,7 +285,7 @@ const handleFileInputChange = async (event: Event) => {
   font-size: 14px;
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
   line-height: 1.7;
-  color: #1f2937;
+  color: #f1f5f9;
   min-height: 160px;
   display: block;
 }
@@ -301,9 +301,9 @@ const handleFileInputChange = async (event: Event) => {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  background: rgba(255,255,255,0.75);
+  background: rgba(15, 23, 42, 0.82);
   font-size: 14px;
-  color: #4f46e5;
+  color: #93c5fd;
   font-weight: 500;
 }
 
@@ -311,8 +311,8 @@ const handleFileInputChange = async (event: Event) => {
   display: inline-block;
   width: 18px;
   height: 18px;
-  border: 2px solid #c7d2fe;
-  border-top-color: #4f46e5;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #93c5fd;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
@@ -320,10 +320,10 @@ const handleFileInputChange = async (event: Event) => {
 
 .upload-error {
   padding: 6px 12px;
-  background: #fef2f2;
-  color: #dc2626;
+  background: rgba(239, 68, 68, 0.12);
+  color: #fca5a5;
   font-size: 12px;
-  border-bottom: 1px solid #fecaca;
+  border-bottom: 1px solid rgba(239, 68, 68, 0.25);
 }
 
 .preview-area {
@@ -340,31 +340,31 @@ const handleFileInputChange = async (event: Event) => {
   font-size: 11px;
   color: #9ca3af;
   padding: 4px 12px 6px;
-  background: #f9fafb;
-  border-top: 1px solid #f3f4f6;
+  background: rgba(255, 255, 255, 0.04);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   margin: 0;
 }
 
 /* reuse prose styles */
 .prose-preview :deep(h1), .prose-preview :deep(h2), .prose-preview :deep(h3) {
-  font-weight: 700; margin: 0.8em 0 0.3em; color: #1f2937;
+  font-weight: 700; margin: 0.8em 0 0.3em; color: #f1f5f9;
 }
 .prose-preview :deep(p) { margin: 0.5em 0; line-height: 1.7; }
 .prose-preview :deep(strong) { font-weight: 700; }
 .prose-preview :deep(em) { font-style: italic; }
 .prose-preview :deep(code) {
-  background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 4px;
-  padding: 1px 5px; font-family: monospace; font-size: 0.875em; color: #7c3aed;
+  background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 4px;
+  padding: 1px 5px; font-family: monospace; font-size: 0.875em; color: #c4b5fd;
 }
 .prose-preview :deep(pre) {
   background: #1e1e2e; border-radius: 8px; padding: 0.8em 1em; overflow-x: auto; margin: 0.6em 0;
 }
 .prose-preview :deep(pre code) { background: none; border: none; padding: 0; color: #cdd6f4; }
 .prose-preview :deep(blockquote) {
-  border-left: 3px solid #6366f1; padding-left: 0.8em; color: #6b7280; font-style: italic; margin: 0.5em 0;
+  border-left: 3px solid #6366f1; padding-left: 0.8em; color: #94a3b8; font-style: italic; margin: 0.5em 0;
 }
 .prose-preview :deep(ul), .prose-preview :deep(ol) { padding-left: 1.4em; margin: 0.4em 0; }
 .prose-preview :deep(li) { margin: 0.2em 0; }
-.prose-preview :deep(a) { color: #4f46e5; text-decoration: underline; }
+.prose-preview :deep(a) { color: #93c5fd; text-decoration: underline; }
 .prose-preview :deep(img) { max-width: 100%; border-radius: 6px; margin: 0.5em 0; }
 </style>

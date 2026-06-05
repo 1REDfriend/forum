@@ -46,25 +46,25 @@ const totalResults = () => {
 </script>
 
 <template>
-    <main class="flex justify-center min-h-screen bg-gray-50 pt-24 pb-12">
-        <div class="max-w-3xl mx-auto px-4 sm:px-6">
-            <h1 class="text-2xl font-extrabold text-gray-900 mb-6">Search</h1>
+    <main class="flex justify-center min-h-screen pt-24 pb-12">
+        <div class="max-w-3xl w-7/8 mx-auto px-4 sm:px-6">
+            <h1 class="text-2xl font-extrabold text-slate-100 mb-6">Search</h1>
 
             <!-- Search Input -->
             <div class="relative mb-8">
                 <svg xmlns="http://www.w3.org/2000/svg"
-                    class="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" fill="none"
+                    class="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500" fill="none"
                     viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
                 <input v-model="query" type="text" placeholder="Search forums and threads..."
-                    class="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white"
+                    class="w-full pl-12 pr-4 py-3 border border-white/15 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-slate-100 placeholder-slate-500 bg-white/5"
                     autofocus />
             </div>
 
             <!-- Loading -->
-            <div v-if="isLoading" class="text-center py-8 text-gray-500">
+            <div v-if="isLoading" class="text-center py-8 text-slate-400">
                 <div
                     class="inline-block w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin">
                 </div>
@@ -72,47 +72,47 @@ const totalResults = () => {
             </div>
 
             <!-- Error -->
-            <div v-else-if="error" class="bg-red-50 text-red-600 rounded-xl p-4 border border-red-100 text-sm">
+            <div v-else-if="error" class="bg-red-500/10 text-red-300 rounded-xl p-4 border border-red-500/20 text-sm">
                 {{ error }}
             </div>
 
             <!-- Results -->
             <template v-else-if="results && query.trim()">
-                <p class="text-sm text-gray-500 mb-6">{{ totalResults() }} results found</p>
+                <p class="text-sm text-slate-400 mb-6">{{ totalResults() }} results found</p>
 
                 <!-- Forum Results -->
                 <div v-if="results.forums.length > 0" class="mb-8">
-                    <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Forums</h2>
+                    <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Forums</h2>
                     <div class="space-y-2">
                         <router-link v-for="forum in results.forums" :key="forum.id" :to="`/forum/${forum.id}`"
-                            class="block bg-white rounded-xl border border-gray-100 px-5 py-4 hover:bg-gray-50 transition-colors group">
-                            <h3 class="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">{{
+                            class="block bg-white/5 rounded-xl border border-white/10 px-5 py-4 hover:bg-white/10 transition-colors group">
+                            <h3 class="font-bold text-slate-100 group-hover:text-sky-400 transition-colors">{{
                                 forum.name }}</h3>
-                            <p class="text-sm text-gray-500 mt-1" v-if="forum.description">{{ forum.description }}</p>
+                            <p class="text-sm text-slate-400 mt-1" v-if="forum.description">{{ forum.description }}</p>
                         </router-link>
                     </div>
                 </div>
 
                 <!-- Thread Results -->
                 <div v-if="results.threads.length > 0">
-                    <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Threads</h2>
+                    <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Threads</h2>
                     <div class="space-y-2">
                         <router-link v-for="thread in results.threads" :key="thread.id" :to="`/thread/${thread.id}`"
-                            class="block bg-white rounded-xl border border-gray-100 px-5 py-4 hover:bg-gray-50 transition-colors group">
-                            <h3 class="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">{{
+                            class="block bg-white/5 rounded-xl border border-white/10 px-5 py-4 hover:bg-white/10 transition-colors group">
+                            <h3 class="font-bold text-slate-100 group-hover:text-sky-400 transition-colors">{{
                                 thread.title }}</h3>
-                            <div class="flex gap-3 text-xs text-gray-400 mt-1">
+                            <div class="flex gap-3 text-xs text-slate-500 mt-1">
                                 <span>in {{ thread.forumName }}</span>
                                 <span>by @{{ thread.authorName }}</span>
                             </div>
-                            <p class="text-sm text-gray-500 mt-2 line-clamp-2">{{ thread.content }}</p>
+                            <p class="text-sm text-slate-400 mt-2 line-clamp-2">{{ thread.content }}</p>
                         </router-link>
                     </div>
                 </div>
 
                 <!-- No Results -->
-                <div v-if="totalResults() === 0" class="text-center py-12 text-gray-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-3 text-gray-300" fill="none"
+                <div v-if="totalResults() === 0" class="text-center py-12 text-slate-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-3 text-slate-600" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -123,13 +123,13 @@ const totalResults = () => {
             </template>
 
             <!-- Empty State -->
-            <div v-else-if="!query.trim()" class="text-center py-12 text-gray-400">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4 text-gray-200" fill="none"
+            <div v-else-if="!query.trim()" class="text-center py-12 text-slate-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4 text-slate-700" fill="none"
                     viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                         d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                <p class="text-lg font-medium text-gray-500">Start typing to search</p>
+                <p class="text-lg font-medium text-slate-400">Start typing to search</p>
                 <p class="text-sm mt-1">Search across forums and threads</p>
             </div>
         </div>

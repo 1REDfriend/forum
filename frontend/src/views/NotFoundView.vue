@@ -2,11 +2,11 @@
 </script>
 
 <template>
-    <main class="min-h-screen bg-gray-50 flex flex-col items-center justify-center pt-16">
+    <main class="min-h-screen flex flex-col items-center justify-center pt-16">
         <div class="text-center px-6">
-            <h1 class="text-8xl font-extrabold text-indigo-600 mb-4">404</h1>
-            <h2 class="text-2xl font-bold text-gray-900 mb-2">Page Not Found</h2>
-            <p class="text-gray-500 mb-8 max-w-md mx-auto">
+            <h1 class="text-8xl font-extrabold text-sky-400 mb-4">404</h1>
+            <h2 class="text-2xl font-bold text-slate-100 mb-2">Page Not Found</h2>
+            <p class="text-slate-400 mb-8 max-w-md mx-auto">
                 Sorry, the page you're looking for doesn't exist or has been moved.
             </p>
             <router-link to="/"

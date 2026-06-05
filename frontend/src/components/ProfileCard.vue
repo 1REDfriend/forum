@@ -52,8 +52,10 @@ const bannerStyle = computed(() =>
 <style scoped>
 .pcard {
   width: 100%;
-  background: #fff;
-  border: 1px solid #eef0f4;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 12px;
   overflow: hidden;
   text-align: center;
@@ -62,7 +64,7 @@ const bannerStyle = computed(() =>
   height: 56px;
   background-size: cover;
   background-position: center;
-  background-color: #eef2ff;
+  background-color: #14264a;
 }
 .pcard-banner-fallback {
   height: 100%;
@@ -96,14 +98,14 @@ const bannerStyle = computed(() =>
 .pcard-name {
   display: block;
   font-weight: 700;
-  color: #1f2937;
+  color: #f1f5f9;
   font-size: 0.9rem;
   text-decoration: none;
   margin-top: 4px;
   word-break: break-word;
 }
 .pcard-name:hover {
-  color: #4f46e5;
+  color: #93c5fd;
 }
 .pcard-badges {
   display: flex;
@@ -123,12 +125,12 @@ const bannerStyle = computed(() =>
   white-space: nowrap;
 }
 .pcard-role {
-  background: #fef3c7;
-  color: #b45309;
+  background: rgba(245, 158, 11, 0.15);
+  color: #fcd34d;
 }
 .pcard-bio {
   font-size: 11px;
-  color: #6b7280;
+  color: #94a3b8;
   margin: 8px 0 0;
   line-height: 1.45;
   display: -webkit-box;

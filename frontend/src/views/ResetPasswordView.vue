@@ -44,7 +44,7 @@ const submit = async () => {
 </script>
 
 <template>
-  <main class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center px-4 py-16">
+  <main class="min-h-screen flex items-center justify-center px-4 py-16">
     <div class="w-full max-w-md">
       <div class="text-center mb-8">
         <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg mb-4">
@@ -52,31 +52,31 @@ const submit = async () => {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
           </svg>
         </div>
-        <h1 class="text-3xl font-extrabold text-gray-900">Reset Password</h1>
-        <p class="text-gray-500 mt-2">Enter your new password below.</p>
+        <h1 class="text-3xl font-extrabold text-slate-100">Reset Password</h1>
+        <p class="text-slate-400 mt-2">Enter your new password below.</p>
       </div>
 
-      <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+      <div class="bg-white/5 backdrop-blur-xl rounded-2xl shadow-xl border border-white/10 p-8">
         <!-- Success -->
         <div v-if="success" class="text-center">
-          <div class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="w-16 h-16 rounded-full bg-green-500/15 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <p class="text-gray-700 font-medium">Password reset successfully!</p>
-          <p class="text-sm text-gray-500 mt-1">Redirecting you to login...</p>
+          <p class="text-slate-300 font-medium">Password reset successfully!</p>
+          <p class="text-sm text-slate-400 mt-1">Redirecting you to login...</p>
         </div>
 
         <!-- Form -->
         <form v-else @submit.prevent="submit" class="space-y-5">
-          <div v-if="error" class="p-3 bg-red-50 text-red-600 rounded-lg text-sm border border-red-100">
+          <div v-if="error" class="p-3 bg-red-500/10 text-red-300 rounded-lg text-sm border border-red-500/20">
             {{ error }}
             <router-link v-if="!token" to="/forgot-password" class="underline ml-2">Request new link</router-link>
           </div>
 
           <div>
-            <label for="new-password" class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+            <label for="new-password" class="block text-sm font-medium text-slate-300 mb-1">New Password</label>
             <input
               id="new-password"
               v-model="password"
@@ -86,12 +86,12 @@ const submit = async () => {
               autocomplete="new-password"
               placeholder="At least 6 characters"
               :disabled="!token"
-              class="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition disabled:bg-gray-50"
+              class="w-full px-4 py-2.5 border border-white/15 bg-white/5 text-slate-100 placeholder-slate-500 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-400 transition disabled:bg-white/5"
             />
           </div>
 
           <div>
-            <label for="confirm-password" class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+            <label for="confirm-password" class="block text-sm font-medium text-slate-300 mb-1">Confirm Password</label>
             <input
               id="confirm-password"
               v-model="confirmPassword"
@@ -100,7 +100,7 @@ const submit = async () => {
               autocomplete="new-password"
               placeholder="Repeat your password"
               :disabled="!token"
-              class="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition disabled:bg-gray-50"
+              class="w-full px-4 py-2.5 border border-white/15 bg-white/5 text-slate-100 placeholder-slate-500 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-400 transition disabled:bg-white/5"
             />
           </div>
 
@@ -112,8 +112,8 @@ const submit = async () => {
             {{ isLoading ? 'Resetting...' : 'Reset Password' }}
           </button>
 
-          <p class="text-center text-sm text-gray-500">
-            <router-link to="/login" class="text-indigo-600 font-medium hover:underline">← Back to Login</router-link>
+          <p class="text-center text-sm text-slate-400">
+            <router-link to="/login" class="text-sky-400 font-medium hover:underline">← Back to Login</router-link>
           </p>
         </form>
       </div>

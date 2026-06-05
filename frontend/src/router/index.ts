@@ -102,7 +102,7 @@ router.beforeEach((to, from, next) => {
   } else if (to.meta.requiresGuest && isAuthenticated) {
     next({ name: 'home' })
   } else {
-    next()
+    next();
   }
 })
 

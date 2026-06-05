@@ -250,38 +250,38 @@ const formatDate = (dateStr: string) =>
 </script>
 
 <template>
-  <main class="flex items-center w-screen flex-col min-h-screen bg-gray-50 py-8 sm:px-6 lg:px-8 pt-24">
+  <main class="flex items-center w-screen flex-col min-h-screen py-8 sm:px-6 lg:px-8 pt-24">
     <div v-if="isLoading" class="sm:mx-auto sm:w-full sm:max-w-4xl space-y-4">
-      <div class="bg-white rounded-xl border border-gray-100 p-6 animate-pulse">
-        <div class="h-6 bg-gray-200 rounded w-2/3 mb-4"></div>
-        <div class="h-4 bg-gray-100 rounded w-1/4 mb-6"></div>
-        <div class="h-20 bg-gray-100 rounded"></div>
+      <div class="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-6 animate-pulse">
+        <div class="h-6 bg-white/10 rounded w-2/3 mb-4"></div>
+        <div class="h-4 bg-white/10 rounded w-1/4 mb-6"></div>
+        <div class="h-20 bg-white/10 rounded"></div>
       </div>
     </div>
 
     <div v-else-if="error && !thread" class="text-center py-12">
-      <div class="bg-red-50 text-red-600 rounded-xl p-6 border border-red-100 max-w-md mx-auto">
+      <div class="bg-red-500/10 text-red-300 rounded-xl p-6 border border-red-500/20 max-w-md mx-auto">
         <p class="font-medium">{{ error }}</p>
-        <router-link to="/forums" class="text-indigo-600 hover:underline text-sm mt-2 inline-block">← Back to Home</router-link>
+        <router-link to="/forums" class="text-sky-400 hover:underline text-sm mt-2 inline-block">← Back to Home</router-link>
       </div>
     </div>
 
     <div v-else-if="thread" class="sm:mx-auto sm:w-full sm:max-w-4xl space-y-6">
 
       <!-- Breadcrumbs -->
-      <nav class="text-sm text-gray-500 mb-4 flex items-center gap-1 flex-wrap">
-        <router-link to="/forums" class="hover:text-indigo-600">Forums</router-link>
+      <nav class="text-sm text-slate-400 mb-4 flex items-center gap-1 flex-wrap">
+        <router-link to="/forums" class="hover:text-sky-400">Forums</router-link>
         <span>›</span>
-        <router-link :to="`/forum/${thread.forum.id}`" class="hover:text-indigo-600">{{ thread.forum.name
+        <router-link :to="`/forum/${thread.forum.id}`" class="hover:text-sky-400">{{ thread.forum.name
         }}</router-link>
         <span>›</span>
-        <span class="text-gray-800 font-medium truncate max-w-[240px]">{{ thread.title }}</span>
+        <span class="text-slate-200 font-medium truncate max-w-[240px]">{{ thread.title }}</span>
         <!-- Badges -->
         <span v-if="thread.isPinned"
-          class="ml-1 inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">📌
+          class="ml-1 inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-300">📌
           Pinned</span>
         <span v-if="thread.isLocked"
-          class="ml-1 inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-600">🔒
+          class="ml-1 inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-semibold bg-red-500/15 text-red-300">🔒
           Locked</span>
       </nav>
 
@@ -290,14 +290,14 @@ const formatDate = (dateStr: string) =>
         <div class="w-full sm:w-52 sm:flex-shrink-0">
           <ProfileCard :author="thread.author" />
         </div>
-        <div class="flex-1 min-w-0 w-full bg-white shadow-sm sm:rounded-xl border border-gray-100 overflow-hidden">
-        <div class="p-6 border-b border-gray-100 bg-gray-50/50">
+        <div class="flex-1 min-w-0 w-full bg-white/5 backdrop-blur-xl shadow-sm sm:rounded-xl border border-white/10 overflow-hidden">
+        <div class="p-6 border-b border-white/10 bg-white/5">
           <!-- View Mode -->
           <template v-if="!isEditingThread">
-            <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ thread.title }}</h1>
+            <h1 class="text-2xl font-bold text-slate-100 mb-2">{{ thread.title }}</h1>
             <div class="flex items-center justify-between flex-wrap gap-2">
-              <div class="flex items-center text-sm text-gray-500 gap-3">
-                <span class="font-medium text-indigo-600">@{{ thread.author.name }}</span>
+              <div class="flex items-center text-sm text-slate-400 gap-3">
+                <span class="font-medium text-sky-400">@{{ thread.author.name }}</span>
                 <span>•</span>
                 <span>{{ formatDate(thread.createdAt) }}</span>
               </div>
@@ -306,8 +306,8 @@ const formatDate = (dateStr: string) =>
                 <button v-if="authStore.isAuthenticated" @click="toggleThreadLike" :disabled="isLikingThread" :class="[
                   'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all',
                   threadIsLiked
-                    ? 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
-                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                    ? 'bg-sky-500/15 text-sky-300 hover:bg-sky-500/25'
+                    : 'bg-white/10 text-slate-400 hover:bg-white/20'
                 ]">
                   <span>{{ threadIsLiked ? '👍' : '👍' }}</span>
                   <span>{{ threadLikeCount }}</span>
@@ -315,20 +315,20 @@ const formatDate = (dateStr: string) =>
                 <!-- Admin controls -->
                 <template v-if="isAdmin">
                   <button @click="togglePin" :disabled="isPinning"
-                    class="text-xs px-2.5 py-1.5 rounded-lg border border-amber-300 text-amber-700 hover:bg-amber-50 transition-colors">
+                    class="text-xs px-2.5 py-1.5 rounded-lg border border-amber-500/30 text-amber-300 hover:bg-amber-500/10 transition-colors">
                     {{ thread.isPinned ? '📌 Unpin' : '📌 Pin' }}
                   </button>
                   <button @click="toggleLock" :disabled="isLocking"
-                    class="text-xs px-2.5 py-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors">
+                    class="text-xs px-2.5 py-1.5 rounded-lg border border-red-500/30 text-red-300 hover:bg-red-500/10 transition-colors">
                     {{ thread.isLocked ? '🔓 Unlock' : '🔒 Lock' }}
                   </button>
                 </template>
                 <!-- Owner/Admin edit/delete -->
                 <template v-if="isThreadOwnerOrAdmin">
                   <button @click="startEditThread"
-                    class="text-sm text-gray-500 hover:text-indigo-600 transition-colors px-2 py-1">Edit</button>
+                    class="text-sm text-slate-400 hover:text-sky-400 transition-colors px-2 py-1">Edit</button>
                   <button @click="showDeleteConfirm('thread', thread.id)"
-                    class="text-sm text-gray-500 hover:text-red-600 transition-colors px-2 py-1">Delete</button>
+                    class="text-sm text-slate-400 hover:text-red-400 transition-colors px-2 py-1">Delete</button>
                 </template>
                 <ReportButton v-if="!isThreadOwnerOrAdmin" target-type="thread" :target-id="thread.id" />
               </div>
@@ -336,10 +336,10 @@ const formatDate = (dateStr: string) =>
           </template>
           <!-- Edit Mode -->
           <template v-else>
-            <div v-if="editThreadError" class="p-3 bg-red-50 text-red-600 rounded-md text-sm mb-3">{{ editThreadError }}
+            <div v-if="editThreadError" class="p-3 bg-red-500/10 text-red-300 border border-red-500/20 rounded-md text-sm mb-3">{{ editThreadError }}
             </div>
             <input v-model="editThreadTitle"
-              class="w-full text-2xl font-bold text-gray-900 mb-3 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
+              class="w-full text-2xl font-bold text-slate-100 mb-3 px-3 py-2 border border-white/15 bg-white/5 rounded-md focus:outline-none focus:ring-sky-500 focus:border-sky-500" />
           </template>
         </div>
         <div class="p-6">
@@ -350,7 +350,7 @@ const formatDate = (dateStr: string) =>
             <MarkdownEditor v-model="editThreadContent" :rows="8" />
             <div class="flex gap-2 mt-3 justify-end">
               <button @click="cancelEditThread"
-                class="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">Cancel</button>
+                class="px-4 py-2 text-sm text-slate-400 border border-white/15 rounded-md hover:bg-white/10">Cancel</button>
               <button @click="saveEditThread" :disabled="isSavingThread"
                 class="px-4 py-2 text-sm text-white bg-indigo-600 hover:bg-indigo-700 rounded-md disabled:opacity-50">
                 {{ isSavingThread ? 'Saving...' : 'Save' }}
@@ -362,45 +362,45 @@ const formatDate = (dateStr: string) =>
       </div>
 
       <!-- Error banner -->
-      <div v-if="error && thread" class="p-3 bg-red-50 text-red-600 rounded-md text-sm">{{ error }}</div>
+      <div v-if="error && thread" class="p-3 bg-red-500/10 text-red-300 border border-red-500/20 rounded-md text-sm">{{ error }}</div>
 
       <!-- Replies list -->
-      <div class="space-y-4">
-        <h3 class="text-lg font-semibold text-gray-700 pl-2">Replies ({{ total }})</h3>
+      <div class="space-y-4 pb-5">
+        <h3 class="text-lg font-semibold text-slate-300 pl-2">Replies ({{ total }})</h3>
 
         <div v-if="posts.length === 0"
-          class="bg-white shadow-sm sm:rounded-xl border border-gray-100 p-8 text-center text-gray-500">
+          class="bg-white/5 backdrop-blur-xl shadow-sm sm:rounded-xl border border-white/10 p-8 text-center text-slate-400">
           <p>No replies yet. Be the first to respond!</p>
         </div>
 
-        <div v-for="post in posts" :key="post.id" class="flex flex-col sm:flex-row gap-4 items-start">
+        <div v-for="post in posts" :key="post.id" class="flex flex-col sm:flex-row gap-4 pb-4 items-start">
           <div class="w-full sm:w-52 sm:flex-shrink-0">
             <ProfileCard :author="post.author" />
           </div>
-          <div class="flex-1 min-w-0 w-full bg-white shadow-sm sm:rounded-xl border border-gray-100 overflow-hidden">
-          <div class="px-6 py-3 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center text-sm">
-            <span class="font-medium text-indigo-600">@{{ post.author.name }}</span>
+          <div class="flex-1 min-w-0 w-full bg-white/5 backdrop-blur-xl shadow-sm sm:rounded-xl border border-white/10 overflow-hidden">
+          <div class="px-6 py-3 border-b border-white/10 bg-white/5 flex justify-between items-center text-sm">
+            <span class="font-medium text-sky-400">@{{ post.author.name }}</span>
             <div class="flex items-center gap-3">
-              <span class="text-gray-400">{{ formatDate(post.createdAt) }}</span>
+              <span class="text-slate-500">{{ formatDate(post.createdAt) }}</span>
               <!-- Like post button -->
               <button v-if="authStore.isAuthenticated && editingPostId !== post.id" @click="togglePostLike(post)"
                 :disabled="likingPostId === post.id" :class="[
                   'flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium transition-all',
                   post.isLikedByMe
-                    ? 'bg-indigo-100 text-indigo-600'
-                    : 'text-gray-400 hover:text-indigo-500 hover:bg-gray-100'
+                    ? 'bg-sky-500/15 text-sky-300'
+                    : 'text-slate-500 hover:text-sky-300 hover:bg-white/10'
                 ]">
                 👍 {{ post.likeCount || 0 }}
               </button>
-              <span v-else-if="!authStore.isAuthenticated && (post.likeCount ?? 0) > 0" class="text-gray-400 text-xs">
+              <span v-else-if="!authStore.isAuthenticated && (post.likeCount ?? 0) > 0" class="text-slate-500 text-xs">
                 👍 {{ post.likeCount }}
               </span>
               <!-- Edit/Delete -->
               <template v-if="isPostOwnerOrAdmin(post) && editingPostId !== post.id">
                 <button @click="startEditPost(post)"
-                  class="text-gray-400 hover:text-indigo-600 transition-colors">Edit</button>
+                  class="text-slate-500 hover:text-sky-400 transition-colors">Edit</button>
                 <button @click="showDeleteConfirm('post', post.id)"
-                  class="text-gray-400 hover:text-red-600 transition-colors">Delete</button>
+                  class="text-slate-500 hover:text-red-400 transition-colors">Delete</button>
               </template>
               <ReportButton v-if="!isPostOwnerOrAdmin(post) && editingPostId !== post.id" target-type="post" :target-id="post.id" />
             </div>
@@ -411,12 +411,12 @@ const formatDate = (dateStr: string) =>
           </div>
           <!-- Post Edit Mode -->
           <div v-else class="p-6">
-            <div v-if="editPostError" class="p-3 bg-red-50 text-red-600 rounded-md text-sm mb-3">{{ editPostError }}
+            <div v-if="editPostError" class="p-3 bg-red-500/10 text-red-300 border border-red-500/20 rounded-md text-sm mb-3">{{ editPostError }}
             </div>
             <MarkdownEditor v-model="editPostContent" :rows="4" />
             <div class="flex gap-2 mt-3 justify-end">
               <button @click="cancelEditPost"
-                class="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">Cancel</button>
+                class="px-4 py-2 text-sm text-slate-400 border border-white/15 rounded-md hover:bg-white/10">Cancel</button>
               <button @click="saveEditPost" :disabled="isSavingPost"
                 class="px-4 py-2 text-sm text-white bg-indigo-600 hover:bg-indigo-700 rounded-md disabled:opacity-50">
                 {{ isSavingPost ? 'Saving...' : 'Save' }}
@@ -430,22 +430,22 @@ const formatDate = (dateStr: string) =>
       <!-- Pagination -->
       <div v-if="totalPages > 1" class="flex items-center justify-center gap-2 mt-4">
         <button @click="goToPage(currentPage - 1)" :disabled="currentPage <= 1"
-          class="px-3 py-2 text-sm rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+          class="px-3 py-2 text-sm rounded-lg border border-white/15 hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
           ← Prev
         </button>
-        <span class="text-sm text-gray-500 px-2">Page {{ currentPage }} / {{ totalPages }}</span>
+        <span class="text-sm text-slate-400 px-2">Page {{ currentPage }} / {{ totalPages }}</span>
         <button @click="goToPage(currentPage + 1)" :disabled="currentPage >= totalPages"
-          class="px-3 py-2 text-sm rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+          class="px-3 py-2 text-sm rounded-lg border border-white/15 hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
           Next →
         </button>
       </div>
 
       <!-- Reply Box -->
       <div v-if="authStore.isAuthenticated && !thread.isLocked"
-        class="bg-white shadow-sm sm:rounded-xl border border-gray-100 p-6 mt-8">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Post a Reply</h3>
+        class="bg-white/5 backdrop-blur-xl shadow-sm sm:rounded-xl border border-white/10 p-6 mt-8">
+        <h3 class="text-lg font-medium text-slate-100 mb-4">Post a Reply</h3>
         <form @submit.prevent="submitReply">
-          <div v-if="replyError" class="p-3 bg-red-50 text-red-600 rounded-md text-sm mb-3">{{ replyError }}</div>
+          <div v-if="replyError" class="p-3 bg-red-500/10 text-red-300 border border-red-500/20 rounded-md text-sm mb-3">{{ replyError }}</div>
           <MarkdownEditor v-model="replyContent" placeholder="Write your reply here... Markdown is supported."
             :rows="5" />
           <div class="mt-4 flex justify-end">
@@ -458,13 +458,13 @@ const formatDate = (dateStr: string) =>
       </div>
 
       <!-- Locked notice -->
-      <div v-else-if="thread.isLocked" class="bg-amber-50 border border-amber-200 rounded-xl p-5 text-center mt-8">
-        <p class="text-amber-700 font-medium">🔒 This thread has been locked. No new replies can be posted.</p>
+      <div v-else-if="thread.isLocked" class="bg-amber-500/10 border border-amber-500/25 rounded-xl p-5 text-center mt-8">
+        <p class="text-amber-300 font-medium">🔒 This thread has been locked. No new replies can be posted.</p>
       </div>
 
       <!-- Not logged in -->
-      <div v-else class="bg-gray-50 border border-gray-200 rounded-xl p-6 text-center mt-8">
-        <p class="text-gray-600 mb-4">You must be logged in to reply to this thread.</p>
+      <div v-else class="bg-white/5 border border-white/10 rounded-xl p-6 text-center mt-8">
+        <p class="text-slate-400 mb-4">You must be logged in to reply to this thread.</p>
         <router-link to="/login"
           class="inline-block py-2 px-6 border border-transparent rounded-full shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
           Sign In to Reply
@@ -476,14 +476,14 @@ const formatDate = (dateStr: string) =>
     <Teleport to="body">
       <div v-if="confirmDeleteType"
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-        <div class="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-xl">
-          <h3 class="text-lg font-bold text-gray-900 mb-2">Confirm Delete</h3>
-          <p class="text-gray-600 mb-6">Are you sure you want to delete this {{ confirmDeleteType }}? This action cannot
+        <div class="bg-slate-900 border border-white/10 rounded-xl p-6 max-w-sm mx-4 shadow-xl">
+          <h3 class="text-lg font-bold text-slate-100 mb-2">Confirm Delete</h3>
+          <p class="text-slate-400 mb-6">Are you sure you want to delete this {{ confirmDeleteType }}? This action cannot
             be
             undone.</p>
           <div class="flex gap-3 justify-end">
             <button @click="cancelDelete"
-              class="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">Cancel</button>
+              class="px-4 py-2 text-sm text-slate-400 border border-white/15 rounded-md hover:bg-white/10">Cancel</button>
             <button @click="confirmDelete" :disabled="isDeleting"
               class="px-4 py-2 text-sm text-white bg-red-600 hover:bg-red-700 rounded-md disabled:opacity-50">
               {{ isDeleting ? 'Deleting...' : 'Delete' }}

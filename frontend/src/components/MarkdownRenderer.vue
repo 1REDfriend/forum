@@ -40,7 +40,7 @@ const renderedHtml = computed(() => {
   font-weight: 700;
   margin-top: 1.2em;
   margin-bottom: 0.5em;
-  color: #1f2937;
+  color: #f1f5f9;
 }
 .prose-content :deep(h1) { font-size: 1.5em; }
 .prose-content :deep(h2) { font-size: 1.25em; }
@@ -55,13 +55,13 @@ const renderedHtml = computed(() => {
 .prose-content :deep(em) { font-style: italic; }
 
 .prose-content :deep(code) {
-  background: #f3f4f6;
-  border: 1px solid #e5e7eb;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 4px;
   padding: 1px 5px;
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
   font-size: 0.875em;
-  color: #7c3aed;
+  color: #c4b5fd;
 }
 
 .prose-content :deep(pre) {
@@ -83,7 +83,7 @@ const renderedHtml = computed(() => {
 .prose-content :deep(blockquote) {
   border-left: 3px solid #6366f1;
   padding-left: 1em;
-  color: #6b7280;
+  color: #94a3b8;
   font-style: italic;
   margin: 0.8em 0;
 }
@@ -100,14 +100,14 @@ const renderedHtml = computed(() => {
 }
 
 .prose-content :deep(a) {
-  color: #4f46e5;
+  color: #93c5fd;
   text-decoration: underline;
 }
-.prose-content :deep(a:hover) { color: #3730a3; }
+.prose-content :deep(a:hover) { color: #bfdbfe; }
 
 .prose-content :deep(hr) {
   border: none;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
   margin: 1em 0;
 }
 
@@ -118,12 +118,12 @@ const renderedHtml = computed(() => {
 }
 .prose-content :deep(th),
 .prose-content :deep(td) {
-  border: 1px solid #e5e7eb;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   padding: 6px 12px;
   text-align: left;
 }
 .prose-content :deep(th) {
-  background: #f9fafb;
+  background: rgba(255, 255, 255, 0.05);
   font-weight: 600;
 }
 </style>
