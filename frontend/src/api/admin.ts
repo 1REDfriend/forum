@@ -134,6 +134,10 @@ export class AdminApi {
     return this.client.get<PaginatedAdminResult<AdminForum>>(`/admin/forums?page=${page}&limit=${limit}`);
   }
 
+  updateForum(id: number, data: { name?: string; description?: string }): Promise<AdminForum> {
+    return this.client.put<AdminForum>(`/forums/${id}`, data);
+  }
+
   deleteForum(id: number): Promise<void> {
     return this.client.delete<void>(`/admin/forums/${id}`);
   }

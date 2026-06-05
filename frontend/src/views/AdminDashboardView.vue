@@ -49,6 +49,8 @@ const postsPage = ref(1);
 
 // ─── Delete confirm ───────────────────────────────────────────────────────────
 const confirmDelete = ref<{ type: string; id: number; label: string } | null>(null);
+const editForum = ref<{ id: number; name: string; description: string } | null>(null);
+const isSavingForum = ref(false);
 const isDeleting = ref(false);
 
 // ─── Load functions ───────────────────────────────────────────────────────────
@@ -181,6 +183,28 @@ const setUserTier = async (user: AdminUser, tier: string) => {
 
 const askDelete = (type: string, id: number, label: string) => {
   confirmDelete.value = { type, id, label };
+};
+
+const openEditForum = (forum: AdminForum) => {
+  editForum.value = { id: forum.id, name: forum.name, description: forum.description || '' };
+};
+
+const saveForum = async () => {
+  if (!editForum.value) return;
+  const name = editForum.value.name.trim();
+  const description = editForum.value.description.trim();
+  if (!name) return;
+  isSavingForum.value = true;
+  try {
+    await adminApi.updateForum(editForum.value.id, { name, description });
+    const row = forums.value?.data.find((f) => f.id === editForum.value!.id);
+    if (row) { row.name = name; row.description = description; }
+    editForum.value = null;
+  } catch (err: any) {
+    alert(err.message || 'Failed to update forum');
+  } finally {
+    isSavingForum.value = false;
+  }
 };
 
 const doDelete = async () => {
@@ -460,6 +484,7 @@ onMounted(() => {
                 <td>
                   <div class="row-actions">
                     <router-link :to="`/forum/${forum.id}`" class="btn-view-sm">👁</router-link>
+                    <button @click="openEditForum(forum)" class="btn-edit-sm">✏️</button>
                     <button @click="askDelete('forum', forum.id, forum.name)" class="btn-danger-sm">🗑</button>
                   </div>
                 </td>
@@ -651,6 +676,31 @@ onMounted(() => {
             <button @click="confirmDelete = null" class="btn-cancel">Cancel</button>
             <button @click="doDelete" :disabled="isDeleting" class="btn-danger">
               {{ isDeleting ? 'Deleting…' : 'Delete' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- ─── Edit Forum Modal ────────────────────────────────────────────────── -->
+    <Teleport to="body">
+      <div v-if="editForum" class="modal-overlay" @click.self="editForum = null">
+        <div class="modal">
+          <h3 class="modal-title">Edit Forum</h3>
+          <div class="form-field">
+            <label class="form-label">Name</label>
+            <input v-model="editForum.name" type="text" maxlength="100" class="form-input"
+              placeholder="Forum name" @keyup.enter="saveForum" />
+          </div>
+          <div class="form-field">
+            <label class="form-label">Description</label>
+            <textarea v-model="editForum.description" maxlength="500" rows="4" class="form-input"
+              placeholder="Forum description" />
+          </div>
+          <div class="modal-actions">
+            <button @click="editForum = null" class="btn-cancel">Cancel</button>
+            <button @click="saveForum" :disabled="isSavingForum || !editForum.name.trim()" class="btn-save">
+              {{ isSavingForum ? 'Saving…' : 'Save' }}
             </button>
           </div>
         </div>
@@ -938,6 +988,18 @@ onMounted(() => {
   display: flex; align-items: center; justify-content: center;
 }
 .btn-danger-sm:hover { background: rgba(239, 68, 68, 0.24); }
+.btn-edit-sm {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+  font-size: 13px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.btn-edit-sm:hover { background: rgba(99, 102, 241, 0.18); }
 
 /* ── Search ─────────────────────────────────────────────────────────── */
 .search-box { display: flex; align-items: center; }
@@ -1030,6 +1092,32 @@ onMounted(() => {
 }
 .btn-danger:hover:not(:disabled) { background: #b91c1c; }
 .btn-danger:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-save {
+  padding: 8px 18px; background: #6366f1; color: white; border: none;
+  border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-save:hover:not(:disabled) { background: #4f46e5; }
+.btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
+.form-field { margin-bottom: 16px; text-align: left; }
+.form-label {
+  display: block; font-size: 12px; font-weight: 700; color: #94a3b8;
+  margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.03em;
+}
+.form-input {
+  width: 100%; box-sizing: border-box;
+  padding: 9px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #f1f5f9;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.15s;
+}
+.form-input:focus { border-color: #6366f1; }
 
 /* ── Responsive ─────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
