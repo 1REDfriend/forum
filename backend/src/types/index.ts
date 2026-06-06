@@ -5,7 +5,7 @@ import { TIERS as TIER_DEFS } from '../domain/tiers.js';
 export const RegisterDTO = t.Object({
   name: t.String({ minLength: 2, maxLength: 100 }),
   email: t.String({ format: 'email', maxLength: 254 }),
-  password: t.String({ minLength: 6, maxLength: 100 }),
+  password: t.String({ minLength: 8, maxLength: 100 }),
 });
 export type RegisterDTO = typeof RegisterDTO.static;
 
@@ -27,7 +27,7 @@ export type ForgotPasswordDTO = typeof ForgotPasswordDTO.static;
 
 export const ResetPasswordDTO = t.Object({
   token: t.String({ minLength: 1 }),
-  password: t.String({ minLength: 6, maxLength: 100 }),
+  password: t.String({ minLength: 8, maxLength: 100 }),
 });
 export type ResetPasswordDTO = typeof ResetPasswordDTO.static;
 
