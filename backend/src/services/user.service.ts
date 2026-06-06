@@ -1,5 +1,6 @@
 import { userRepository } from '../repositories/user.repository.js';
-import { NotFoundError } from '../utils/errors.js';
+import { NotFoundError, BadRequestError } from '../utils/errors.js';
+import { isSafeMediaUrl } from '../domain/media-url.js';
 import type { UpdateUserDTO } from '../types/index.js';
 import { tierService } from './tier.service.js';
 import { badgeService } from './badge.service.js';
@@ -61,8 +62,14 @@ export class UserService {
 
     const updateData: Record<string, any> = {};
     if (data.name !== undefined) updateData.name = data.name;
-    if (data.avatar !== undefined) updateData.avatar = data.avatar;
-    if (data.banner !== undefined) updateData.banner = data.banner;
+    if (data.avatar !== undefined) {
+      if (data.avatar && !isSafeMediaUrl(data.avatar)) throw BadRequestError('Invalid avatar URL');
+      updateData.avatar = data.avatar;
+    }
+    if (data.banner !== undefined) {
+      if (data.banner && !isSafeMediaUrl(data.banner)) throw BadRequestError('Invalid banner URL');
+      updateData.banner = data.banner;
+    }
     if (data.bio !== undefined) updateData.bio = data.bio;
     const updated = await userRepository.update(userId, updateData);
     return this.sanitizeUser(updated!);
