@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, nextTick } from 'vue';
 import { threadsApi, postsApi, likesApi } from '../api/index.js';
 import type { ThreadDetail, PostDetail, PaginatedResponse } from '../api/types.js';
 import { useAuthStore } from '../stores/auth.js';
@@ -8,6 +8,8 @@ import MarkdownRenderer from '../components/MarkdownRenderer.vue';
 import MarkdownEditor from '../components/MarkdownEditor.vue';
 import ProfileCard from '../components/ProfileCard.vue';
 import ReportButton from '../components/ReportButton.vue';
+import ShareButton from '../components/ShareButton.vue';
+import { threadShareUrl, postShareUrl } from '../utils/share.js';
 
 const props = defineProps<{ id: string }>();
 
@@ -86,7 +88,19 @@ const loadData = async (page = 1) => {
   }
 };
 
-onMounted(() => loadData());
+onMounted(async () => {
+  await loadData();
+  const hash = window.location.hash; // e.g. "#post-<cuid>"
+  if (hash.startsWith('#post-')) {
+    await nextTick();
+    const el = document.getElementById(hash.slice(1));
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('post-highlight');
+      setTimeout(() => el.classList.remove('post-highlight'), 2000);
+    }
+  }
+});
 
 const goToPage = (page: number) => {
   if (page >= 1 && page <= totalPages.value) loadData(page);
@@ -330,6 +344,7 @@ const formatDate = (dateStr: string) =>
                   <button @click="showDeleteConfirm('thread', thread.id)"
                     class="text-sm text-slate-400 hover:text-red-400 transition-colors px-2 py-1">Delete</button>
                 </template>
+                <ShareButton :url="threadShareUrl(thread.id)" :title="thread.title" />
                 <ReportButton v-if="!isThreadOwnerOrAdmin" target-type="thread" :target-id="thread.id" />
               </div>
             </div>
@@ -373,7 +388,7 @@ const formatDate = (dateStr: string) =>
           <p>No replies yet. Be the first to respond!</p>
         </div>
 
-        <div v-for="post in posts" :key="post.id" class="flex flex-col sm:flex-row gap-4 pb-4 items-start">
+        <div v-for="post in posts" :key="post.id" :id="'post-' + post.id" class="flex flex-col sm:flex-row gap-4 pb-4 items-start">
           <div class="w-full sm:w-52 sm:flex-shrink-0">
             <ProfileCard :author="post.author" />
           </div>
@@ -402,6 +417,7 @@ const formatDate = (dateStr: string) =>
                 <button @click="showDeleteConfirm('post', post.id)"
                   class="text-slate-500 hover:text-red-400 transition-colors">Delete</button>
               </template>
+              <ShareButton :url="postShareUrl(props.id, post.id)" :title="thread?.title" />
               <ReportButton v-if="!isPostOwnerOrAdmin(post) && editingPostId !== post.id" target-type="post" :target-id="post.id" />
             </div>
           </div>
@@ -494,3 +510,14 @@ const formatDate = (dateStr: string) =>
     </Teleport>
   </main>
 </template>
+
+<style scoped>
+.post-highlight {
+  animation: post-flash 2s ease-out;
+  border-radius: 0.75rem;
+}
+@keyframes post-flash {
+  0% { background-color: rgba(56, 189, 248, 0.25); }
+  100% { background-color: transparent; }
+}
+</style>
