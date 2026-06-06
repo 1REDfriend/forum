@@ -147,6 +147,7 @@ export class AuthService {
     const passwordHash = await bcrypt.hash(data.password, salt);
 
     await userRepository.update(user.id, { passwordHash });
+    await refreshTokenRepository.revokeAllForUser(user.id);
     await passwordResetRepository.markUsed(tokenRow.id);
 
     return { message: 'Password has been reset successfully. You can now log in.' };

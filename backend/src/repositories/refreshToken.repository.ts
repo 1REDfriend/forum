@@ -43,6 +43,14 @@ export class RefreshTokenRepository {
       .set({ revokedAt: new Date() })
       .where(eq(refreshTokens.tokenHash, hash(raw)));
   }
+
+  /** Revoke every live token for a user (e.g. after a password reset). */
+  async revokeAllForUser(userId: number): Promise<void> {
+    await db
+      .update(refreshTokens)
+      .set({ revokedAt: new Date() })
+      .where(and(eq(refreshTokens.userId, userId), isNull(refreshTokens.revokedAt)));
+  }
 }
 
 export const refreshTokenRepository = new RefreshTokenRepository();
