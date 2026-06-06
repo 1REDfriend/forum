@@ -75,7 +75,9 @@ new Elysia({ serve: { maxRequestBodySize: 16 * 1024 * 1024 } }) // ≥10MB image
     }
     if (code === 'VALIDATION') {
       set.status = 400;
-      return { error: 'Validation Error', details: error.all };
+      const body: { error: string; details?: unknown } = { error: 'Validation Error' };
+      if (process.env.NODE_ENV !== 'production') body.details = error.all;
+      return body;
     }
     if (code === 'INVALID_FILE_TYPE') {
       set.status = 400;
