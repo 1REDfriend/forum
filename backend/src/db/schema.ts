@@ -1,7 +1,8 @@
-import { pgTable, serial, text, timestamp, integer, boolean, index, unique, date } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, integer, boolean, index, unique, date } from "drizzle-orm/pg-core";
+import { newId } from "./ids.js";
 
 export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
+  id: text("id").primaryKey().$defaultFn(newId),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash"),
@@ -21,21 +22,21 @@ export const users = pgTable("users", {
 });
 
 export const forums = pgTable("forums", {
-  id: serial("id").primaryKey(),
+  id: text("id").primaryKey().$defaultFn(newId),
   name: text("name").notNull(),
   description: text("description"),
-  createdBy: integer("created_by").references(() => users.id, { onDelete: 'cascade' }),
+  createdBy: text("created_by").references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ([
   index("forums_created_by_idx").on(table.createdBy),
 ]));
 
 export const threads = pgTable("threads", {
-  id: serial("id").primaryKey(),
+  id: text("id").primaryKey().$defaultFn(newId),
   title: text("title").notNull(),
   content: text("content").notNull(),
-  authorId: integer("author_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
-  forumId: integer("forum_id").references(() => forums.id, { onDelete: 'cascade' }).notNull(),
+  authorId: text("author_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  forumId: text("forum_id").references(() => forums.id, { onDelete: 'cascade' }).notNull(),
   isPinned: boolean("is_pinned").notNull().default(false),
   isLocked: boolean("is_locked").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -46,10 +47,10 @@ export const threads = pgTable("threads", {
 ]));
 
 export const posts = pgTable("posts", {
-  id: serial("id").primaryKey(),
+  id: text("id").primaryKey().$defaultFn(newId),
   content: text("content").notNull(),
-  threadId: integer("thread_id").references(() => threads.id, { onDelete: 'cascade' }).notNull(),
-  authorId: integer("author_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  threadId: text("thread_id").references(() => threads.id, { onDelete: 'cascade' }).notNull(),
+  authorId: text("author_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ([
@@ -58,8 +59,8 @@ export const posts = pgTable("posts", {
 ]));
 
 export const passwordResetTokens = pgTable("password_reset_tokens", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  id: text("id").primaryKey().$defaultFn(newId),
+  userId: text("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
   token: text("token").notNull().unique(),
   expiresAt: timestamp("expires_at").notNull(),
   usedAt: timestamp("used_at"),
@@ -70,8 +71,8 @@ export const passwordResetTokens = pgTable("password_reset_tokens", {
 ]));
 
 export const refreshTokens = pgTable("refresh_tokens", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  id: text("id").primaryKey().$defaultFn(newId),
+  userId: text("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
   tokenHash: text("token_hash").notNull().unique(), // sha256 of the raw token
   expiresAt: timestamp("expires_at").notNull(),
   revokedAt: timestamp("revoked_at"), // set on rotation or logout
@@ -82,10 +83,10 @@ export const refreshTokens = pgTable("refresh_tokens", {
 ]));
 
 export const likes = pgTable("likes", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
-  threadId: integer("thread_id").references(() => threads.id, { onDelete: 'cascade' }),
-  postId: integer("post_id").references(() => posts.id, { onDelete: 'cascade' }),
+  id: text("id").primaryKey().$defaultFn(newId),
+  userId: text("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  threadId: text("thread_id").references(() => threads.id, { onDelete: 'cascade' }),
+  postId: text("post_id").references(() => posts.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ([
   index("likes_user_id_idx").on(table.userId),
@@ -96,10 +97,10 @@ export const likes = pgTable("likes", {
 ]));
 
 export const reports = pgTable("reports", {
-  id: serial("id").primaryKey(),
-  reporterId: integer("reporter_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  id: text("id").primaryKey().$defaultFn(newId),
+  reporterId: text("reporter_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
   targetType: text("target_type").notNull(), // 'thread' | 'post' | 'user'
-  targetId: integer("target_id").notNull(),
+  targetId: text("target_id").notNull(),
   reason: text("reason").notNull(),
   status: text("status").notNull().default("open"), // 'open' | 'reviewed' | 'dismissed'
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -111,8 +112,8 @@ export const reports = pgTable("reports", {
 ]));
 
 export const userBadges = pgTable("user_badges", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  id: text("id").primaryKey().$defaultFn(newId),
+  userId: text("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
   badgeKey: text("badge_key").notNull(),
   awardedAt: timestamp("awarded_at").defaultNow().notNull(),
 }, (table) => ([
