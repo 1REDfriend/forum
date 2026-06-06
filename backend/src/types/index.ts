@@ -1,10 +1,11 @@
 import { t } from 'elysia';
+import { TIERS as TIER_DEFS } from '../domain/tiers.js';
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 export const RegisterDTO = t.Object({
   name: t.String({ minLength: 2, maxLength: 100 }),
   email: t.String({ format: 'email', maxLength: 254 }),
-  password: t.String({ minLength: 6, maxLength: 100 }),
+  password: t.String({ minLength: 8, maxLength: 100 }),
 });
 export type RegisterDTO = typeof RegisterDTO.static;
 
@@ -26,7 +27,7 @@ export type ForgotPasswordDTO = typeof ForgotPasswordDTO.static;
 
 export const ResetPasswordDTO = t.Object({
   token: t.String({ minLength: 1 }),
-  password: t.String({ minLength: 6, maxLength: 100 }),
+  password: t.String({ minLength: 8, maxLength: 100 }),
 });
 export type ResetPasswordDTO = typeof ResetPasswordDTO.static;
 
@@ -89,18 +90,12 @@ export const UpdateUserDTO = t.Object({
 });
 export type UpdateUserDTO = typeof UpdateUserDTO.static;
 
-// ─── Tier (rank) — admin-assigned, separate from role ─────────────────────────
-export const TIERS = ['Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond'] as const;
-export type Tier = (typeof TIERS)[number];
+// ─── Tier (rank) — admin-assigned, mirrors domain/tiers.ts (single source) ────
+export const TIERS = TIER_DEFS.map((td) => td.key) as readonly string[];
+export type Tier = string;
 
 export const UpdateUserTierDTO = t.Object({
-  tier: t.Union([
-    t.Literal('Bronze'),
-    t.Literal('Silver'),
-    t.Literal('Gold'),
-    t.Literal('Platinum'),
-    t.Literal('Diamond'),
-  ]),
+  tier: t.Union(TIER_DEFS.map((td) => t.Literal(td.key))),
 });
 export type UpdateUserTierDTO = typeof UpdateUserTierDTO.static;
 

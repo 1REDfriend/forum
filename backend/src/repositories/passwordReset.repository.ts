@@ -3,6 +3,8 @@ import { db } from '../db/index.js';
 import { passwordResetTokens } from '../db/schema.js';
 import crypto from 'crypto';
 
+const hash = (raw: string) => crypto.createHash('sha256').update(raw).digest('hex');
+
 export class PasswordResetRepository {
   async createToken(userId: number): Promise<string> {
     // Invalidate all previous tokens for this user
@@ -16,11 +18,11 @@ export class PasswordResetRepository {
         )
       );
 
-    const token = crypto.randomBytes(32).toString('hex');
+    const raw = crypto.randomBytes(32).toString('hex');
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
-    await db.insert(passwordResetTokens).values({ userId, token, expiresAt });
-    return token;
+    await db.insert(passwordResetTokens).values({ userId, token: hash(raw), expiresAt });
+    return raw;
   }
 
   async findValidToken(token: string) {
@@ -30,7 +32,7 @@ export class PasswordResetRepository {
       .from(passwordResetTokens)
       .where(
         and(
-          eq(passwordResetTokens.token, token),
+          eq(passwordResetTokens.token, hash(token)),
           isNull(passwordResetTokens.usedAt),
           gt(passwordResetTokens.expiresAt, now)
         )

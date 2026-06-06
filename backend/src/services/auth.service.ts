@@ -8,15 +8,9 @@ import { streakService } from './streak.service.js';
 import type { RegisterDTO, LoginDTO, GoogleAuthDTO, ForgotPasswordDTO, ResetPasswordDTO } from '../types/index.js';
 import { ConflictError, UnauthorizedError, NotFoundError, BadRequestError } from '../utils/errors.js';
 import { sendPasswordResetEmail } from '../utils/mailer.js';
+import { jwtSecret } from '../config/jwt.js';
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || 'dummy-client-id');
-const jwtSecret =
-  process.env.JWT_SECRET ||
-  (process.env.NODE_ENV === 'production'
-    ? (() => {
-        throw new Error('JWT_SECRET environment variable must be set in production');
-      })()
-    : 'fallback-secret-for-dev-only');
 
 // Short-lived access token; long-lived rotating refresh token (see refreshToken.repository).
 const ACCESS_TOKEN_TTL = '1h';
@@ -147,6 +141,7 @@ export class AuthService {
     const passwordHash = await bcrypt.hash(data.password, salt);
 
     await userRepository.update(user.id, { passwordHash });
+    await refreshTokenRepository.revokeAllForUser(user.id);
     await passwordResetRepository.markUsed(tokenRow.id);
 
     return { message: 'Password has been reset successfully. You can now log in.' };

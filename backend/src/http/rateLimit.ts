@@ -60,6 +60,18 @@ export const forgotPasswordRateLimit = makeLimiter({
   message: 'Too many password reset requests. Please try again in 1 hour.',
 });
 
+export const googleRateLimit = makeLimiter({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20,
+  message: 'Too many Google sign-in attempts. Please try again in 15 minutes.',
+});
+
+export const refreshRateLimit = makeLimiter({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 60,
+  message: 'Too many token refresh attempts. Please try again later.',
+});
+
 // ─── Global limiter (generous; just prevents abuse) ───────────────────────────
 // Skips static uploads and the OpenAPI docs so image-heavy pages aren't throttled
 // (mirrors the old setup where /uploads was mounted before the global limiter).

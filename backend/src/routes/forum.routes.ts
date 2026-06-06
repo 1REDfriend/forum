@@ -8,16 +8,18 @@ export const forumRoutes = new Elysia({ prefix: '/forums', tags: ['Forums'] })
   .use(auth)
   .get('/', () => forumService.getAllForums())
   .get('/:id', ({ params }) => forumService.getForumById(params.id), { params: IdParam })
+  .guard({ admin: true }, (app) =>
+    app.post(
+      '/',
+      ({ user, body, set }) => {
+        set.status = 201;
+        return forumService.createForum(user.userId, body);
+      },
+      { body: CreateForumDTO },
+    ),
+  )
   .guard({ auth: true }, (app) =>
     app
-      .post(
-        '/',
-        ({ user, body, set }) => {
-          set.status = 201;
-          return forumService.createForum(user.userId, body);
-        },
-        { body: CreateForumDTO },
-      )
       .put(
         '/:id',
         ({ user, params, body }) => {

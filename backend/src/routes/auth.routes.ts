@@ -9,7 +9,13 @@ import {
   RefreshDTO,
   LogoutDTO,
 } from '../types/index.js';
-import { loginRateLimit, registerRateLimit, forgotPasswordRateLimit } from '../http/rateLimit.js';
+import {
+  loginRateLimit,
+  registerRateLimit,
+  forgotPasswordRateLimit,
+  googleRateLimit,
+  refreshRateLimit,
+} from '../http/rateLimit.js';
 
 export const authRoutes = new Elysia({ prefix: '/auth', tags: ['Auth'] })
   .post(
@@ -24,11 +30,17 @@ export const authRoutes = new Elysia({ prefix: '/auth', tags: ['Auth'] })
     body: LoginDTO,
     beforeHandle: loginRateLimit,
   })
-  .post('/google', ({ body }) => authService.googleAuth(body), { body: GoogleAuthDTO })
+  .post('/google', ({ body }) => authService.googleAuth(body), {
+    body: GoogleAuthDTO,
+    beforeHandle: googleRateLimit,
+  })
   .post('/forgot-password', ({ body }) => authService.forgotPassword(body), {
     body: ForgotPasswordDTO,
     beforeHandle: forgotPasswordRateLimit,
   })
   .post('/reset-password', ({ body }) => authService.resetPassword(body), { body: ResetPasswordDTO })
-  .post('/refresh', ({ body }) => authService.refresh(body.refreshToken), { body: RefreshDTO })
+  .post('/refresh', ({ body }) => authService.refresh(body.refreshToken), {
+    body: RefreshDTO,
+    beforeHandle: refreshRateLimit,
+  })
   .post('/logout', ({ body }) => authService.logout(body.refreshToken), { body: LogoutDTO });
