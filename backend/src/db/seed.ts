@@ -83,7 +83,7 @@ async function seed() {
   const rustThread = createdThreads.find(t => t.title.includes('Rust'));
   const coffeeThread = createdThreads.find(t => t.title.includes('coffee beans'));
 
-  const postsToInsert: Array<{ content: string; threadId: number; authorId: number }> = [];
+  const postsToInsert: Array<{ content: string; threadId: string; authorId: string }> = [];
 
   if (compApiThread) {
     postsToInsert.push({ content: 'I switched to Composition API 3 years ago and never looked back. The logic reuse with **composables** is just unmatched.', threadId: compApiThread.id, authorId: john.id });
