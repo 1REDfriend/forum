@@ -18,14 +18,14 @@ export class ThreadsApi {
   /**
    * Retrieve threads by forum ID with pagination.
    */
-  public getThreadsByForumId(forumId: number, page = 1, limit = 20): Promise<PaginatedResponse<ThreadDetail>> {
+  public getThreadsByForumId(forumId: string, page = 1, limit = 20): Promise<PaginatedResponse<ThreadDetail>> {
     return this.client.get<PaginatedResponse<ThreadDetail>>(`/threads/forum/${forumId}?page=${page}&limit=${limit}`);
   }
 
   /**
    * Retrieve a specific thread by its ID.
    */
-  public getThreadById(id: number): Promise<ThreadDetail> {
+  public getThreadById(id: string): Promise<ThreadDetail> {
     return this.client.get<ThreadDetail>(`/threads/${id}`);
   }
 
@@ -39,28 +39,28 @@ export class ThreadsApi {
   /**
    * Update a thread (Authenticated, owner only).
    */
-  public updateThread(id: number, data: UpdateThreadDTO): Promise<ThreadSimple> {
+  public updateThread(id: string, data: UpdateThreadDTO): Promise<ThreadSimple> {
     return this.client.put<ThreadSimple>(`/threads/${id}`, data);
   }
 
   /**
    * Delete a thread (Authenticated, owner/admin only).
    */
-  public deleteThread(id: number): Promise<void> {
+  public deleteThread(id: string): Promise<void> {
     return this.client.delete<void>(`/threads/${id}`);
   }
 
   /**
    * Toggle pin on a thread (Admin only).
    */
-  public pinThread(id: number): Promise<{ isPinned: boolean }> {
+  public pinThread(id: string): Promise<{ isPinned: boolean }> {
     return this.client.patch<{ isPinned: boolean }>(`/threads/${id}/pin`);
   }
 
   /**
    * Toggle lock on a thread (Admin only).
    */
-  public lockThread(id: number): Promise<{ isLocked: boolean }> {
+  public lockThread(id: string): Promise<{ isLocked: boolean }> {
     return this.client.patch<{ isLocked: boolean }>(`/threads/${id}/lock`);
   }
 }

@@ -63,7 +63,7 @@ const loadData = async (page = 1) => {
   isLoading.value = true;
   error.value = '';
   try {
-    const forumId = Number(props.forum);
+    const forumId = props.forum;
     if (!forumData.value) {
       forumData.value = await forumsApi.getForumById(forumId);
     }

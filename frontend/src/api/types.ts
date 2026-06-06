@@ -3,7 +3,7 @@
 // ==========================================
 
 export interface User {
-  id: number;
+  id: string;
   name: string;
   email: string;
   googleId: string | null;
@@ -18,7 +18,7 @@ export interface User {
 
 // Author info shown on a post/thread profile card
 export interface PostAuthor {
-  id: number;
+  id: string;
   name: string;
   avatar: string | null;
   banner: string | null;
@@ -28,10 +28,10 @@ export interface PostAuthor {
 }
 
 export interface Forum {
-  id: number;
+  id: string;
   name: string;
   description: string | null;
-  createdBy: number | null;
+  createdBy: string | null;
   createdAt: string;
 }
 
@@ -44,7 +44,7 @@ export interface ForumWithStats extends Forum {
 
 // Thread representation returned by queries (includes author and forum info)
 export interface ThreadDetail {
-  id: number;
+  id: string;
   title: string;
   content: string;
   isPinned: boolean;
@@ -57,18 +57,18 @@ export interface ThreadDetail {
   createdAt: string;
   author: PostAuthor;
   forum: {
-    id: number;
+    id: string;
     name: string;
   };
 }
 
 // Simple Thread representation returned upon creation
 export interface ThreadSimple {
-  id: number;
+  id: string;
   title: string;
   content: string;
-  authorId: number;
-  forumId: number;
+  authorId: string;
+  forumId: string;
   isPinned: boolean;
   isLocked: boolean;
   createdAt: string;
@@ -77,7 +77,7 @@ export interface ThreadSimple {
 
 // Post representation returned by queries (includes author info)
 export interface PostDetail {
-  id: number;
+  id: string;
   content: string;
   createdAt: string;
   updatedAt: string;
@@ -88,10 +88,10 @@ export interface PostDetail {
 
 // Simple Post representation returned upon creation
 export interface PostSimple {
-  id: number;
+  id: string;
   content: string;
-  threadId: number;
-  authorId: number;
+  threadId: string;
+  authorId: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -113,19 +113,19 @@ export interface PaginatedResponse<T> {
 // ==========================================
 
 export interface SearchForumResult {
-  id: number;
+  id: string;
   name: string;
   description: string | null;
   type: 'forum';
 }
 
 export interface SearchThreadResult {
-  id: number;
+  id: string;
   title: string;
   content: string;
   authorName: string;
   forumName: string;
-  forumId: number;
+  forumId: string;
   type: 'thread';
 }
 
@@ -175,7 +175,7 @@ export interface UpdateForumDTO {
 export interface CreateThreadDTO {
   title: string;
   content: string;
-  forumId: number;
+  forumId: string;
 }
 
 export interface UpdateThreadDTO {
@@ -185,7 +185,7 @@ export interface UpdateThreadDTO {
 
 export interface CreatePostDTO {
   content: string;
-  threadId: number;
+  threadId: string;
 }
 
 export interface UpdatePostDTO {

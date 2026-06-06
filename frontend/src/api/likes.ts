@@ -12,11 +12,11 @@ export class LikesApi {
     this.client = client;
   }
 
-  public toggleThreadLike(threadId: number): Promise<LikeToggleResult> {
+  public toggleThreadLike(threadId: string): Promise<LikeToggleResult> {
     return this.client.post<LikeToggleResult>(`/likes/thread/${threadId}`);
   }
 
-  public togglePostLike(postId: number): Promise<LikeToggleResult> {
+  public togglePostLike(postId: string): Promise<LikeToggleResult> {
     return this.client.post<LikeToggleResult>(`/likes/post/${postId}`);
   }
 }

@@ -11,7 +11,7 @@ export class PostsApi {
   /**
    * Retrieve all posts belonging to a specific thread ID with pagination.
    */
-  public getPostsByThreadId(threadId: number, page = 1, limit = 20): Promise<PaginatedResponse<PostDetail>> {
+  public getPostsByThreadId(threadId: string, page = 1, limit = 20): Promise<PaginatedResponse<PostDetail>> {
     return this.client.get<PaginatedResponse<PostDetail>>(`/posts/thread/${threadId}?page=${page}&limit=${limit}`);
   }
 
@@ -25,14 +25,14 @@ export class PostsApi {
   /**
    * Update a post (Authenticated, owner only).
    */
-  public updatePost(id: number, data: UpdatePostDTO): Promise<PostSimple> {
+  public updatePost(id: string, data: UpdatePostDTO): Promise<PostSimple> {
     return this.client.put<PostSimple>(`/posts/${id}`, data);
   }
 
   /**
    * Delete a post (Authenticated, owner/admin only).
    */
-  public deletePost(id: number): Promise<void> {
+  public deletePost(id: string): Promise<void> {
     return this.client.delete<void>(`/posts/${id}`);
   }
 }

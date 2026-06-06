@@ -25,7 +25,7 @@ export class UsersApi {
   /**
    * Get a public user profile by ID.
    */
-  public getUserById(id: number): Promise<User> {
+  public getUserById(id: string): Promise<User> {
     return this.client.get<User>(`/users/${id}`);
   }
 }

@@ -52,7 +52,7 @@ const bannerStyle = computed(() =>
 onMounted(async () => {
     try {
         if (props.id) {
-            profileUser.value = await usersApi.getUserById(Number(props.id));
+            profileUser.value = await usersApi.getUserById(props.id);
         } else if (authStore.isAuthenticated) {
             profileUser.value = await usersApi.getMe();
         }

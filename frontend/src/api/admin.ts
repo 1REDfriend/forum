@@ -13,7 +13,7 @@ export interface AdminStats {
 }
 
 export interface AdminUser {
-  id: number;
+  id: string;
   name: string;
   email: string;
   role: 'user' | 'admin';
@@ -26,10 +26,10 @@ export interface AdminUser {
 }
 
 export interface AdminForum {
-  id: number;
+  id: string;
   name: string;
   description: string | null;
-  createdBy: number | null;
+  createdBy: string | null;
   createdAt: string;
   threadCount: number;
   postCount: number;
@@ -37,35 +37,35 @@ export interface AdminForum {
 }
 
 export interface AdminThread {
-  id: number;
+  id: string;
   title: string;
   isPinned: boolean;
   isLocked: boolean;
   createdAt: string;
-  authorId: number;
+  authorId: string;
   authorName: string;
-  forumId: number;
+  forumId: string;
   forumName: string;
   replyCount: number;
 }
 
 export interface AdminPost {
-  id: number;
+  id: string;
   content: string;
   createdAt: string;
-  authorId: number;
+  authorId: string;
   authorName: string;
-  threadId: number;
+  threadId: string;
   threadTitle: string;
-  forumId: number;
+  forumId: string;
 }
 
 export interface AdminReport {
-  id: number;
-  reporterId: number;
+  id: string;
+  reporterId: string;
   reporterName: string;
   targetType: 'thread' | 'post' | 'user';
-  targetId: number;
+  targetId: string;
   reason: string;
   status: 'open' | 'reviewed' | 'dismissed';
   createdAt: string;
@@ -73,13 +73,13 @@ export interface AdminReport {
 
 export interface ActivityItem {
   type: 'thread' | 'post';
-  id: number;
+  id: string;
   title: string;
   authorName: string;
-  authorId: number;
+  authorId: string;
   forumName: string;
-  forumId: number;
-  threadId: number | null;
+  forumId: string;
+  threadId: string | null;
   threadTitle: string | null;
   createdAt: string;
 }
@@ -117,15 +117,15 @@ export class AdminApi {
     return this.client.get<PaginatedAdminResult<AdminUser>>(`/admin/users?${q}`);
   }
 
-  updateUserRole(id: number, role: 'user' | 'admin'): Promise<AdminUser> {
+  updateUserRole(id: string, role: 'user' | 'admin'): Promise<AdminUser> {
     return this.client.patch<AdminUser>(`/admin/users/${id}/role`, { role });
   }
 
-  updateUserTier(id: number, tier: string): Promise<AdminUser> {
+  updateUserTier(id: string, tier: string): Promise<AdminUser> {
     return this.client.patch<AdminUser>(`/admin/users/${id}/tier`, { tier });
   }
 
-  deleteUser(id: number): Promise<void> {
+  deleteUser(id: string): Promise<void> {
     return this.client.delete<void>(`/admin/users/${id}`);
   }
 
@@ -134,11 +134,11 @@ export class AdminApi {
     return this.client.get<PaginatedAdminResult<AdminForum>>(`/admin/forums?page=${page}&limit=${limit}`);
   }
 
-  updateForum(id: number, data: { name?: string; description?: string }): Promise<AdminForum> {
+  updateForum(id: string, data: { name?: string; description?: string }): Promise<AdminForum> {
     return this.client.put<AdminForum>(`/forums/${id}`, data);
   }
 
-  deleteForum(id: number): Promise<void> {
+  deleteForum(id: string): Promise<void> {
     return this.client.delete<void>(`/admin/forums/${id}`);
   }
 
@@ -149,7 +149,7 @@ export class AdminApi {
     return this.client.get<PaginatedAdminResult<AdminThread>>(`/admin/threads?${q}`);
   }
 
-  deleteThread(id: number): Promise<void> {
+  deleteThread(id: string): Promise<void> {
     return this.client.delete<void>(`/admin/threads/${id}`);
   }
 
@@ -158,7 +158,7 @@ export class AdminApi {
     return this.client.get<PaginatedAdminResult<AdminPost>>(`/admin/posts?page=${page}&limit=${limit}`);
   }
 
-  deletePost(id: number): Promise<void> {
+  deletePost(id: string): Promise<void> {
     return this.client.delete<void>(`/admin/posts/${id}`);
   }
 
@@ -169,12 +169,12 @@ export class AdminApi {
     return this.client.get<PaginatedAdminResult<AdminReport>>(`/admin/reports?${q}`);
   }
 
-  resolveReport(id: number, status: 'open' | 'reviewed' | 'dismissed'): Promise<AdminReport> {
+  resolveReport(id: string, status: 'open' | 'reviewed' | 'dismissed'): Promise<AdminReport> {
     return this.client.patch<AdminReport>(`/admin/reports/${id}`, { status });
   }
 
   // Badges
-  grantBadge(userId: number, badgeKey: string): Promise<{ message: string }> {
+  grantBadge(userId: string, badgeKey: string): Promise<{ message: string }> {
     return this.client.post<{ message: string }>(`/admin/users/${userId}/badges`, { badgeKey });
   }
 }

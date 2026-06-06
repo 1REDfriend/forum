@@ -10,7 +10,7 @@ export class ReportsApi {
   /** Report a thread/post/user with a reason. */
   public create(data: {
     targetType: 'thread' | 'post' | 'user';
-    targetId: number;
+    targetId: string;
     reason: string;
   }): Promise<{ message: string }> {
     return this.client.post<{ message: string }>('/reports', data);

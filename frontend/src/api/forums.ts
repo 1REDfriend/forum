@@ -18,7 +18,7 @@ export class ForumsApi {
   /**
    * Retrieve a specific forum by its ID.
    */
-  public getForumById(id: number): Promise<Forum> {
+  public getForumById(id: string): Promise<Forum> {
     return this.client.get<Forum>(`/forums/${id}`);
   }
 
@@ -32,14 +32,14 @@ export class ForumsApi {
   /**
    * Update a forum (Authenticated, owner/admin only).
    */
-  public updateForum(id: number, data: UpdateForumDTO): Promise<Forum> {
+  public updateForum(id: string, data: UpdateForumDTO): Promise<Forum> {
     return this.client.put<Forum>(`/forums/${id}`, data);
   }
 
   /**
    * Delete a forum (Authenticated, owner/admin only).
    */
-  public deleteForum(id: number): Promise<void> {
+  public deleteForum(id: string): Promise<void> {
     return this.client.delete<void>(`/forums/${id}`);
   }
 }

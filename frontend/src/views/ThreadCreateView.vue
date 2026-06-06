@@ -18,7 +18,7 @@ const forumData = ref<Forum | null>(null);
 
 onMounted(async () => {
     try {
-        forumData.value = await forumsApi.getForumById(Number(props.forum));
+        forumData.value = await forumsApi.getForumById(props.forum);
     } catch (err) {
         error.value = "Failed to load forum info";
     }
@@ -31,7 +31,7 @@ const handleCreate = async () => {
         const newThread = await threadsApi.createThread({ 
             title: title.value, 
             content: content.value,
-            forumId: Number(props.forum)
+            forumId: props.forum
         });
         router.push(`/thread/${newThread.id}`);
     } catch (err: any) {

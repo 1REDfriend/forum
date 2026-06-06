@@ -31,14 +31,14 @@ const editThreadError = ref('');
 const isSavingThread = ref(false);
 
 // Edit post
-const editingPostId = ref<number | null>(null);
+const editingPostId = ref<string | null>(null);
 const editPostContent = ref('');
 const editPostError = ref('');
 const isSavingPost = ref(false);
 
 // Delete
 const confirmDeleteType = ref<'thread' | 'post' | null>(null);
-const confirmDeleteId = ref<number | null>(null);
+const confirmDeleteId = ref<string | null>(null);
 const isDeleting = ref(false);
 
 // Pagination
@@ -51,7 +51,7 @@ const limit = 20;
 const threadLikeCount = ref(0);
 const threadIsLiked = ref(false);
 const isLikingThread = ref(false);
-const likingPostId = ref<number | null>(null);
+const likingPostId = ref<string | null>(null);
 
 const isAdmin = computed(() => authStore.user?.role === 'admin');
 const isThreadOwnerOrAdmin = computed(() =>
@@ -66,7 +66,7 @@ const loadData = async (page = 1) => {
   isLoading.value = true;
   error.value = '';
   try {
-    const threadId = Number(props.id);
+    const threadId = props.id;
     const [threadData, postsData] = await Promise.all([
       threadsApi.getThreadById(threadId),
       postsApi.getPostsByThreadId(threadId, page, limit),
@@ -98,7 +98,7 @@ const submitReply = async () => {
   isReplying.value = true;
   replyError.value = '';
   try {
-    await postsApi.createPost({ content: replyContent.value, threadId: Number(props.id) });
+    await postsApi.createPost({ content: replyContent.value, threadId: props.id });
     replyContent.value = '';
     await loadData(currentPage.value);
   } catch (err: any) {
@@ -159,7 +159,7 @@ const saveEditPost = async () => {
 };
 
 // Delete
-const showDeleteConfirm = (type: 'thread' | 'post', id: number) => {
+const showDeleteConfirm = (type: 'thread' | 'post', id: string) => {
   confirmDeleteType.value = type;
   confirmDeleteId.value = id;
 };
