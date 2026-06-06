@@ -1,5 +1,6 @@
 import path from 'path';
 import fs from 'fs';
+import { extForMime, sniffImageType } from '../domain/upload.js';
 
 export interface UploadInput {
   buffer: Buffer;
@@ -15,18 +16,18 @@ interface StorageDriver {
   upload(file: UploadInput, prefix: string): Promise<UploadResult>;
 }
 
-const MIME_EXT: Record<string, string> = {
-  'image/jpeg': '.jpg',
-  'image/jpg': '.jpg',
-  'image/png': '.png',
-  'image/gif': '.gif',
-  'image/webp': '.webp',
-};
-
-const extFor = (file: UploadInput): string => {
-  const fromName = path.extname(file.originalname).toLowerCase();
-  if (fromName) return fromName;
-  return MIME_EXT[file.mimetype] ?? '';
+/**
+ * Decide the on-disk extension. Never trust the client filename: derive it from
+ * the magic bytes (preferred) or the declared MIME, both restricted to the image
+ * whitelist. Throws if the bytes are not a recognised image.
+ */
+const safeExt = (file: UploadInput): string => {
+  const sniffed = sniffImageType(file.buffer);
+  const ext = extForMime(sniffed ?? file.mimetype);
+  if (!sniffed || !ext) {
+    throw new Error('Unsupported or mismatched file type — only JPEG, PNG, GIF, WebP images are allowed');
+  }
+  return ext;
 };
 
 // ─── local: save to ./uploads, served by this backend at /uploads ────────────
@@ -37,7 +38,7 @@ const localDriver: StorageDriver = {
     if (!fs.existsSync(uploadsDir)) {
       fs.mkdirSync(uploadsDir, { recursive: true });
     }
-    const name = `${prefix}-${Date.now()}-${Math.round(Math.random() * 1e6)}${extFor(file)}`;
+    const name = `${prefix}-${Date.now()}-${Math.round(Math.random() * 1e6)}${safeExt(file)}`;
     await fs.promises.writeFile(path.join(uploadsDir, name), file.buffer);
 
     const backendUrl = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 3636}`;
@@ -48,6 +49,7 @@ const localDriver: StorageDriver = {
 // ─── cdn: forward to Axite CDN (POST /v1/upload), key stays server-side ───────
 const cdnDriver: StorageDriver = {
   async upload(file, _prefix) {
+    safeExt(file); // validate bytes/MIME; throws on non-image
     const baseUrl = process.env.CDN_BASE_URL;
     const apiKey = process.env.CDN_API_KEY;
     if (!baseUrl || !apiKey) {
