@@ -2,10 +2,7 @@ import { Elysia, status } from 'elysia';
 import jwt from 'jsonwebtoken';
 import { userRepository } from '../repositories/user.repository.js';
 import type { JwtPayload } from '../types/index.js';
-
-// Same fallback as the old auth.middleware — auth.service enforces the
-// "must be set in production" rule at load time, so the lenient form is safe here.
-const jwtSecret = process.env.JWT_SECRET || 'fallback-secret-for-dev-only';
+import { jwtSecret } from '../config/jwt.js';
 
 /** Verify a `Bearer <token>` header. Returns the payload, or null when missing/invalid. */
 export function verifyBearer(authHeader?: string): JwtPayload | null {
