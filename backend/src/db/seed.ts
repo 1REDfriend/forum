@@ -6,6 +6,10 @@ import bcrypt from 'bcryptjs';
 async function seed() {
   console.log('Seeding mock database...');
 
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('Refusing to run seed in production (would wipe live data).');
+  }
+
   // 1. Clear existing data to prevent duplicates on rerun
   console.log('Cleaning up existing data...');
   await db.delete(likes);

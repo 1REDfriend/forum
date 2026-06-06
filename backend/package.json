@@ -9,6 +9,7 @@
     "dev:mock": "cross-env USE_MOCK_DB=true bun --watch src/index.ts",
     "start": "bun src/index.ts",
     "typecheck": "tsc --noEmit",
+    "test": "bun test",
     "generate": "drizzle-kit generate",
     "generate:mock": "cross-env USE_MOCK_DB=true drizzle-kit generate",
     "migrate": "drizzle-kit migrate",
