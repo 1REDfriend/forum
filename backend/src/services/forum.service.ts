@@ -8,7 +8,7 @@ export class ForumService {
     return await forumRepository.findAllWithStats();
   }
 
-  async getForumById(id: number) {
+  async getForumById(id: string) {
     const forum = await forumRepository.findById(id);
     if (!forum) {
       throw NotFoundError('Forum not found');
@@ -16,7 +16,7 @@ export class ForumService {
     return forum;
   }
 
-  async createForum(userId: number, data: CreateForumDTO) {
+  async createForum(userId: string, data: CreateForumDTO) {
     return await forumRepository.create({
       name: data.name,
       description: data.description,
@@ -24,7 +24,7 @@ export class ForumService {
     });
   }
 
-  async updateForum(userId: number, forumId: number, data: UpdateForumDTO) {
+  async updateForum(userId: string, forumId: string, data: UpdateForumDTO) {
     const forum = await forumRepository.findById(forumId);
     if (!forum) {
       throw NotFoundError('Forum not found');
@@ -43,7 +43,7 @@ export class ForumService {
     return updated;
   }
 
-  async deleteForum(userId: number, forumId: number) {
+  async deleteForum(userId: string, forumId: string) {
     const forum = await forumRepository.findById(forumId);
     if (!forum) {
       throw NotFoundError('Forum not found');

@@ -7,7 +7,7 @@ import { badgeService } from './badge.service.js';
 
 export class UserService {
   /** Recompute score/tier (monotonic), sync badges, and assemble the profile payload. */
-  private async withProgression(base: Record<string, any>, userId: number, storedTier: string) {
+  private async withProgression(base: Record<string, any>, userId: string, storedTier: string) {
     const t = await tierService.sync(userId, storedTier);
     const badges = await badgeService.syncAndGet(userId, {
       posts: t.stats.threads + t.stats.posts,
@@ -28,7 +28,7 @@ export class UserService {
     };
   }
 
-  async getProfile(userId: number) {
+  async getProfile(userId: string) {
     const user = await userRepository.findById(userId);
     if (!user) {
       throw NotFoundError('User not found');
@@ -36,7 +36,7 @@ export class UserService {
     return this.withProgression(this.sanitizeUser(user), user.id, user.tier);
   }
 
-  async getPublicProfile(userId: number) {
+  async getPublicProfile(userId: string) {
     const user = await userRepository.findById(userId);
     if (!user) {
       throw NotFoundError('User not found');
@@ -54,7 +54,7 @@ export class UserService {
     return this.withProgression(base, user.id, user.tier);
   }
 
-  async updateProfile(userId: number, data: UpdateUserDTO) {
+  async updateProfile(userId: string, data: UpdateUserDTO) {
     const user = await userRepository.findById(userId);
     if (!user) {
       throw NotFoundError('User not found');

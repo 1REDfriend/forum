@@ -10,7 +10,7 @@ const hash = (raw: string) => crypto.createHash('sha256').update(raw).digest('he
 
 export class RefreshTokenRepository {
   /** Issue a new refresh token: store its hash, return the raw value (shown to the client once). */
-  async issue(userId: number): Promise<string> {
+  async issue(userId: string): Promise<string> {
     const raw = crypto.randomBytes(48).toString('hex');
     const expiresAt = new Date(Date.now() + REFRESH_TTL_MS);
     await db.insert(refreshTokens).values({ userId, tokenHash: hash(raw), expiresAt });
@@ -32,7 +32,7 @@ export class RefreshTokenRepository {
     return row;
   }
 
-  async revokeById(id: number): Promise<void> {
+  async revokeById(id: string): Promise<void> {
     await db.update(refreshTokens).set({ revokedAt: new Date() }).where(eq(refreshTokens.id, id));
   }
 
@@ -45,7 +45,7 @@ export class RefreshTokenRepository {
   }
 
   /** Revoke every live token for a user (e.g. after a password reset). */
-  async revokeAllForUser(userId: number): Promise<void> {
+  async revokeAllForUser(userId: string): Promise<void> {
     await db
       .update(refreshTokens)
       .set({ revokedAt: new Date() })

@@ -10,7 +10,7 @@ export const postRoutes = new Elysia({ prefix: '/posts', tags: ['Posts'] })
     '/thread/:threadId',
     ({ params, query, user }) =>
       postService.getPostsByThreadId(params.threadId, query.page, query.limit, user?.userId),
-    { params: t.Object({ threadId: t.Numeric() }), query: Pagination, optionalAuth: true },
+    { params: t.Object({ threadId: t.String({ minLength: 1 }) }), query: Pagination, optionalAuth: true },
   )
   // Protected routes
   .guard({ auth: true }, (app) =>

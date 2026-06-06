@@ -6,7 +6,7 @@ import crypto from 'crypto';
 const hash = (raw: string) => crypto.createHash('sha256').update(raw).digest('hex');
 
 export class PasswordResetRepository {
-  async createToken(userId: number): Promise<string> {
+  async createToken(userId: string): Promise<string> {
     // Invalidate all previous tokens for this user
     await db
       .update(passwordResetTokens)
@@ -40,7 +40,7 @@ export class PasswordResetRepository {
     return row;
   }
 
-  async markUsed(id: number): Promise<void> {
+  async markUsed(id: string): Promise<void> {
     await db
       .update(passwordResetTokens)
       .set({ usedAt: new Date() })

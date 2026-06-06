@@ -132,7 +132,7 @@ export class AdminRepository {
     return { data, total: countResult?.total ?? 0 };
   }
 
-  async updateUserRole(id: number, role: 'user' | 'admin') {
+  async updateUserRole(id: string, role: 'user' | 'admin') {
     const [user] = await db
       .update(users)
       .set({ role })
@@ -141,7 +141,7 @@ export class AdminRepository {
     return user;
   }
 
-  async updateUserTier(id: number, tier: string) {
+  async updateUserTier(id: string, tier: string) {
     const [user] = await db
       .update(users)
       .set({ tier })
@@ -150,7 +150,7 @@ export class AdminRepository {
     return user;
   }
 
-  async deleteUser(id: number) {
+  async deleteUser(id: string) {
     await db.delete(users).where(eq(users.id, id));
   }
 

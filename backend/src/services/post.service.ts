@@ -6,7 +6,7 @@ import { NotFoundError, ForbiddenError } from '../utils/errors.js';
 import type { CreatePostDTO, UpdatePostDTO } from '../types/index.js';
 
 export class PostService {
-  async getPostsByThreadId(threadId: number, page: number = 1, limit: number = 20, userId?: number) {
+  async getPostsByThreadId(threadId: string, page: number = 1, limit: number = 20, userId?: string) {
     const [rawData, total] = await Promise.all([
       postRepository.findByThreadId(threadId, page, limit),
       postRepository.countByThreadId(threadId),
@@ -17,7 +17,7 @@ export class PostService {
     // Batch-fetch like counts and user's liked posts
     const [likeCounts, userLikedSet] = await Promise.all([
       likeRepository.getPostLikeCounts(postIds),
-      userId ? likeRepository.getPostLikesForUser(userId, postIds) : Promise.resolve(new Set<number>()),
+      userId ? likeRepository.getPostLikesForUser(userId, postIds) : Promise.resolve(new Set<string>()),
     ]);
 
     const data = rawData.map((p) => ({
@@ -35,7 +35,7 @@ export class PostService {
     };
   }
 
-  async createPost(userId: number, data: CreatePostDTO) {
+  async createPost(userId: string, data: CreatePostDTO) {
     const thread = await threadRepository.findRawById(data.threadId);
     if (!thread) {
       throw NotFoundError('Thread not found');
@@ -50,7 +50,7 @@ export class PostService {
     });
   }
 
-  async updatePost(userId: number, postId: number, data: UpdatePostDTO) {
+  async updatePost(userId: string, postId: string, data: UpdatePostDTO) {
     const post = await postRepository.findById(postId);
     if (!post) {
       throw NotFoundError('Post not found');
@@ -64,7 +64,7 @@ export class PostService {
     return await postRepository.update(postId, { content: data.content });
   }
 
-  async deletePost(userId: number, postId: number) {
+  async deletePost(userId: string, postId: string) {
     const post = await postRepository.findById(postId);
     if (!post) {
       throw NotFoundError('Post not found');

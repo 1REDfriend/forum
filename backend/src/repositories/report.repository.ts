@@ -4,7 +4,7 @@ import { reports, users } from '../db/schema.js';
 
 export class ReportRepository {
   /** Insert a report. Returns the row, or undefined if the reporter already reported this target. */
-  async create(reporterId: number, targetType: string, targetId: number, reason: string) {
+  async create(reporterId: string, targetType: string, targetId: string, reason: string) {
     const [row] = await db
       .insert(reports)
       .values({ reporterId, targetType, targetId, reason })
@@ -39,7 +39,7 @@ export class ReportRepository {
     return { data, total: c?.total ?? 0 };
   }
 
-  async setStatus(id: number, status: string) {
+  async setStatus(id: string, status: string) {
     const [row] = await db.update(reports).set({ status }).where(eq(reports.id, id)).returning();
     return row;
   }

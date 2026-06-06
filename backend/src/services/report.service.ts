@@ -3,12 +3,12 @@ import { NotFoundError } from '../utils/errors.js';
 
 interface CreateReportInput {
   targetType: 'thread' | 'post' | 'user';
-  targetId: number;
+  targetId: string;
   reason: string;
 }
 
 export class ReportService {
-  async create(reporterId: number, data: CreateReportInput) {
+  async create(reporterId: string, data: CreateReportInput) {
     const row = await reportRepository.create(reporterId, data.targetType, data.targetId, data.reason);
     return {
       message: row
@@ -21,7 +21,7 @@ export class ReportService {
     return reportRepository.list(page, limit, status);
   }
 
-  async resolve(id: number, status: string) {
+  async resolve(id: string, status: string) {
     const row = await reportRepository.setStatus(id, status);
     if (!row) throw NotFoundError('Report not found');
     return row;

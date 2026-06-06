@@ -9,7 +9,7 @@ export class ThreadService {
     return await threadRepository.findAll();
   }
 
-  async getThreadById(id: number, userId?: number) {
+  async getThreadById(id: string, userId?: string) {
     const thread = await threadRepository.findById(id);
     if (!thread) {
       throw NotFoundError('Thread not found');
@@ -21,7 +21,7 @@ export class ThreadService {
     return { ...thread, likeCount, isLikedByMe };
   }
 
-  async getThreadsByForumId(forumId: number, page: number, limit: number, userId?: number) {
+  async getThreadsByForumId(forumId: string, page: number, limit: number, userId?: string) {
     const [data, total] = await Promise.all([
       threadRepository.findByForumId(forumId, page, limit),
       threadRepository.countByForumId(forumId),
@@ -31,7 +31,7 @@ export class ThreadService {
     const threadIds = data.map((t) => t.id);
     const [likeCounts, userLikedSet] = await Promise.all([
       likeRepository.getThreadLikeCounts(threadIds),
-      userId ? likeRepository.getThreadLikesForUser(userId, threadIds) : Promise.resolve(new Set<number>()),
+      userId ? likeRepository.getThreadLikesForUser(userId, threadIds) : Promise.resolve(new Set<string>()),
     ]);
 
     const enriched = data.map((t) => ({
@@ -49,7 +49,7 @@ export class ThreadService {
     };
   }
 
-  async createThread(userId: number, data: CreateThreadDTO) {
+  async createThread(userId: string, data: CreateThreadDTO) {
     return await threadRepository.create({
       title: data.title,
       content: data.content,
@@ -58,7 +58,7 @@ export class ThreadService {
     });
   }
 
-  async updateThread(userId: number, threadId: number, data: UpdateThreadDTO) {
+  async updateThread(userId: string, threadId: string, data: UpdateThreadDTO) {
     const thread = await threadRepository.findRawById(threadId);
     if (!thread) {
       throw NotFoundError('Thread not found');
@@ -75,7 +75,7 @@ export class ThreadService {
     return await threadRepository.update(threadId, updateData);
   }
 
-  async deleteThread(userId: number, threadId: number) {
+  async deleteThread(userId: string, threadId: string) {
     const thread = await threadRepository.findRawById(threadId);
     if (!thread) {
       throw NotFoundError('Thread not found');
@@ -89,7 +89,7 @@ export class ThreadService {
     await threadRepository.delete(threadId);
   }
 
-  async pinThread(userId: number, threadId: number) {
+  async pinThread(userId: string, threadId: string) {
     const user = await userRepository.findById(userId);
     if (user?.role !== 'admin') {
       throw ForbiddenError('Only admins can pin threads');
@@ -99,7 +99,7 @@ export class ThreadService {
     return await threadRepository.update(threadId, { isPinned: !thread.isPinned });
   }
 
-  async lockThread(userId: number, threadId: number) {
+  async lockThread(userId: string, threadId: string) {
     const user = await userRepository.findById(userId);
     if (user?.role !== 'admin') {
       throw ForbiddenError('Only admins can lock threads');

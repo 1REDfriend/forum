@@ -15,7 +15,7 @@ export interface UserStats {
 
 export class TierService {
   /** All score inputs for a user, in one round-trip. */
-  async computeStats(userId: number): Promise<UserStats> {
+  async computeStats(userId: string): Promise<UserStats> {
     const res: any = await db.execute(sql`
       SELECT
         (SELECT COUNT(*) FROM threads WHERE author_id = ${userId})::int AS threads,
@@ -60,7 +60,7 @@ export class TierService {
    * Recompute + persist score, bump the stored tier monotonically (never down),
    * and return the full tier/progress payload for a profile response.
    */
-  async sync(userId: number, storedTier: string) {
+  async sync(userId: string, storedTier: string) {
     const stats = await this.computeStats(userId);
     const score = this.scoreFor(stats);
     const candidate = tierForScore(score);

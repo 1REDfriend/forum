@@ -59,7 +59,7 @@ export type UpdateForumDTO = typeof UpdateForumDTO.static;
 export const CreateThreadDTO = t.Object({
   title: t.String({ minLength: 1, maxLength: 200 }),
   content: t.String({ minLength: 1, maxLength: 50000 }),
-  forumId: t.Integer({ minimum: 1 }),
+  forumId: t.String({ minLength: 1 }),
 });
 export type CreateThreadDTO = typeof CreateThreadDTO.static;
 
@@ -72,7 +72,7 @@ export type UpdateThreadDTO = typeof UpdateThreadDTO.static;
 // ─── Posts ────────────────────────────────────────────────────────────────────
 export const CreatePostDTO = t.Object({
   content: t.String({ minLength: 1, maxLength: 50000 }),
-  threadId: t.Integer({ minimum: 1 }),
+  threadId: t.String({ minLength: 1 }),
 });
 export type CreatePostDTO = typeof CreatePostDTO.static;
 
@@ -117,12 +117,12 @@ export const AdminPagination = t.Object({
   search: t.Optional(t.String()),
 });
 
-export const IdParam = t.Object({ id: t.Numeric() });
+export const IdParam = t.Object({ id: t.String({ minLength: 1 }) });
 
 // ─── Reports & badges ─────────────────────────────────────────────────────────
 export const ReportDTO = t.Object({
   targetType: t.Union([t.Literal('thread'), t.Literal('post'), t.Literal('user')]),
-  targetId: t.Integer({ minimum: 1 }),
+  targetId: t.String({ minLength: 1 }),
   reason: t.String({ minLength: 3, maxLength: 500 }),
 });
 export type ReportDTO = typeof ReportDTO.static;
@@ -145,5 +145,5 @@ export type GrantBadgeDTO = typeof GrantBadgeDTO.static;
 
 // User payload stored in JWT
 export interface JwtPayload {
-  userId: number;
+  userId: string;
 }

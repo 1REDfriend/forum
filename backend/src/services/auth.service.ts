@@ -148,14 +148,14 @@ export class AuthService {
   }
 
   /** Build the auth response: sanitized user + short access token + new refresh token. */
-  private async buildSession(user: { id: number }) {
+  private async buildSession(user: { id: string }) {
     await streakService.touch(user.id); // bump login streak (once/day)
     const token = this.generateAccessToken(user.id);
     const refreshToken = await refreshTokenRepository.issue(user.id);
     return { user: this.sanitizeUser(user), token, refreshToken };
   }
 
-  private generateAccessToken(userId: number): string {
+  private generateAccessToken(userId: string): string {
     return jwt.sign({ userId }, jwtSecret, { expiresIn: ACCESS_TOKEN_TTL });
   }
 

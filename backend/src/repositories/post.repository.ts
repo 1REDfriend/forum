@@ -11,7 +11,7 @@ export class PostRepository {
     return post!;
   }
 
-  async findByThreadId(threadId: number, page: number = 1, limit: number = 20) {
+  async findByThreadId(threadId: string, page: number = 1, limit: number = 20) {
     const offset = (page - 1) * limit;
     return await db.select({
       id: posts.id,
@@ -36,22 +36,22 @@ export class PostRepository {
     .offset(offset);
   }
 
-  async countByThreadId(threadId: number): Promise<number> {
+  async countByThreadId(threadId: string): Promise<number> {
     const [result] = await db.select({ total: count() }).from(posts).where(eq(posts.threadId, threadId));
     return result?.total ?? 0;
   }
 
-  async findById(id: number): Promise<PostSelectType | undefined> {
+  async findById(id: string): Promise<PostSelectType | undefined> {
     const [post] = await db.select().from(posts).where(eq(posts.id, id));
     return post;
   }
 
   // Alias for consistency with ThreadRepository
-  async findRawById(id: number): Promise<PostSelectType | undefined> {
+  async findRawById(id: string): Promise<PostSelectType | undefined> {
     return this.findById(id);
   }
 
-  async update(id: number, data: Partial<PostInsertType>): Promise<PostSelectType | undefined> {
+  async update(id: string, data: Partial<PostInsertType>): Promise<PostSelectType | undefined> {
     const [post] = await db.update(posts)
       .set({ ...data, updatedAt: new Date() })
       .where(eq(posts.id, id))
@@ -59,7 +59,7 @@ export class PostRepository {
     return post;
   }
 
-  async delete(id: number): Promise<void> {
+  async delete(id: string): Promise<void> {
     await db.delete(posts).where(eq(posts.id, id));
   }
 }

@@ -9,7 +9,7 @@ export class StreakService {
    * Update the login streak. Call on auth. Idempotent within a calendar day:
    * same day → noop; consecutive day → +1; gap → reset to 1.
    */
-  async touch(userId: number): Promise<void> {
+  async touch(userId: string): Promise<void> {
     const [u] = await db
       .select({ last: users.lastLoginDate, streak: users.loginStreak, longest: users.longestStreak })
       .from(users)

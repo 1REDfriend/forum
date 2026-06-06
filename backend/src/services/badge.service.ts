@@ -11,7 +11,7 @@ export interface AwardedBadge {
 
 export class BadgeService {
   /** Award any newly-earned auto badges, then return the user's full (catalog-enriched) list. */
-  async syncAndGet(userId: number, stats: BadgeStats): Promise<AwardedBadge[]> {
+  async syncAndGet(userId: string, stats: BadgeStats): Promise<AwardedBadge[]> {
     await userBadgeRepository.award(userId, earnedAutoBadgeKeys(stats));
     const rows = await userBadgeRepository.listForUser(userId);
     return rows.flatMap((r) => {
@@ -21,7 +21,7 @@ export class BadgeService {
   }
 
   /** Admin grant (or any catalog badge). Returns false for an unknown key. */
-  async grant(userId: number, badgeKey: string): Promise<boolean> {
+  async grant(userId: string, badgeKey: string): Promise<boolean> {
     if (!BADGE_MAP[badgeKey]) return false;
     await userBadgeRepository.award(userId, [badgeKey]);
     return true;

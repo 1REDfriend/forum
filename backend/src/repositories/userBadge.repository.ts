@@ -3,7 +3,7 @@ import { db } from '../db/index.js';
 import { userBadges } from '../db/schema.js';
 
 export class UserBadgeRepository {
-  async listForUser(userId: number) {
+  async listForUser(userId: string) {
     return db
       .select({ badgeKey: userBadges.badgeKey, awardedAt: userBadges.awardedAt })
       .from(userBadges)
@@ -11,7 +11,7 @@ export class UserBadgeRepository {
   }
 
   /** Idempotent award (unique on user+key). */
-  async award(userId: number, keys: string[]): Promise<void> {
+  async award(userId: string, keys: string[]): Promise<void> {
     if (keys.length === 0) return;
     await db
       .insert(userBadges)

@@ -4,7 +4,7 @@ import { likes } from '../db/schema.js';
 
 export class LikeRepository {
   // --- Thread Likes ---
-  async findThreadLike(userId: number, threadId: number) {
+  async findThreadLike(userId: string, threadId: string) {
     const [row] = await db
       .select()
       .from(likes)
@@ -12,17 +12,17 @@ export class LikeRepository {
     return row;
   }
 
-  async addThreadLike(userId: number, threadId: number) {
+  async addThreadLike(userId: string, threadId: string) {
     await db.insert(likes).values({ userId, threadId }).onConflictDoNothing();
   }
 
-  async removeThreadLike(userId: number, threadId: number) {
+  async removeThreadLike(userId: string, threadId: string) {
     await db.delete(likes).where(
       and(eq(likes.userId, userId), eq(likes.threadId, threadId))
     );
   }
 
-  async countThreadLikes(threadId: number): Promise<number> {
+  async countThreadLikes(threadId: string): Promise<number> {
     const [row] = await db
       .select({ total: count() })
       .from(likes)
@@ -30,7 +30,7 @@ export class LikeRepository {
     return row?.total ?? 0;
   }
 
-  async getThreadLikesForUser(userId: number, threadIds: number[]): Promise<Set<number>> {
+  async getThreadLikesForUser(userId: string, threadIds: string[]): Promise<Set<string>> {
     if (threadIds.length === 0) return new Set();
     const rows = await db
       .select({ threadId: likes.threadId })
@@ -46,7 +46,7 @@ export class LikeRepository {
   }
 
   // Batch: get like counts for a list of thread IDs
-  async getThreadLikeCounts(threadIds: number[]): Promise<Map<number, number>> {
+  async getThreadLikeCounts(threadIds: string[]): Promise<Map<string, number>> {
     if (threadIds.length === 0) return new Map();
     const rows = await db
       .select({ threadId: likes.threadId, total: count() })
@@ -59,7 +59,7 @@ export class LikeRepository {
       )
       .groupBy(likes.threadId);
 
-    const map = new Map<number, number>();
+    const map = new Map<string, number>();
     for (const row of rows) {
       if (row.threadId !== null && threadIds.includes(row.threadId)) {
         map.set(row.threadId, row.total);
@@ -69,7 +69,7 @@ export class LikeRepository {
   }
 
   // --- Post Likes ---
-  async findPostLike(userId: number, postId: number) {
+  async findPostLike(userId: string, postId: string) {
     const [row] = await db
       .select()
       .from(likes)
@@ -77,17 +77,17 @@ export class LikeRepository {
     return row;
   }
 
-  async addPostLike(userId: number, postId: number) {
+  async addPostLike(userId: string, postId: string) {
     await db.insert(likes).values({ userId, postId }).onConflictDoNothing();
   }
 
-  async removePostLike(userId: number, postId: number) {
+  async removePostLike(userId: string, postId: string) {
     await db.delete(likes).where(
       and(eq(likes.userId, userId), eq(likes.postId, postId))
     );
   }
 
-  async countPostLikes(postId: number): Promise<number> {
+  async countPostLikes(postId: string): Promise<number> {
     const [row] = await db
       .select({ total: count() })
       .from(likes)
@@ -96,7 +96,7 @@ export class LikeRepository {
   }
 
   // Batch: get like counts for a list of post IDs
-  async getPostLikeCounts(postIds: number[]): Promise<Map<number, number>> {
+  async getPostLikeCounts(postIds: string[]): Promise<Map<string, number>> {
     if (postIds.length === 0) return new Map();
     const rows = await db
       .select({ postId: likes.postId, total: count() })
@@ -109,7 +109,7 @@ export class LikeRepository {
       )
       .groupBy(likes.postId);
 
-    const map = new Map<number, number>();
+    const map = new Map<string, number>();
     for (const row of rows) {
       if (row.postId !== null && postIds.includes(row.postId)) {
         map.set(row.postId, row.total);
@@ -119,7 +119,7 @@ export class LikeRepository {
   }
 
   // Batch: get which posts the user has liked
-  async getPostLikesForUser(userId: number, postIds: number[]): Promise<Set<number>> {
+  async getPostLikesForUser(userId: string, postIds: string[]): Promise<Set<string>> {
     if (postIds.length === 0) return new Set();
     const rows = await db
       .select({ postId: likes.postId })

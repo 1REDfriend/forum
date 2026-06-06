@@ -42,7 +42,7 @@ export class ThreadRepository {
       .innerJoin(forums, eq(threads.forumId, forums.id));
   }
 
-  async findById(id: number) {
+  async findById(id: string) {
     const [thread] = await db.select(threadWithJoinsSelect)
       .from(threads)
       .innerJoin(users, eq(threads.authorId, users.id))
@@ -52,12 +52,12 @@ export class ThreadRepository {
     return thread;
   }
 
-  async findRawById(id: number): Promise<ThreadSelectType | undefined> {
+  async findRawById(id: string): Promise<ThreadSelectType | undefined> {
     const [thread] = await db.select().from(threads).where(eq(threads.id, id));
     return thread;
   }
 
-  async findByForumId(forumId: number, page: number, limit: number) {
+  async findByForumId(forumId: string, page: number, limit: number) {
     const offset = (page - 1) * limit;
     return await db.select({
       ...threadWithJoinsSelect,
@@ -74,12 +74,12 @@ export class ThreadRepository {
       .offset(offset);
   }
 
-  async countByForumId(forumId: number): Promise<number> {
+  async countByForumId(forumId: string): Promise<number> {
     const [result] = await db.select({ total: count() }).from(threads).where(eq(threads.forumId, forumId));
     return result?.total ?? 0;
   }
 
-  async update(id: number, data: Partial<ThreadInsertType>): Promise<ThreadSelectType | undefined> {
+  async update(id: string, data: Partial<ThreadInsertType>): Promise<ThreadSelectType | undefined> {
     const [thread] = await db.update(threads)
       .set({ ...data, updatedAt: new Date() })
       .where(eq(threads.id, id))
@@ -87,7 +87,7 @@ export class ThreadRepository {
     return thread;
   }
 
-  async delete(id: number): Promise<void> {
+  async delete(id: string): Promise<void> {
     await db.delete(threads).where(eq(threads.id, id));
   }
 }

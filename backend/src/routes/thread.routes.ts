@@ -12,7 +12,7 @@ export const threadRoutes = new Elysia({ prefix: '/threads', tags: ['Threads'] }
     '/forum/:forumId',
     ({ params, query, user }) =>
       threadService.getThreadsByForumId(params.forumId, query.page, query.limit, user?.userId),
-    { params: t.Object({ forumId: t.Numeric() }), query: Pagination, optionalAuth: true },
+    { params: t.Object({ forumId: t.String({ minLength: 1 }) }), query: Pagination, optionalAuth: true },
   )
   .get('/:id', ({ params, user }) => threadService.getThreadById(params.id, user?.userId), {
     params: IdParam,

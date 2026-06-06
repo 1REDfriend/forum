@@ -4,7 +4,7 @@ import { postRepository } from '../repositories/post.repository.js';
 import { NotFoundError } from '../utils/errors.js';
 
 export class LikeService {
-  async toggleThreadLike(userId: number, threadId: number) {
+  async toggleThreadLike(userId: string, threadId: string) {
     const thread = await threadRepository.findRawById(threadId);
     if (!thread) throw NotFoundError('Thread not found');
 
@@ -20,7 +20,7 @@ export class LikeService {
     }
   }
 
-  async togglePostLike(userId: number, postId: number) {
+  async togglePostLike(userId: string, postId: string) {
     const post = await postRepository.findRawById(postId);
     if (!post) throw NotFoundError('Post not found');
 
@@ -36,7 +36,7 @@ export class LikeService {
     }
   }
 
-  async getThreadLikeStatus(userId: number | null, threadId: number) {
+  async getThreadLikeStatus(userId: string | null, threadId: string) {
     const likeCount = await likeRepository.countThreadLikes(threadId);
     const isLikedByMe = userId
       ? !!(await likeRepository.findThreadLike(userId, threadId))

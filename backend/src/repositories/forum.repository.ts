@@ -15,7 +15,7 @@ export class ForumRepository {
     return await db.select().from(forums);
   }
 
-  async findById(id: number) {
+  async findById(id: string) {
     const [forum] = await db.select().from(forums).where(eq(forums.id, id));
     return forum;
   }
@@ -35,12 +35,12 @@ export class ForumRepository {
     return result;
   }
 
-  async update(id: number, data: Partial<ForumInsertType>): Promise<ForumSelectType | undefined> {
+  async update(id: string, data: Partial<ForumInsertType>): Promise<ForumSelectType | undefined> {
     const [forum] = await db.update(forums).set(data).where(eq(forums.id, id)).returning();
     return forum;
   }
 
-  async delete(id: number): Promise<void> {
+  async delete(id: string): Promise<void> {
     await db.delete(forums).where(eq(forums.id, id));
   }
 }
