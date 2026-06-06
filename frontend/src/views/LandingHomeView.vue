@@ -86,7 +86,7 @@ const formatCount = (n: number) => {
         <div class="shape shape-3" />
       </div>
       <div class="hero-content">
-        <motion.div class="hero-badge" :variants="scaleIn">🚀 Community Forum Platform</motion.div>
+        <motion.div class="hero-badge" :variants="scaleIn">Community Forum Platform (Beta 0.3.1)</motion.div>
         <motion.h1 class="hero-title" 
         :variants="fadeUp"
         >
@@ -94,8 +94,9 @@ const formatCount = (n: number) => {
           <span class="hero-gradient">ความรู้และไอเดีย</span>
         </motion.h1>
         <motion.p class="hero-desc" :variants="fadeLeft">
-          ระบบฟอรัมที่ออกแบบมาเพื่อชุมชน ตั้งกระทู้ ตอบคำถาม แบ่งปันประสบการณ์<br />
-          พร้อมฟีเจอร์ตั้งแต่ Markdown จนถึงการอัปโหลดรูปภาพ
+          ระบบฟอรัมที่ออกแบบมาเพื่อชุมชน ให้เหนือกว่าจินตนาการ<br /> 
+          การตั้งกระทู้ ตอบคำถาม แบ่งปันประสบการณ์<br />
+          พร้อมฟีเจอร์ Markdown จนถึงการอัปโหลดรูปภาพของคุณ
         </motion.p>
         <div class="hero-actions">
           <router-link v-if="!authStore.isAuthenticated" to="/register" class="btn-primary">
@@ -168,7 +169,7 @@ const formatCount = (n: number) => {
       :whileInView="{ opacity: 1, scale: 1, y: 0}"
       >
         <div class="section-label">ฟีเจอร์หลัก</div>
-        <h2 class="section-title">ฟีดเจอร์ที่มีทั้งหมด</h2>
+        <h2 class="section-title">ฟีดเจอร์ที่สามารถเลือกใช้ได้</h2>
         <p class="section-desc">ระบบฟอรัมที่พัฒนามาอย่างครบคัน พร้อมใช้งานได้ทันที</p>
         <div class="features-grid">
           <div v-for="f in features" :key="f.title" class="feature-card">
