@@ -1,6 +1,7 @@
 import { postRepository } from '../repositories/post.repository.js';
 import { userRepository } from '../repositories/user.repository.js';
 import { likeRepository } from '../repositories/like.repository.js';
+import { threadRepository } from '../repositories/thread.repository.js';
 import { NotFoundError, ForbiddenError } from '../utils/errors.js';
 import type { CreatePostDTO, UpdatePostDTO } from '../types/index.js';
 
@@ -35,6 +36,13 @@ export class PostService {
   }
 
   async createPost(userId: number, data: CreatePostDTO) {
+    const thread = await threadRepository.findRawById(data.threadId);
+    if (!thread) {
+      throw NotFoundError('Thread not found');
+    }
+    if (thread.isLocked) {
+      throw ForbiddenError('This thread is locked and cannot receive replies');
+    }
     return await postRepository.create({
       content: data.content,
       threadId: data.threadId,
