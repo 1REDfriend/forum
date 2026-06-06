@@ -149,11 +149,35 @@ real run.
 
 ## Rollout
 
-1. Backup prod (`pg_dump`).
-2. Deploy in a maintenance window: stop backend, run migration, deploy new
-   backend + frontend images, smoke test.
-3. Rollback = restore dump + previous images (IDs are not reversible once code
-   expects strings, so rollback means full restore).
+### Phase A — local
+
+1. Run full local stack (backend + frontend + a Postgres seeded with realistic
+   data). Run unit + route tests.
+2. Run the data migration against the local seeded DB; verify the validation
+   gate (row counts unchanged, zero orphaned FKs).
+3. Manual smoke test in the browser: thread/post pages load with CUID URLs,
+   share button works, OG endpoint returns correct meta.
+
+### Phase B — prod (Radxa) dry-run + cutover
+
+SSH to the Radxa (`ssh radxa@192.168.1.104`, password supplied ad hoc), repo at
+`~/github/forum`:
+
+1. `git pull` the `feat/cuid-ids-and-sharing` branch.
+2. **Backup**: `docker compose exec db pg_dump ...` to a timestamped dump file
+   on the Radxa.
+3. **Dry-run**: restore the dump into a throwaway DB / copy, run the migration
+   against it, confirm the validation gate passes. Do NOT touch the live DB yet.
+4. **Cutover** (maintenance window): stop backend, run migration on the live DB,
+   `docker compose build backend frontend && docker compose up -d`, smoke test
+   against `https://forum.supakorn.xyz`.
+5. Verify CUID URLs, sharing, and OG preview work in prod.
+
+### Rollback
+
+Rollback = restore the `pg_dump` backup + redeploy previous images. IDs are not
+reversible once code expects strings, so rollback means full restore, not a
+forward migration.
 
 ## Risks
 
