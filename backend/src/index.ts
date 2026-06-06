@@ -50,11 +50,13 @@ new Elysia({ serve: { maxRequestBodySize: 16 * 1024 * 1024 } }) // ≥10MB image
     }),
   )
   .use(
-    openapi({
-      documentation: {
-        info: { title: 'IT.FORUM API', version: '1.0.0', description: 'Elysia + Drizzle backend.' },
-      },
-    }),
+    process.env.NODE_ENV === 'production'
+      ? new Elysia({ name: 'no-openapi' })
+      : openapi({
+          documentation: {
+            info: { title: 'IT.FORUM API', version: '1.0.0', description: 'Elysia + Drizzle backend.' },
+          },
+        }),
   )
   .use(
     // Serve uploaded files statically, with CORP so the frontend (other origin) can load images.
