@@ -15,7 +15,8 @@
     "migrate": "drizzle-kit migrate",
     "migrate:mock": "cross-env USE_MOCK_DB=true drizzle-kit migrate",
     "seed": "bun src/db/seed.ts",
-    "seed:mock": "cross-env USE_MOCK_DB=true bun src/db/seed.ts"
+    "seed:mock": "cross-env USE_MOCK_DB=true bun src/db/seed.ts",
+    "migrate:cuid": "bun run scripts/migrate-to-cuid.ts"
   },
   "keywords": [],
   "author": "",
