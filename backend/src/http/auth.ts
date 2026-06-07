@@ -21,12 +21,22 @@ export function verifyBearer(authHeader?: string): JwtPayload | null {
  * or `{ admin: true }` on routes/guards. `name` lets Elysia dedupe it across modules.
  */
 export const auth = new Elysia({ name: 'auth' }).macro({
-  // Require a valid token; injects `user: JwtPayload`.
+  // Require a valid token + non-banned account; injects `user: JwtPayload`.
+  // Loads the user row so a freshly-banned holder of a still-valid token is blocked.
   auth: {
-    resolve({ headers }) {
-      const user = verifyBearer(headers.authorization);
-      if (!user) return status(401, { error: 'Unauthorized: Missing or invalid token format' });
-      return { user };
+    async resolve({ headers }) {
+      const payload = verifyBearer(headers.authorization);
+      if (!payload) return status(401, { error: 'Unauthorized: Missing or invalid token format' });
+      const row = await userRepository.findById(payload.userId);
+      if (!row) return status(401, { error: 'Unauthorized' });
+      if (row.isBanned) {
+        return status(403, {
+          error: 'Account banned',
+          reason: row.banReason || 'No reason provided',
+          bannedAt: row.bannedAt,
+        });
+      }
+      return { user: { userId: row.id } };
     },
   },
   // Never blocks; injects `user: JwtPayload | null` (personalizes responses when logged in).
@@ -42,6 +52,13 @@ export const auth = new Elysia({ name: 'auth' }).macro({
       if (!user) return status(401, { error: 'Unauthorized' });
       const row = await userRepository.findById(user.userId);
       if (!row || row.role !== 'admin') return status(403, { error: 'Forbidden: Admin access required' });
+      if (row.isBanned) {
+        return status(403, {
+          error: 'Account banned',
+          reason: row.banReason || 'No reason provided',
+          bannedAt: row.bannedAt,
+        });
+      }
       return { user };
     },
   },

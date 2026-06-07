@@ -46,6 +46,10 @@ export class AuthService {
       throw UnauthorizedError('Invalid credentials');
     }
 
+    if (user.isBanned) {
+      throw UnauthorizedError('This account has been banned. Reason: ' + (user.banReason || 'Contact an administrator'));
+    }
+
     return this.buildSession(user);
   }
 
@@ -82,6 +86,10 @@ export class AuthService {
       user = (await userRepository.update(user.id, { googleId }))!;
     }
 
+    if (user.isBanned) {
+      throw UnauthorizedError('This account has been banned. Reason: ' + (user.banReason || 'Contact an administrator'));
+    }
+
     return this.buildSession(user);
   }
 
@@ -97,6 +105,10 @@ export class AuthService {
     const user = await userRepository.findById(row.userId);
     if (!user) {
       throw UnauthorizedError('Invalid refresh token');
+    }
+    if (user.isBanned) {
+      await refreshTokenRepository.revokeById(row.id);
+      throw UnauthorizedError('This account has been banned. Reason: ' + (user.banReason || 'Contact an administrator'));
     }
     await refreshTokenRepository.revokeById(row.id); // rotate
     return this.buildSession(user);
