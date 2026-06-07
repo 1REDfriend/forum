@@ -65,6 +65,14 @@ docker compose up -d --build        # db + backend + frontend
 # backend image (oven/bun) runs `drizzle-kit migrate` on start, then serves
 ```
 
+## Admin & moderation
+
+Admin users (`role = admin`) get the dashboard at `/admin` (Users, Forums, Threads, Posts, Reports, Badges tabs).
+
+**Bans.** From the Users tab, 🚫 bans a user (with a required reason) and ✅ unbans. A banned account is blocked at login (`/auth/login`, Google, refresh) and on every authenticated request — the `auth` macro loads the user row and returns `403 { error: "Account banned", reason, bannedAt }`. The frontend catches that shape globally, clears the session, and bounces to `/login` with the reason. Bans are permanent until an admin unbans (no duration field in v1).
+
+**Badges.** The catalog is hardcoded in `backend/src/domain/badges.ts` (single source of truth) — see the header comment there for how to add a new badge type. Auto badges are awarded on profile load and right after creating a thread/post; admins grant/revoke per user from the Users tab (🏅 button). Public catalog: `GET /badges/catalog`.
+
 ## API
 
 REST under the backend root; interactive OpenAPI docs at `/openapi`. Error responses are `{ "error": "..." }`. Auth via `Authorization: Bearer <accessToken>`; refresh via `POST /auth/refresh`.

@@ -2,6 +2,8 @@ import { postRepository } from '../repositories/post.repository.js';
 import { userRepository } from '../repositories/user.repository.js';
 import { likeRepository } from '../repositories/like.repository.js';
 import { threadRepository } from '../repositories/thread.repository.js';
+import { tierService } from './tier.service.js';
+import { badgeService } from './badge.service.js';
 import { NotFoundError, ForbiddenError } from '../utils/errors.js';
 import type { CreatePostDTO, UpdatePostDTO } from '../types/index.js';
 
@@ -43,11 +45,27 @@ export class PostService {
     if (thread.isLocked) {
       throw ForbiddenError('This thread is locked and cannot receive replies');
     }
-    return await postRepository.create({
+    const created = await postRepository.create({
       content: data.content,
       threadId: data.threadId,
       authorId: userId,
     });
+    return { ...created, newlyAwardedBadges: await this.awardBadges(userId) };
+  }
+
+  /** Sync auto badges after content creation; never let it break the create. */
+  private async awardBadges(userId: string) {
+    try {
+      const s = await tierService.computeStats(userId);
+      return await badgeService.awardNewAuto(userId, {
+        posts: s.threads + s.posts,
+        likesReceived: s.likesReceived,
+        accountAgeDays: s.accountAgeDays,
+        longestStreak: s.longestStreak,
+      });
+    } catch {
+      return [];
+    }
   }
 
   async updatePost(userId: string, postId: string, data: UpdatePostDTO) {

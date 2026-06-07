@@ -48,6 +48,21 @@ export const apiClient = new ApiClient({
       window.location.assign('/login');
     }
   },
+  // A still-valid token belonging to a now-banned account: clear session, tell the
+  // user why, and bounce to login. Reason comes from the server's 403 body.
+  onAccountBanned: (reason: string) => {
+    try {
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+    } catch {
+      /* ignore */
+    }
+    if (typeof window !== 'undefined') {
+      window.alert(`บัญชีของคุณถูกระงับการใช้งาน\nเหตุผล: ${reason}\n\nคุณได้ออกจากระบบแล้ว`);
+      if (window.location.pathname !== '/login') window.location.assign('/login');
+    }
+  },
 });
 
 export const authApi = new AuthApi(apiClient);

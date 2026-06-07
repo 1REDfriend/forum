@@ -29,6 +29,7 @@ async function seed() {
     { name: 'Alice Coder', email: 'alice@code.com', passwordHash, authProvider: 'local', tier: 'strong', bio: 'Vue enthusiast & open-source contributor.' },
     { name: 'Google Fan', email: 'fan@gmail.com', googleId: 'google-123', authProvider: 'google', tier: 'sprout', bio: 'Just here to learn 🙂' },
     { name: 'Somsak Dev', email: 'somsak@thai.dev', passwordHash, authProvider: 'local', tier: 'wanderer', bio: 'น้องใหม่หัดเขียนโค้ด' },
+    { name: 'Banned Spammer', email: 'spammer@bad.com', passwordHash, authProvider: 'local', tier: 'wanderer', bio: 'demo banned account', isBanned: true, banReason: 'สแปมโฆษณาซ้ำ ๆ', bannedAt: new Date() },
   ]).returning();
 
   const admin = createdUsers[0]!;

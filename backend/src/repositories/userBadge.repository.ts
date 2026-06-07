@@ -10,14 +10,19 @@ export class UserBadgeRepository {
       .where(eq(userBadges.userId, userId));
   }
 
-  /** Idempotent award (unique on user+key). Dedups the input batch first. */
-  async award(userId: string, keys: string[]): Promise<void> {
+  /**
+   * Idempotent award (unique on user+key). Dedups the input batch first.
+   * Returns the keys that were actually newly inserted (excludes ones already held).
+   */
+  async award(userId: string, keys: string[]): Promise<string[]> {
     const unique = [...new Set(keys)];
-    if (unique.length === 0) return;
-    await db
+    if (unique.length === 0) return [];
+    const inserted = await db
       .insert(userBadges)
       .values(unique.map((badgeKey) => ({ userId, badgeKey })))
-      .onConflictDoNothing();
+      .onConflictDoNothing()
+      .returning({ badgeKey: userBadges.badgeKey });
+    return inserted.map((r) => r.badgeKey);
   }
 
   /** True if the user already holds this badge. */

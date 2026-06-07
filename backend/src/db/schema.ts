@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, integer, boolean, index, unique, date } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, integer, boolean, index, unique, date, type AnyPgColumn } from "drizzle-orm/pg-core";
 import { newId } from "./ids.js";
 
 export const users = pgTable("users", {
@@ -18,8 +18,14 @@ export const users = pgTable("users", {
   avatar: text("avatar"),
   banner: text("banner"), // profile cover image URL
   bio: text("bio"), // profile description
+  isBanned: boolean("is_banned").notNull().default(false),
+  bannedAt: timestamp("banned_at"),
+  banReason: text("ban_reason"),
+  bannedBy: text("banned_by").references((): AnyPgColumn => users.id, { onDelete: 'set null' }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ([
+  index("users_is_banned_idx").on(table.isBanned),
+]));
 
 export const forums = pgTable("forums", {
   id: text("id").primaryKey().$defaultFn(newId),

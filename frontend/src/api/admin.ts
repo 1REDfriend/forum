@@ -24,6 +24,9 @@ export interface AdminUser {
   threadCount: number;
   postCount: number;
   badgeKeys: string[];
+  isBanned: boolean;
+  bannedAt?: string | null;
+  banReason?: string | null;
 }
 
 export interface BadgeCatalogItem {
@@ -137,6 +140,14 @@ export class AdminApi {
     return this.client.delete<void>(`/admin/users/${id}`);
   }
 
+  banUser(userId: string, reason: string): Promise<AdminUser> {
+    return this.client.patch<AdminUser>(`/admin/users/${userId}/ban`, { reason });
+  }
+
+  unbanUser(userId: string): Promise<AdminUser> {
+    return this.client.patch<AdminUser>(`/admin/users/${userId}/unban`, {});
+  }
+
   // Forums
   getForums(page = 1, limit = 50): Promise<PaginatedAdminResult<AdminForum>> {
     return this.client.get<PaginatedAdminResult<AdminForum>>(`/admin/forums?page=${page}&limit=${limit}`);
@@ -184,6 +195,11 @@ export class AdminApi {
   // Badges
   getBadgeCatalog(): Promise<BadgeCatalogItem[]> {
     return this.client.get<BadgeCatalogItem[]>('/admin/badges');
+  }
+
+  // Public catalog (no admin guard) — usable by normal users for badge discovery.
+  getPublicBadgeCatalog(): Promise<BadgeCatalogItem[]> {
+    return this.client.get<BadgeCatalogItem[]>('/badges/catalog');
   }
 
   grantBadge(userId: string, badgeKey: string): Promise<{ message: string }> {
