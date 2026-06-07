@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { adminApi, threadsApi } from '../api/index.js';
 import type {
   AdminStats, AdminUser, AdminForum, AdminThread, AdminPost, ActivityItem, AdminReport,
@@ -8,9 +8,18 @@ import type {
 import { TIERS } from '../api/types.js';
 import { useAuthStore } from '../stores/auth.js';
 import { useRouter } from 'vue-router';
+import { useUiStore } from '../stores/ui.js';
 
 const authStore = useAuthStore();
 const router = useRouter();
+
+const ui = useUiStore();
+
+// Switch tab and close the mobile drawer so content is visible after tapping.
+const selectTab = (key: Tab) => {
+  activeTab.value = key;
+  ui.closeAdminSidebar();
+};
 
 // ─── Sidebar tabs ─────────────────────────────────────────────────────────────
 type Tab = 'overview' | 'users' | 'forums' | 'threads' | 'posts' | 'reports' | 'badges';
@@ -439,12 +448,16 @@ onMounted(() => {
   }
   loadStats();
 });
+
+onUnmounted(() => {
+  ui.closeAdminSidebar();
+});
 </script>
 
 <template>
   <div class="admin-layout">
     <!-- Sidebar -->
-    <aside class="sidebar">
+    <aside class="sidebar" :class="{ 'sidebar--open': ui.adminSidebarOpen }">
       <div class="sidebar-header">
         <span class="sidebar-icon">⚙️</span>
         <span class="sidebar-title">Admin Panel</span>
@@ -453,7 +466,7 @@ onMounted(() => {
         <button
           v-for="item in sidebarItems"
           :key="item.key"
-          @click="activeTab = item.key"
+          @click="selectTab(item.key)"
           :class="['nav-item', activeTab === item.key && 'nav-item--active']"
         >
           <span class="nav-icon">{{ item.icon }}</span>
@@ -461,9 +474,17 @@ onMounted(() => {
         </button>
       </nav>
       <div class="sidebar-footer">
-        <router-link to="/forums" class="back-link">← Back to Forum</router-link>
+        <router-link to="/forums" class="back-link" @click="ui.closeAdminSidebar()">← Back to Forum</router-link>
       </div>
     </aside>
+
+    <!-- Mobile drawer backdrop (CSS hides it on desktop) -->
+    <div
+      v-if="ui.adminSidebarOpen"
+      class="sidebar-backdrop"
+      @click="ui.closeAdminSidebar()"
+      aria-hidden="true"
+    />
 
     <!-- Main Content -->
     <main class="admin-main">
