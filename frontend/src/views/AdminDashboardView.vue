@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
-import { adminApi } from '../api/index.js';
+import { adminApi, threadsApi } from '../api/index.js';
 import type {
   AdminStats, AdminUser, AdminForum, AdminThread, AdminPost, ActivityItem, AdminReport,
-  PaginatedAdminResult,
+  PaginatedAdminResult, BadgeCatalogItem,
 } from '../api/admin.js';
 import { TIERS } from '../api/types.js';
 import { useAuthStore } from '../stores/auth.js';
@@ -13,7 +13,7 @@ const authStore = useAuthStore();
 const router = useRouter();
 
 // ─── Sidebar tabs ─────────────────────────────────────────────────────────────
-type Tab = 'overview' | 'users' | 'forums' | 'threads' | 'posts' | 'reports';
+type Tab = 'overview' | 'users' | 'forums' | 'threads' | 'posts' | 'reports' | 'badges';
 const activeTab = ref<Tab>('overview');
 
 // ─── Stats ────────────────────────────────────────────────────────────────────
@@ -47,9 +47,62 @@ const posts = ref<PaginatedAdminResult<AdminPost> | null>(null);
 const postsLoading = ref(false);
 const postsPage = ref(1);
 
+// ─── Badges ───────────────────────────────────────────────────────────────────
+const badgeCatalog = ref<BadgeCatalogItem[]>([]);
+const badgeCatalogLoading = ref(false);
+const loadBadgeCatalog = async () => {
+  if (badgeCatalog.value.length > 0) return;
+  badgeCatalogLoading.value = true;
+  try {
+    badgeCatalog.value = await adminApi.getBadgeCatalog();
+  } catch { /* ignore */ } finally {
+    badgeCatalogLoading.value = false;
+  }
+};
+const badgeMap = computed<Record<string, BadgeCatalogItem>>(() =>
+  Object.fromEntries(badgeCatalog.value.map((b) => [b.key, b])),
+);
+
+// Per-user badge management modal
+const manageBadgesUser = ref<AdminUser | null>(null);
+const badgeBusy = ref<string | null>(null); // key currently being mutated
+
+const openManageBadges = async (user: AdminUser) => {
+  await loadBadgeCatalog();
+  manageBadgesUser.value = user;
+};
+
+const grantBadge = async (key: string) => {
+  const user = manageBadgesUser.value;
+  if (!user) return;
+  badgeBusy.value = key;
+  try {
+    await adminApi.grantBadge(user.id, key);
+    if (!user.badgeKeys.includes(key)) user.badgeKeys.push(key);
+  } catch (err: any) {
+    alert(err.message || 'Failed to grant badge');
+  } finally {
+    badgeBusy.value = null;
+  }
+};
+
+const revokeBadge = async (key: string) => {
+  const user = manageBadgesUser.value;
+  if (!user) return;
+  badgeBusy.value = key;
+  try {
+    await adminApi.revokeBadge(user.id, key);
+    user.badgeKeys = user.badgeKeys.filter((k) => k !== key);
+  } catch (err: any) {
+    alert(err.message || 'Failed to revoke badge');
+  } finally {
+    badgeBusy.value = null;
+  }
+};
+
 // ─── Delete confirm ───────────────────────────────────────────────────────────
-const confirmDelete = ref<{ type: string; id: number; label: string } | null>(null);
-const editForum = ref<{ id: number; name: string; description: string } | null>(null);
+const confirmDelete = ref<{ type: string; id: string; label: string } | null>(null);
+const editForum = ref<{ id: string; name: string; description: string } | null>(null);
 const isSavingForum = ref(false);
 const isDeleting = ref(false);
 
@@ -117,18 +170,31 @@ const loadReports = async () => {
     reportsLoading.value = false;
   }
 };
-const resolveReport = async (id: number, status: 'reviewed' | 'dismissed') => {
+const resolveReport = async (id: string, status: 'reviewed' | 'dismissed') => {
   await adminApi.resolveReport(id, status);
   loadReports();
+};
+const deleteReportTarget = async (r: AdminReport) => {
+  if (r.targetType === 'user') { alert('Use the Users tab to delete a user.'); return; }
+  if (!confirm(`Delete this ${r.targetType} permanently? This cannot be undone.`)) return;
+  try {
+    if (r.targetType === 'thread') await adminApi.deleteThread(r.targetId);
+    else await adminApi.deletePost(r.targetId);
+    await adminApi.resolveReport(r.id, 'reviewed');
+    loadReports();
+  } catch (err: any) {
+    alert(err.message || 'Failed to delete target');
+  }
 };
 const setReportsPage = (p: number) => { reportsPage.value = p; loadReports(); };
 
 watch(activeTab, (tab) => {
-  if (tab === 'users' && !users.value) loadUsers();
+  if (tab === 'users') { loadBadgeCatalog(); if (!users.value) loadUsers(); }
   if (tab === 'forums' && !forums.value) loadForums();
   if (tab === 'threads' && !threads.value) loadThreads();
   if (tab === 'posts' && !posts.value) loadPosts();
   if (tab === 'reports' && !reports.value) loadReports();
+  if (tab === 'badges') loadBadgeCatalog();
 });
 
 // ─── Search debounce ──────────────────────────────────────────────────────────
@@ -181,7 +247,25 @@ const setUserTier = async (user: AdminUser, tier: string) => {
   }
 };
 
-const askDelete = (type: string, id: number, label: string) => {
+const toggleThreadPin = async (thread: AdminThread) => {
+  try {
+    const { isPinned } = await threadsApi.pinThread(thread.id);
+    thread.isPinned = isPinned;
+  } catch (err: any) {
+    alert(err.message || 'Failed to toggle pin');
+  }
+};
+
+const toggleThreadLock = async (thread: AdminThread) => {
+  try {
+    const { isLocked } = await threadsApi.lockThread(thread.id);
+    thread.isLocked = isLocked;
+  } catch (err: any) {
+    alert(err.message || 'Failed to toggle lock');
+  }
+};
+
+const askDelete = (type: string, id: string, label: string) => {
   confirmDelete.value = { type, id, label };
 };
 
@@ -251,6 +335,7 @@ const sidebarItems: { key: Tab; label: string; icon: string }[] = [
   { key: 'threads', label: 'Threads', icon: '💬' },
   { key: 'posts', label: 'Posts', icon: '📝' },
   { key: 'reports', label: 'Reports', icon: '🚩' },
+  { key: 'badges', label: 'Badges', icon: '🏅' },
 ];
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
@@ -395,6 +480,7 @@ onMounted(() => {
                 <th>Provider</th>
                 <th class="text-center">Threads</th>
                 <th class="text-center">Posts</th>
+                <th>Badges</th>
                 <th>Joined</th>
                 <th>Actions</th>
               </tr>
@@ -429,10 +515,19 @@ onMounted(() => {
                 <td class="text-muted text-sm">{{ user.authProvider }}</td>
                 <td class="text-center text-sm">{{ user.threadCount }}</td>
                 <td class="text-center text-sm">{{ user.postCount }}</td>
+                <td>
+                  <div class="badge-chips">
+                    <span v-for="k in user.badgeKeys" :key="k" class="badge-chip" :title="badgeMap[k]?.label || k">
+                      {{ badgeMap[k]?.icon || '🏅' }}
+                    </span>
+                    <span v-if="user.badgeKeys.length === 0" class="text-muted text-xs">—</span>
+                  </div>
+                </td>
                 <td class="text-muted text-sm">{{ formatDate(user.createdAt) }}</td>
                 <td>
                   <div class="row-actions">
                     <router-link :to="`/user/${user.id}`" class="btn-view-sm" title="View profile">👁</router-link>
+                    <button @click="openManageBadges(user)" class="btn-edit-sm" title="Manage badges">🏅</button>
                     <button @click="askDelete('user', user.id, user.name)" class="btn-danger-sm" title="Delete user">🗑</button>
                   </div>
                 </td>
@@ -551,6 +646,16 @@ onMounted(() => {
                 <td>
                   <div class="row-actions">
                     <router-link :to="`/thread/${thread.id}`" class="btn-view-sm">👁</router-link>
+                    <button
+                      @click="toggleThreadPin(thread)"
+                      :class="thread.isPinned ? 'btn-toggle-on' : 'btn-edit-sm'"
+                      :title="thread.isPinned ? 'Unpin' : 'Pin'"
+                    >📌</button>
+                    <button
+                      @click="toggleThreadLock(thread)"
+                      :class="thread.isLocked ? 'btn-toggle-on' : 'btn-edit-sm'"
+                      :title="thread.isLocked ? 'Unlock' : 'Lock'"
+                    >🔒</button>
                     <button @click="askDelete('thread', thread.id, thread.title)" class="btn-danger-sm">🗑</button>
                   </div>
                 </td>
@@ -644,6 +749,7 @@ onMounted(() => {
                 <td>
                   <div class="row-actions">
                     <button v-if="r.status === 'open'" @click="resolveReport(r.id, 'reviewed')" class="btn-view-sm" title="mark reviewed">✓</button>
+                    <button v-if="r.targetType !== 'user'" @click="deleteReportTarget(r)" class="btn-danger-sm" title="delete reported content">🗑</button>
                     <button v-if="r.status !== 'dismissed'" @click="resolveReport(r.id, 'dismissed')" class="btn-danger-sm" title="dismiss">✕</button>
                   </div>
                 </td>
@@ -657,6 +763,30 @@ onMounted(() => {
             <span class="page-info">{{ reportsPage }} / {{ reports.totalPages }} ({{ reports.total }} total)</span>
             <button @click="setReportsPage(reportsPage + 1)" :disabled="reportsPage >= reports.totalPages" class="page-btn">→</button>
           </div>
+        </div>
+      </div>
+
+      <!-- ══ BADGES ══════════════════════════════════════════════════════════ -->
+      <div v-else-if="activeTab === 'badges'" class="tab-content">
+        <h1 class="page-title">Badge Catalog</h1>
+        <p class="text-muted text-sm" style="margin:-12px 0 20px">
+          Auto badges are awarded by the system; others are granted by admins from the Users tab.
+        </p>
+        <div class="section-card">
+          <div v-if="badgeCatalogLoading" class="sk-lines"><div v-for="i in 6" :key="i" class="sk-line" /></div>
+          <table v-else-if="badgeCatalog.length > 0" class="data-table">
+            <thead>
+              <tr><th>Badge</th><th>Key</th><th>Description</th></tr>
+            </thead>
+            <tbody>
+              <tr v-for="b in badgeCatalog" :key="b.key">
+                <td><span style="font-size:18px;margin-right:8px">{{ b.icon }}</span><span class="font-medium">{{ b.label }}</span></td>
+                <td class="text-muted text-sm"><code>{{ b.key }}</code></td>
+                <td class="text-muted text-sm">{{ b.desc }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <p v-else class="empty-text">No badges in catalog.</p>
         </div>
       </div>
 
@@ -702,6 +832,42 @@ onMounted(() => {
             <button @click="saveForum" :disabled="isSavingForum || !editForum.name.trim()" class="btn-save">
               {{ isSavingForum ? 'Saving…' : 'Save' }}
             </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- ─── Manage Badges Modal ─────────────────────────────────────────────── -->
+    <Teleport to="body">
+      <div v-if="manageBadgesUser" class="modal-overlay" @click.self="manageBadgesUser = null">
+        <div class="modal">
+          <h3 class="modal-title">Badges — {{ manageBadgesUser.name }}</h3>
+          <div class="badge-manage-list">
+            <div v-for="b in badgeCatalog" :key="b.key" class="badge-manage-row">
+              <div class="badge-manage-info">
+                <span class="badge-manage-icon">{{ b.icon }}</span>
+                <div>
+                  <p class="badge-manage-label">{{ b.label }}</p>
+                  <p class="badge-manage-desc">{{ b.desc }}</p>
+                </div>
+              </div>
+              <button
+                v-if="manageBadgesUser.badgeKeys.includes(b.key)"
+                @click="revokeBadge(b.key)"
+                :disabled="badgeBusy === b.key"
+                class="btn-revoke"
+              >{{ badgeBusy === b.key ? '…' : 'Revoke' }}</button>
+              <button
+                v-else
+                @click="grantBadge(b.key)"
+                :disabled="badgeBusy === b.key"
+                class="btn-grant"
+              >{{ badgeBusy === b.key ? '…' : 'Grant' }}</button>
+            </div>
+            <p v-if="badgeCatalog.length === 0" class="empty-text">No badges available.</p>
+          </div>
+          <div class="modal-actions">
+            <button @click="manageBadgesUser = null" class="btn-cancel">Close</button>
           </div>
         </div>
       </div>
@@ -1118,6 +1284,48 @@ onMounted(() => {
   transition: border-color 0.15s;
 }
 .form-input:focus { border-color: #6366f1; }
+
+/* ── Badge chips (users table) ──────────────────────────────────────── */
+.badge-chips { display: flex; flex-wrap: wrap; gap: 2px; max-width: 120px; }
+.badge-chip { font-size: 14px; line-height: 1; cursor: default; }
+.text-xs { font-size: 11px; }
+
+/* ── Toggle button (on state for pin/lock) ──────────────────────────── */
+.btn-toggle-on {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  background: rgba(34, 197, 94, 0.22);
+  color: #4ade80;
+  font-size: 13px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.btn-toggle-on:hover { background: rgba(34, 197, 94, 0.32); }
+
+/* ── Badge manage modal ─────────────────────────────────────────────── */
+.badge-manage-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 20px; max-height: 60vh; overflow-y: auto; }
+.badge-manage-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 12px; border-radius: 10px; background: rgba(255, 255, 255, 0.04);
+}
+.badge-manage-info { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.badge-manage-icon { font-size: 20px; flex-shrink: 0; }
+.badge-manage-label { font-size: 13px; font-weight: 600; color: #f1f5f9; margin: 0; }
+.badge-manage-desc { font-size: 11px; color: #94a3b8; margin: 2px 0 0; }
+.btn-grant {
+  padding: 5px 14px; border: none; border-radius: 8px; background: #6366f1; color: #fff;
+  font-size: 12px; font-weight: 600; cursor: pointer; flex-shrink: 0; transition: background 0.15s;
+}
+.btn-grant:hover:not(:disabled) { background: #4f46e5; }
+.btn-grant:disabled, .btn-revoke:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-revoke {
+  padding: 5px 14px; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px;
+  background: rgba(239, 68, 68, 0.14); color: #fca5a5;
+  font-size: 12px; font-weight: 600; cursor: pointer; flex-shrink: 0; transition: background 0.15s;
+}
+.btn-revoke:hover:not(:disabled) { background: rgba(239, 68, 68, 0.24); }
 
 /* ── Responsive ─────────────────────────────────────────────────────── */
 @media (max-width: 768px) {

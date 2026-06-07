@@ -23,6 +23,14 @@ export interface AdminUser {
   createdAt: string;
   threadCount: number;
   postCount: number;
+  badgeKeys: string[];
+}
+
+export interface BadgeCatalogItem {
+  key: string;
+  label: string;
+  desc: string;
+  icon: string;
 }
 
 export interface AdminForum {
@@ -174,7 +182,15 @@ export class AdminApi {
   }
 
   // Badges
+  getBadgeCatalog(): Promise<BadgeCatalogItem[]> {
+    return this.client.get<BadgeCatalogItem[]>('/admin/badges');
+  }
+
   grantBadge(userId: string, badgeKey: string): Promise<{ message: string }> {
     return this.client.post<{ message: string }>(`/admin/users/${userId}/badges`, { badgeKey });
+  }
+
+  revokeBadge(userId: string, badgeKey: string): Promise<void> {
+    return this.client.delete<void>(`/admin/users/${userId}/badges/${badgeKey}`);
   }
 }

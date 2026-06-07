@@ -104,6 +104,7 @@ export class AdminRepository {
       createdAt: users.createdAt,
       threadCount: sql<number>`(SELECT COUNT(*) FROM threads WHERE threads.author_id = users.id)::int`,
       postCount: sql<number>`(SELECT COUNT(*) FROM posts WHERE posts.author_id = users.id)::int`,
+      badgeKeys: sql<string[]>`COALESCE((SELECT json_agg(ub.badge_key) FROM user_badges ub WHERE ub.user_id = users.id), '[]'::json)`,
     }).from(users);
 
     const filteredQuery = search

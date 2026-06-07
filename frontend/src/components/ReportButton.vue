@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import { reportsApi } from '../api/index.js';
 import { useAuthStore } from '../stores/auth.js';
 
-const props = defineProps<{ targetType: 'thread' | 'post' | 'user'; targetId: number }>();
+const props = defineProps<{ targetType: 'thread' | 'post' | 'user'; targetId: string }>();
 const auth = useAuthStore();
 
 const open = ref(false);

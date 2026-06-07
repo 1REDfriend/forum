@@ -143,6 +143,11 @@ export const GrantBadgeDTO = t.Object({
 });
 export type GrantBadgeDTO = typeof GrantBadgeDTO.static;
 
+export const BadgeParam = t.Object({
+  id: t.String({ minLength: 1 }),
+  badgeKey: t.String({ minLength: 1, maxLength: 50 }),
+});
+
 // User payload stored in JWT
 export interface JwtPayload {
   userId: string;

@@ -14,6 +14,7 @@ import {
   ReportQuery,
   ReportStatusDTO,
   GrantBadgeDTO,
+  BadgeParam,
 } from '../types/index.js';
 
 export const adminRoutes = new Elysia({ prefix: '/admin', tags: ['Admin'] })
@@ -133,14 +134,28 @@ export const adminRoutes = new Elysia({ prefix: '/admin', tags: ['Admin'] })
         ({ params, body }) => reportService.resolve(params.id, body.status),
         { params: IdParam, body: ReportStatusDTO },
       )
-      // ─── Badges (grant) ────────────────────────────────────────────────────
+      // ─── Badges ────────────────────────────────────────────────────────────
+      .get('/badges', () => badgeService.catalog())
       .post(
         '/users/:id/badges',
         async ({ params, body }) => {
-          const ok = await badgeService.grant(params.id, body.badgeKey);
-          if (!ok) return status(400, { error: 'Unknown badge' });
+          const result = await badgeService.grant(params.id, body.badgeKey);
+          if (!result.ok) {
+            return result.reason === 'unknown'
+              ? status(400, { error: 'Unknown badge' })
+              : status(409, { error: 'User already has this badge' });
+          }
           return { message: 'Badge granted' };
         },
         { params: IdParam, body: GrantBadgeDTO },
+      )
+      .delete(
+        '/users/:id/badges/:badgeKey',
+        async ({ params }) => {
+          const removed = await badgeService.revoke(params.id, params.badgeKey);
+          if (!removed) return status(404, { error: 'User does not have this badge' });
+          return new Response(null, { status: 204 });
+        },
+        { params: BadgeParam },
       ),
   );
