@@ -117,6 +117,16 @@ export const reports = pgTable("reports", {
   unique("reports_reporter_target_unique").on(table.reporterId, table.targetType, table.targetId),
 ]));
 
+// Badge definitions (admin-managed catalog). Auto-award rules for built-in keys
+// still live in code (domain/badges.ts); rows here are the editable metadata.
+export const badges = pgTable("badges", {
+  key: text("key").primaryKey(), // stable identifier, e.g. 'first_post'
+  label: text("label").notNull(),
+  description: text("description").notNull(),
+  icon: text("icon").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const userBadges = pgTable("user_badges", {
   id: text("id").primaryKey().$defaultFn(newId),
   userId: text("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),

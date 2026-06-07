@@ -15,6 +15,9 @@ import {
   ReportStatusDTO,
   GrantBadgeDTO,
   BadgeParam,
+  BadgeKeyParam,
+  CreateBadgeDTO,
+  UpdateBadgeDTO,
   BanUserDTO,
 } from '../types/index.js';
 
@@ -156,6 +159,33 @@ export const adminRoutes = new Elysia({ prefix: '/admin', tags: ['Admin'] })
       )
       // ─── Badges ────────────────────────────────────────────────────────────
       .get('/badges', () => badgeService.catalog())
+      .post(
+        '/badges',
+        async ({ body }) => {
+          const result = await badgeService.createDef(body);
+          if (!result.ok) return status(409, { error: 'A badge with this key already exists' });
+          return result.badge;
+        },
+        { body: CreateBadgeDTO },
+      )
+      .put(
+        '/badges/:key',
+        async ({ params, body }) => {
+          const updated = await badgeService.updateDef(params.key, body);
+          if (!updated) return status(404, { error: 'Badge not found' });
+          return updated;
+        },
+        { params: BadgeKeyParam, body: UpdateBadgeDTO },
+      )
+      .delete(
+        '/badges/:key',
+        async ({ params }) => {
+          const removed = await badgeService.deleteDef(params.key);
+          if (!removed) return status(404, { error: 'Badge not found' });
+          return new Response(null, { status: 204 });
+        },
+        { params: BadgeKeyParam },
+      )
       .post(
         '/users/:id/badges',
         async ({ params, body }) => {
