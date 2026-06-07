@@ -1,7 +1,11 @@
 import { threadRepository } from '../repositories/thread.repository.js';
 import { postRepository } from '../repositories/post.repository.js';
 
-const FRONTEND_URL = process.env.FRONTEND_URL ?? 'http://localhost:5173';
+// FRONTEND_URL may be a comma-separated list of origins; use the first, no trailing slash.
+const FRONTEND_URL = (process.env.FRONTEND_URL ?? 'http://localhost:5173')
+  .split(',')[0]!
+  .trim()
+  .replace(/\/+$/, '');
 
 function esc(s: string): string {
   return s
