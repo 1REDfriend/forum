@@ -17,7 +17,7 @@ export class UserBadgeRepository {
     await db
       .insert(userBadges)
       .values(unique.map((badgeKey) => ({ userId, badgeKey })))
-      .onConflictDoNothing({ target: [userBadges.userId, userBadges.badgeKey] });
+      .onConflictDoNothing();
   }
 
   /** True if the user already holds this badge. */
