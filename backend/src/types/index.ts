@@ -104,6 +104,11 @@ export const UpdateUserRoleDTO = t.Object({
 });
 export type UpdateUserRoleDTO = typeof UpdateUserRoleDTO.static;
 
+export const BanUserDTO = t.Object({
+  reason: t.String({ minLength: 3, maxLength: 500 }),
+});
+export type BanUserDTO = typeof BanUserDTO.static;
+
 // ─── Shared query / param models ──────────────────────────────────────────────
 // t.Numeric coerces numeric query/param strings to numbers (e.g. "?page=2" → 2).
 export const Pagination = t.Object({

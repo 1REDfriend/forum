@@ -15,6 +15,7 @@ import {
   ReportStatusDTO,
   GrantBadgeDTO,
   BadgeParam,
+  BanUserDTO,
 } from '../types/index.js';
 
 export const adminRoutes = new Elysia({ prefix: '/admin', tags: ['Admin'] })
@@ -62,6 +63,25 @@ export const adminRoutes = new Elysia({ prefix: '/admin', tags: ['Admin'] })
             return status(400, { error: 'Cannot delete your own account via admin panel' });
           await adminRepository.deleteUser(params.id);
           return new Response(null, { status: 204 });
+        },
+        { params: IdParam },
+      )
+      .patch(
+        '/users/:id/ban',
+        async ({ user, params, body }) => {
+          if (params.id === user.userId) return status(400, { error: 'Cannot ban yourself' });
+          const updated = await adminRepository.banUser(params.id, body.reason, user.userId);
+          if (!updated) return status(404, { error: 'User not found' });
+          return updated;
+        },
+        { params: IdParam, body: BanUserDTO },
+      )
+      .patch(
+        '/users/:id/unban',
+        async ({ params }) => {
+          const updated = await adminRepository.unbanUser(params.id);
+          if (!updated) return status(404, { error: 'User not found' });
+          return updated;
         },
         { params: IdParam },
       )
