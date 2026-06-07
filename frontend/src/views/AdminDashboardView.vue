@@ -1089,7 +1089,10 @@ onUnmounted(() => {
   bottom: 0;
   overflow-y: auto;
   z-index: 40;
+  transition: transform 0.25s ease;
 }
+
+.sidebar-backdrop { display: none; }
 
 .sidebar-header {
   display: flex;
@@ -1529,7 +1532,30 @@ onUnmounted(() => {
 
 /* ── Responsive ─────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .sidebar { transform: translateX(-100%); }
+  /* Sidebar becomes an off-canvas drawer */
+  .sidebar {
+    transform: translateX(-100%);
+    width: 240px;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+  }
+  .sidebar--open { transform: translateX(0); }
+
+  /* Dim + tap-to-close backdrop, sits under the drawer (z 40) */
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 64px 0 0 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 39;
+  }
+
+  /* Main column spans full width; tables scroll sideways instead of clipping */
   .admin-main { margin-left: 0; padding: 16px; max-width: 100vw; }
+  .section-card { overflow-x: auto; }
+  .data-table { min-width: 640px; }
+
+  /* Tab header (title + search/button) stacks; search fills the row */
+  .tab-header { flex-direction: column; align-items: stretch; }
+  .search-box, .search-input { width: 100%; box-sizing: border-box; }
 }
 </style>
