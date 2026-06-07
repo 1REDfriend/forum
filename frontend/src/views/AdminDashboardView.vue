@@ -100,6 +100,41 @@ const revokeBadge = async (key: string) => {
   }
 };
 
+// ─── Ban / unban ────────────────────────────────────────────────────────────
+const banTarget = ref<AdminUser | null>(null);
+const banReasonInput = ref('');
+const isBanning = ref(false);
+
+const askBan = (u: AdminUser) => { banTarget.value = u; banReasonInput.value = ''; };
+
+const confirmBan = async () => {
+  const target = banTarget.value;
+  if (!target) return;
+  const reason = banReasonInput.value.trim();
+  if (reason.length < 3) return;
+  isBanning.value = true;
+  try {
+    await adminApi.banUser(target.id, reason);
+    const row = users.value?.data.find((u) => u.id === target.id);
+    if (row) { row.isBanned = true; row.banReason = reason; row.bannedAt = new Date().toISOString(); }
+    banTarget.value = null;
+  } catch (err: any) {
+    alert(err.message || 'Failed to ban user');
+  } finally {
+    isBanning.value = false;
+  }
+};
+
+const unban = async (u: AdminUser) => {
+  try {
+    await adminApi.unbanUser(u.id);
+    const row = users.value?.data.find((r) => r.id === u.id);
+    if (row) { row.isBanned = false; row.banReason = null; row.bannedAt = null; }
+  } catch (err: any) {
+    alert(err.message || 'Failed to unban user');
+  }
+};
+
 // ─── Delete confirm ───────────────────────────────────────────────────────────
 const confirmDelete = ref<{ type: string; id: string; label: string } | null>(null);
 const editForum = ref<{ id: string; name: string; description: string } | null>(null);
@@ -481,6 +516,7 @@ onMounted(() => {
                 <th class="text-center">Threads</th>
                 <th class="text-center">Posts</th>
                 <th>Badges</th>
+                <th>Status</th>
                 <th>Joined</th>
                 <th>Actions</th>
               </tr>
@@ -523,11 +559,17 @@ onMounted(() => {
                     <span v-if="user.badgeKeys.length === 0" class="text-muted text-xs">—</span>
                   </div>
                 </td>
+                <td>
+                  <span v-if="user.isBanned" class="ban-pill" :title="user.banReason || ''">BANNED</span>
+                  <span v-else class="active-pill">Active</span>
+                </td>
                 <td class="text-muted text-sm">{{ formatDate(user.createdAt) }}</td>
                 <td>
                   <div class="row-actions">
                     <router-link :to="`/user/${user.id}`" class="btn-view-sm" title="View profile">👁</router-link>
                     <button @click="openManageBadges(user)" class="btn-edit-sm" title="Manage badges">🏅</button>
+                    <button v-if="!user.isBanned" @click="askBan(user)" class="btn-danger-sm" title="Ban user">🚫</button>
+                    <button v-else @click="unban(user)" class="btn-toggle-on" title="Unban user">✅</button>
                     <button @click="askDelete('user', user.id, user.name)" class="btn-danger-sm" title="Delete user">🗑</button>
                   </div>
                 </td>
@@ -872,6 +914,29 @@ onMounted(() => {
         </div>
       </div>
     </Teleport>
+
+    <!-- ─── Ban User Modal ──────────────────────────────────────────────────── -->
+    <Teleport to="body">
+      <div v-if="banTarget" class="modal-overlay" @click.self="banTarget = null">
+        <div class="modal">
+          <h3 class="modal-title">Ban {{ banTarget.name }}</h3>
+          <p class="modal-body" style="margin-bottom:16px">
+            The user will be logged out and blocked from logging in or posting until unbanned.
+          </p>
+          <div class="form-field">
+            <label class="form-label">Reason</label>
+            <textarea v-model="banReasonInput" maxlength="500" rows="3" class="form-input"
+              placeholder="Reason for the ban (visible to the user)…" />
+          </div>
+          <div class="modal-actions">
+            <button @click="banTarget = null" class="btn-cancel">Cancel</button>
+            <button @click="confirmBan" :disabled="isBanning || banReasonInput.trim().length < 3" class="btn-danger">
+              {{ isBanning ? 'Banning…' : 'Ban user' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -1120,6 +1185,16 @@ onMounted(() => {
 }
 .tier-select:focus { outline: none; border-color: #6366f1; }
 .badge-pin, .badge-lock { font-size: 14px; margin: 0 2px; }
+.ban-pill {
+  padding: 2px 10px; border-radius: 100px; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.04em;
+  background: rgba(239, 68, 68, 0.16); color: #fca5a5; cursor: default;
+}
+.active-pill {
+  padding: 2px 10px; border-radius: 100px; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.04em;
+  background: rgba(34, 197, 94, 0.16); color: #4ade80;
+}
 
 /* ── Links ──────────────────────────────────────────────────────────── */
 .link-primary { color: #93c5fd; text-decoration: none; font-weight: 600; }

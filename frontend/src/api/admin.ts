@@ -24,6 +24,9 @@ export interface AdminUser {
   threadCount: number;
   postCount: number;
   badgeKeys: string[];
+  isBanned: boolean;
+  bannedAt?: string | null;
+  banReason?: string | null;
 }
 
 export interface BadgeCatalogItem {
@@ -135,6 +138,14 @@ export class AdminApi {
 
   deleteUser(id: string): Promise<void> {
     return this.client.delete<void>(`/admin/users/${id}`);
+  }
+
+  banUser(userId: string, reason: string): Promise<AdminUser> {
+    return this.client.patch<AdminUser>(`/admin/users/${userId}/ban`, { reason });
+  }
+
+  unbanUser(userId: string): Promise<AdminUser> {
+    return this.client.patch<AdminUser>(`/admin/users/${userId}/unban`, {});
   }
 
   // Forums

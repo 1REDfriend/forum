@@ -4,6 +4,7 @@ export interface ApiClientConfig {
   getRefreshToken?: () => string | null;
   setTokens?: (token: string, refreshToken: string) => void;
   onUnauthorized?: () => void;
+  onAccountBanned?: (reason: string) => void;
 }
 
 export class ApiError extends Error {
@@ -24,6 +25,9 @@ export class ApiClient {
   private getRefreshToken?: () => string | null;
   private setTokens?: (token: string, refreshToken: string) => void;
   private onUnauthorized?: () => void;
+  private onAccountBanned?: (reason: string) => void;
+  // Guards against firing the banned handler repeatedly when many requests 403 at once.
+  private banHandled = false;
   // Single-flight refresh: many requests failing 401 at once share one refresh call.
   private refreshing: Promise<boolean> | null = null;
 
@@ -33,6 +37,7 @@ export class ApiClient {
     this.getRefreshToken = config.getRefreshToken;
     this.setTokens = config.setTokens;
     this.onUnauthorized = config.onUnauthorized;
+    this.onAccountBanned = config.onAccountBanned;
   }
 
   private async request<T>(
@@ -93,6 +98,11 @@ export class ApiClient {
             }
           }
           this.onUnauthorized?.();
+        }
+        // A banned account still holding a valid token → force logout with the reason.
+        if (response.status === 403 && responseData?.error === 'Account banned' && !this.banHandled) {
+          this.banHandled = true;
+          this.onAccountBanned?.(responseData.reason || 'No reason provided');
         }
         const errorMessage = responseData && responseData.error
           ? responseData.error
