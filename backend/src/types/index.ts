@@ -153,6 +153,26 @@ export const BadgeParam = t.Object({
   badgeKey: t.String({ minLength: 1, maxLength: 50 }),
 });
 
+export const BadgeKeyParam = t.Object({
+  key: t.String({ minLength: 1, maxLength: 50 }),
+});
+
+// key is lowercase letters/digits/underscore so it's a safe stable identifier.
+export const CreateBadgeDTO = t.Object({
+  key: t.String({ minLength: 2, maxLength: 50, pattern: '^[a-z0-9_]+$' }),
+  label: t.String({ minLength: 1, maxLength: 100 }),
+  description: t.String({ minLength: 1, maxLength: 300 }),
+  icon: t.String({ minLength: 1, maxLength: 16 }),
+});
+export type CreateBadgeDTO = typeof CreateBadgeDTO.static;
+
+export const UpdateBadgeDTO = t.Object({
+  label: t.Optional(t.String({ minLength: 1, maxLength: 100 })),
+  description: t.Optional(t.String({ minLength: 1, maxLength: 300 })),
+  icon: t.Optional(t.String({ minLength: 1, maxLength: 16 })),
+});
+export type UpdateBadgeDTO = typeof UpdateBadgeDTO.static;
+
 // User payload stored in JWT
 export interface JwtPayload {
   userId: string;

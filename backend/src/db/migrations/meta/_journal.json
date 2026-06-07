@@ -50,6 +50,13 @@
       "when": 1780839868657,
       "tag": "0006_mushy_fallen_one",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1780841207175,
+      "tag": "0007_foamy_pandemic",
+      "breakpoints": true
     }
   ]
 }

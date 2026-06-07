@@ -63,6 +63,63 @@ const badgeMap = computed<Record<string, BadgeCatalogItem>>(() =>
   Object.fromEntries(badgeCatalog.value.map((b) => [b.key, b])),
 );
 
+// ─── Badge definition CRUD (admin catalog) ──────────────────────────────────
+type BadgeFormMode = 'create' | 'edit';
+const badgeForm = ref<{ mode: BadgeFormMode; key: string; label: string; description: string; icon: string } | null>(null);
+const isSavingBadge = ref(false);
+const badgeError = ref('');
+
+const openCreateBadge = () => {
+  badgeError.value = '';
+  badgeForm.value = { mode: 'create', key: '', label: '', description: '', icon: '' };
+};
+
+const openEditBadge = (b: BadgeCatalogItem) => {
+  badgeError.value = '';
+  badgeForm.value = { mode: 'edit', key: b.key, label: b.label, description: b.desc, icon: b.icon };
+};
+
+const saveBadge = async () => {
+  const f = badgeForm.value;
+  if (!f) return;
+  const key = f.key.trim();
+  const label = f.label.trim();
+  const description = f.description.trim();
+  const icon = f.icon.trim();
+  if (!label || !description || !icon) return;
+  if (f.mode === 'create' && !/^[a-z0-9_]{2,50}$/.test(key)) {
+    badgeError.value = 'Key must be 2–50 chars: lowercase letters, digits, underscore.';
+    return;
+  }
+  isSavingBadge.value = true;
+  badgeError.value = '';
+  try {
+    if (f.mode === 'create') {
+      const created = await adminApi.createBadge({ key, label, description, icon });
+      badgeCatalog.value.push(created);
+    } else {
+      const updated = await adminApi.updateBadge(key, { label, description, icon });
+      const i = badgeCatalog.value.findIndex((x) => x.key === key);
+      if (i !== -1) badgeCatalog.value[i] = updated;
+    }
+    badgeForm.value = null;
+  } catch (err: any) {
+    badgeError.value = err.message || 'Failed to save badge';
+  } finally {
+    isSavingBadge.value = false;
+  }
+};
+
+const deleteBadge = async (b: BadgeCatalogItem) => {
+  if (!confirm(`Delete badge "${b.label}" (${b.key})? It will be removed from all users who have it. This cannot be undone.`)) return;
+  try {
+    await adminApi.deleteBadge(b.key);
+    badgeCatalog.value = badgeCatalog.value.filter((x) => x.key !== b.key);
+  } catch (err: any) {
+    alert(err.message || 'Failed to delete badge');
+  }
+};
+
 // Per-user badge management modal
 const manageBadgesUser = ref<AdminUser | null>(null);
 const badgeBusy = ref<string | null>(null); // key currently being mutated
@@ -810,21 +867,31 @@ onMounted(() => {
 
       <!-- ══ BADGES ══════════════════════════════════════════════════════════ -->
       <div v-else-if="activeTab === 'badges'" class="tab-content">
-        <h1 class="page-title">Badge Catalog</h1>
+        <div class="tab-header">
+          <h1 class="page-title">Badge Catalog</h1>
+          <button @click="openCreateBadge" class="btn-create">+ New Badge</button>
+        </div>
         <p class="text-muted text-sm" style="margin:-12px 0 20px">
-          Auto badges are awarded by the system; others are granted by admins from the Users tab.
+          Auto badges (first_post, writer_50, loved_100, year_one, streak_30) award automatically;
+          others are granted by admins from the Users tab (🏅). Edit or delete any badge below.
         </p>
         <div class="section-card">
           <div v-if="badgeCatalogLoading" class="sk-lines"><div v-for="i in 6" :key="i" class="sk-line" /></div>
           <table v-else-if="badgeCatalog.length > 0" class="data-table">
             <thead>
-              <tr><th>Badge</th><th>Key</th><th>Description</th></tr>
+              <tr><th>Badge</th><th>Key</th><th>Description</th><th>Actions</th></tr>
             </thead>
             <tbody>
               <tr v-for="b in badgeCatalog" :key="b.key">
                 <td><span style="font-size:18px;margin-right:8px">{{ b.icon }}</span><span class="font-medium">{{ b.label }}</span></td>
                 <td class="text-muted text-sm"><code>{{ b.key }}</code></td>
                 <td class="text-muted text-sm">{{ b.desc }}</td>
+                <td>
+                  <div class="row-actions">
+                    <button @click="openEditBadge(b)" class="btn-edit-sm" title="Edit badge">✏️</button>
+                    <button @click="deleteBadge(b)" class="btn-danger-sm" title="Delete badge">🗑</button>
+                  </div>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -932,6 +999,43 @@ onMounted(() => {
             <button @click="banTarget = null" class="btn-cancel">Cancel</button>
             <button @click="confirmBan" :disabled="isBanning || banReasonInput.trim().length < 3" class="btn-danger">
               {{ isBanning ? 'Banning…' : 'Ban user' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- ─── Create / Edit Badge Modal ───────────────────────────────────────── -->
+    <Teleport to="body">
+      <div v-if="badgeForm" class="modal-overlay" @click.self="badgeForm = null">
+        <div class="modal">
+          <h3 class="modal-title">{{ badgeForm.mode === 'create' ? 'New Badge' : `Edit Badge — ${badgeForm.key}` }}</h3>
+          <div v-if="badgeForm.mode === 'create'" class="form-field">
+            <label class="form-label">Key (immutable)</label>
+            <input v-model="badgeForm.key" type="text" maxlength="50" class="form-input"
+              placeholder="e.g. early_bird (a-z 0-9 _)" />
+          </div>
+          <div class="form-field">
+            <label class="form-label">Icon (emoji)</label>
+            <input v-model="badgeForm.icon" type="text" maxlength="16" class="form-input" placeholder="🏅" />
+          </div>
+          <div class="form-field">
+            <label class="form-label">Label</label>
+            <input v-model="badgeForm.label" type="text" maxlength="100" class="form-input"
+              placeholder="ชื่อ badge" @keyup.enter="saveBadge" />
+          </div>
+          <div class="form-field">
+            <label class="form-label">Description</label>
+            <textarea v-model="badgeForm.description" maxlength="300" rows="2" class="form-input"
+              placeholder="คำอธิบาย badge" />
+          </div>
+          <p v-if="badgeError" class="text-sm" style="color:#fca5a5; margin:0 0 12px">{{ badgeError }}</p>
+          <div class="modal-actions">
+            <button @click="badgeForm = null" class="btn-cancel">Cancel</button>
+            <button @click="saveBadge"
+              :disabled="isSavingBadge || !badgeForm.label.trim() || !badgeForm.description.trim() || !badgeForm.icon.trim() || (badgeForm.mode === 'create' && !badgeForm.key.trim())"
+              class="btn-save">
+              {{ isSavingBadge ? 'Saving…' : (badgeForm.mode === 'create' ? 'Create' : 'Save') }}
             </button>
           </div>
         </div>
