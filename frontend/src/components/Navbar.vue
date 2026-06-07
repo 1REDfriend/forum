@@ -1,10 +1,18 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
 import { motion } from 'motion-v';
 import CodeIcon from './icons/CodeIcon.vue';
 import ForumIcon from './icons/ForumIcon.vue';
 import HomeIcon from './icons/HomeIcon.vue';
+import MenuIcon from './icons/MenuIcon.vue';
 import SearchIcon from './icons/SearchIcon.vue';
 import UserDropdown from './UserDropdown.vue';
+import { useUiStore } from '../stores/ui';
+
+const route = useRoute();
+const ui = useUiStore();
+const isAdmin = computed(() => route.path === '/admin');
 </script>
 
 <template>
@@ -19,8 +27,12 @@ import UserDropdown from './UserDropdown.vue';
       <span class="text-sm tracking-wider font-mono hidden lg:inline">IT.FORUM</span>
     </router-link>
 
-    <!-- Primary Navigation -->
-    <nav class="flex items-center gap-8 text-slate-300" aria-label="Primary navigation">
+    <!-- Primary Navigation (forum quick-nav; hidden on admin at mobile width) -->
+    <nav
+      class="items-center gap-8 text-slate-300"
+      :class="isAdmin ? 'hidden md:flex' : 'flex'"
+      aria-label="Primary navigation"
+    >
       <router-link to="/" class="hover:text-sky-400 transition-colors" title="Home">
         <HomeIcon />
       </router-link>
@@ -31,6 +43,20 @@ import UserDropdown from './UserDropdown.vue';
         <SearchIcon />
       </router-link>
     </nav>
+
+    <!-- Admin context (mobile only): hamburger toggles the sidebar drawer -->
+    <div v-if="isAdmin" class="flex md:hidden items-center gap-3 text-slate-300">
+      <button
+        type="button"
+        @click="ui.toggleAdminSidebar()"
+        class="hover:text-sky-400 transition-colors"
+        aria-label="Toggle admin menu"
+        :aria-expanded="ui.adminSidebarOpen"
+      >
+        <MenuIcon />
+      </button>
+      <span class="text-sm font-semibold tracking-wide">Admin Panel</span>
+    </div>
 
     <!-- Right-side controls -->
     <div class="flex items-center gap-4">
