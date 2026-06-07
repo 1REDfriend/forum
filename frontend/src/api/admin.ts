@@ -197,6 +197,11 @@ export class AdminApi {
     return this.client.get<BadgeCatalogItem[]>('/admin/badges');
   }
 
+  // Public catalog (no admin guard) — usable by normal users for badge discovery.
+  getPublicBadgeCatalog(): Promise<BadgeCatalogItem[]> {
+    return this.client.get<BadgeCatalogItem[]>('/badges/catalog');
+  }
+
   grantBadge(userId: string, badgeKey: string): Promise<{ message: string }> {
     return this.client.post<{ message: string }>(`/admin/users/${userId}/badges`, { badgeKey });
   }

@@ -1,4 +1,13 @@
 // Badge catalog — single source of truth (mirrored in frontend api/types.ts).
+//
+// BADGE CATALOG — how to add a new badge type:
+//   1. Add an entry to BADGES below (key, Thai label, desc, icon, optional `auto` fn).
+//   2. Redeploy the backend.
+//   3. Users get it on their next profile load / next post once they meet the `auto`
+//      criteria (sync is idempotent). Admins can grant it immediately from the Admin
+//      "Manage badges" modal (Users tab → 🏅).
+//   - Admin-granted-only badges omit `auto` (e.g. 'helper').
+//   - Never remove a key that exists in production without a backfill/cleanup migration.
 export interface BadgeStats {
   posts: number; // threads + posts authored
   likesReceived: number;

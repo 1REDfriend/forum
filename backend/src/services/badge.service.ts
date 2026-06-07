@@ -24,6 +24,18 @@ export class BadgeService {
     });
   }
 
+  /**
+   * Award newly-earned auto badges and return ONLY the ones just granted
+   * (for an "earned & celebrate" toast). Empty array when nothing new.
+   */
+  async awardNewAuto(userId: string, stats: BadgeStats): Promise<AwardedBadge[]> {
+    const newKeys = await userBadgeRepository.award(userId, earnedAutoBadgeKeys(stats));
+    return newKeys.flatMap((key) => {
+      const def = BADGE_MAP[key];
+      return def ? [{ key: def.key, label: def.label, desc: def.desc, icon: def.icon, awardedAt: new Date() }] : [];
+    });
+  }
+
   /** Full badge catalog (single source of truth for admin UIs). */
   catalog(): BadgeDef[] {
     return BADGES;

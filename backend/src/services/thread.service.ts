@@ -1,6 +1,8 @@
 import { threadRepository } from '../repositories/thread.repository.js';
 import { userRepository } from '../repositories/user.repository.js';
 import { likeRepository } from '../repositories/like.repository.js';
+import { tierService } from './tier.service.js';
+import { badgeService } from './badge.service.js';
 import { NotFoundError, ForbiddenError } from '../utils/errors.js';
 import type { CreateThreadDTO, UpdateThreadDTO } from '../types/index.js';
 
@@ -50,12 +52,28 @@ export class ThreadService {
   }
 
   async createThread(userId: string, data: CreateThreadDTO) {
-    return await threadRepository.create({
+    const created = await threadRepository.create({
       title: data.title,
       content: data.content,
       forumId: data.forumId,
       authorId: userId,
     });
+    return { ...created, newlyAwardedBadges: await this.awardBadges(userId) };
+  }
+
+  /** Sync auto badges after content creation; never let it break the create. */
+  private async awardBadges(userId: string) {
+    try {
+      const s = await tierService.computeStats(userId);
+      return await badgeService.awardNewAuto(userId, {
+        posts: s.threads + s.posts,
+        likesReceived: s.likesReceived,
+        accountAgeDays: s.accountAgeDays,
+        longestStreak: s.longestStreak,
+      });
+    } catch {
+      return [];
+    }
   }
 
   async updateThread(userId: string, threadId: string, data: UpdateThreadDTO) {
