@@ -71,7 +71,7 @@ Admin users (`role = admin`) get the dashboard at `/admin` (Users, Forums, Threa
 
 **Bans.** From the Users tab, 🚫 bans a user (with a required reason) and ✅ unbans. A banned account is blocked at login (`/auth/login`, Google, refresh) and on every authenticated request — the `auth` macro loads the user row and returns `403 { error: "Account banned", reason, bannedAt }`. The frontend catches that shape globally, clears the session, and bounces to `/login` with the reason. Bans are permanent until an admin unbans (no duration field in v1).
 
-**Badges.** The catalog is hardcoded in `backend/src/domain/badges.ts` (single source of truth) — see the header comment there for how to add a new badge type. Auto badges are awarded on profile load and right after creating a thread/post; admins grant/revoke per user from the Users tab (🏅 button). Public catalog: `GET /badges/catalog`.
+**Badges.** Badge definitions live in the `badges` DB table and are fully admin-managed from the **Badges tab** (create / edit / delete). Auto-award rules for the built-in keys (`first_post`, `writer_50`, `loved_100`, `year_one`, `streak_30`) stay in code (`backend/src/domain/badges.ts`, `AUTO_RULES`) since they're predicates over user stats; any other badge — including ones admins create — is granted manually per user from the Users tab (🏅 button). Auto badges award on profile load and right after creating a thread/post. Public read-only catalog: `GET /badges/catalog`. The 6 originals are seeded by migration `0007`.
 
 ## API
 

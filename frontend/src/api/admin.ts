@@ -202,6 +202,18 @@ export class AdminApi {
     return this.client.get<BadgeCatalogItem[]>('/badges/catalog');
   }
 
+  createBadge(data: { key: string; label: string; description: string; icon: string }): Promise<BadgeCatalogItem> {
+    return this.client.post<BadgeCatalogItem>('/admin/badges', data);
+  }
+
+  updateBadge(key: string, data: { label?: string; description?: string; icon?: string }): Promise<BadgeCatalogItem> {
+    return this.client.put<BadgeCatalogItem>(`/admin/badges/${key}`, data);
+  }
+
+  deleteBadge(key: string): Promise<void> {
+    return this.client.delete<void>(`/admin/badges/${key}`);
+  }
+
   grantBadge(userId: string, badgeKey: string): Promise<{ message: string }> {
     return this.client.post<{ message: string }>(`/admin/users/${userId}/badges`, { badgeKey });
   }
