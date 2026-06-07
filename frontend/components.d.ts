@@ -26,6 +26,7 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SearchIcon: typeof import('./src/components/icons/SearchIcon.vue')['default']
+    ShareButton: typeof import('./src/components/ShareButton.vue')['default']
     UserDropdown: typeof import('./src/components/UserDropdown.vue')['default']
   }
 }
@@ -46,5 +47,6 @@ declare global {
   const RouterLink: typeof import('vue-router')['RouterLink']
   const RouterView: typeof import('vue-router')['RouterView']
   const SearchIcon: typeof import('./src/components/icons/SearchIcon.vue')['default']
+  const ShareButton: typeof import('./src/components/ShareButton.vue')['default']
   const UserDropdown: typeof import('./src/components/UserDropdown.vue')['default']
 }
