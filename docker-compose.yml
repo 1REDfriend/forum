@@ -48,6 +48,8 @@ services:
       - uploads:/app/uploads
     networks:
       - default
+      # Lets the backend reach the Axite CDN container (axite-elysia) when STORAGE_DRIVER=cdn.
+      - axite
 
   frontend:
     build:
@@ -66,11 +68,12 @@ services:
 networks:
   # forum's own private network (db <-> backend <-> frontend)
   default:
-  # Only needed when STORAGE_DRIVER=cdn and the Axite stack is present on this host.
-  # Re-add `- axite` under backend.networks and uncomment below to enable.
-  # axite:
-  #   external: true
-  #   name: axite-cdn-internal
+  # Lets the backend reach the Axite CDN stack (axite-elysia) when STORAGE_DRIVER=cdn.
+  # External: the Axite stack owns/creates this network. If you run forum without Axite
+  # on this host, set STORAGE_DRIVER=local and remove the `- axite` ref under backend.
+  axite:
+    external: true
+    name: axite-cdn-internal
 
 volumes:
   pgdata:
