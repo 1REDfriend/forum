@@ -45,7 +45,7 @@ export function renderOgHtml(m: OgMeta): string {
 <meta name="twitter:title" content="${esc(m.title)}">
 <meta name="twitter:description" content="${esc(m.description)}">
 <meta name="twitter:image" content="${esc(image)}">
-<meta http-equiv="refresh" content="0; url=${m.url}">
+<meta http-equiv="refresh" content="0; url=${esc(m.url)}">
 </head><body>Redirecting to <a href="${esc(m.url)}">${esc(m.url)}</a></body></html>`;
 }
 
