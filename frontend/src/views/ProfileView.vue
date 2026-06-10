@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useAuthStore } from '../stores/auth.js';
+import { setPageMeta } from '../utils/meta.js';
 import { usersApi, uploadApi } from '../api/index.js';
 import type { User, TierDef, Badge, ProfileStats } from '../api/types.js';
 import { tierStyle } from '../api/types.js';
@@ -55,6 +56,13 @@ onMounted(async () => {
             profileUser.value = await usersApi.getUserById(props.id);
         } else if (authStore.isAuthenticated) {
             profileUser.value = await usersApi.getMe();
+        }
+        if (profileUser.value) {
+            setPageMeta({
+                title: profileUser.value.name ?? 'Profile',
+                description: profileUser.value.bio ?? `${profileUser.value.name ?? 'User'}'s profile on IT.Forum.`,
+                image: profileUser.value.banner ?? profileUser.value.avatar ?? undefined,
+            })
         }
     } catch (err: any) {
         error.value = err.message || 'Failed to load profile';

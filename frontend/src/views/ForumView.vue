@@ -2,7 +2,8 @@
 import { ref, onMounted, computed } from 'vue';
 import { threadsApi, forumsApi } from '../api/index.js';
 import type { ThreadDetail, Forum, PaginatedResponse } from '../api/types.js';
-import { useAuthStore } from '../stores/auth.js';
+import { useAuthStore } from '../stores/auth.js'
+import { setPageMeta } from '../utils/meta.js';
 
 const props = defineProps<{
   forum: string
@@ -66,6 +67,12 @@ const loadData = async (page = 1) => {
     const forumId = props.forum;
     if (!forumData.value) {
       forumData.value = await forumsApi.getForumById(forumId);
+      if (forumData.value) {
+        setPageMeta({
+          title: forumData.value.name,
+          description: forumData.value.description ?? `Discussions in ${forumData.value.name} on IT.Forum.`,
+        })
+      }
     }
     const result: PaginatedResponse<ThreadDetail> = await threadsApi.getThreadsByForumId(forumId, page, limit);
     threads.value = result.data;

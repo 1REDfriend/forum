@@ -20,4 +20,20 @@ export const shareRoutes = new Elysia({ prefix: '/share', tags: ['Share'] })
       return out ? html(out) : new Response('Not found', { status: 404 });
     },
     { params: t.Object({ id: t.String({ minLength: 1 }) }) },
+  )
+  .get(
+    '/forum/:id',
+    async ({ params }) => {
+      const out = await shareService.forumOg(params.id);
+      return out ? html(out) : new Response('Not found', { status: 404 });
+    },
+    { params: t.Object({ id: t.String({ minLength: 1 }) }) },
+  )
+  .get(
+    '/user/:id',
+    async ({ params }) => {
+      const out = await shareService.userOg(params.id);
+      return out ? html(out) : new Response('Not found', { status: 404 });
+    },
+    { params: t.Object({ id: t.String({ minLength: 1 }) }) },
   );

@@ -58,6 +58,7 @@ services:
         # Build-time, baked into the static bundle (browser-facing).
         VITE_API_URL: ${VITE_API_URL}
         VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID}
+        VITE_SITE_URL: ${VITE_SITE_URL}
     container_name: forum-frontend
     restart: always
     depends_on:
