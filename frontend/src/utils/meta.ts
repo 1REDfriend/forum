@@ -25,6 +25,7 @@ export function setPageMeta({ title, description, image }: PageMeta) {
   setTag('name', 'description', description)
   setTag('property', 'og:title', title)
   setTag('property', 'og:description', description)
+  setTag('property', 'og:url', window.location.href)
   setTag('property', 'og:image', img)
   setTag('name', 'twitter:title', title)
   setTag('name', 'twitter:description', description)

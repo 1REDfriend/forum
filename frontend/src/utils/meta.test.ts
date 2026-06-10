@@ -21,6 +21,7 @@ describe('setPageMeta', () => {
     setPageMeta({ title: 'T', description: 'D', image: 'https://x/og.png' })
     expect(content('meta[property="og:title"]')).toBe('T')
     expect(content('meta[property="og:description"]')).toBe('D')
+    expect(content('meta[property="og:url"]')).toBe(window.location.href)
     expect(content('meta[property="og:image"]')).toBe('https://x/og.png')
     expect(content('meta[name="twitter:title"]')).toBe('T')
     expect(content('meta[name="twitter:image"]')).toBe('https://x/og.png')
