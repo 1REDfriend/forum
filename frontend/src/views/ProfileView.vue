@@ -61,7 +61,7 @@ onMounted(async () => {
             setPageMeta({
                 title: profileUser.value.name ?? 'Profile',
                 description: profileUser.value.bio ?? `${profileUser.value.name ?? 'User'}'s profile on IT.Forum.`,
-                image: profileUser.value.avatar ?? undefined,
+                image: profileUser.value.banner ?? profileUser.value.avatar ?? undefined,
             })
         }
     } catch (err: any) {
