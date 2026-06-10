@@ -9,7 +9,8 @@ import MarkdownEditor from '../components/MarkdownEditor.vue';
 import ProfileCard from '../components/ProfileCard.vue';
 import ReportButton from '../components/ReportButton.vue';
 import ShareButton from '../components/ShareButton.vue';
-import { threadShareUrl, postShareUrl } from '../utils/share.js';
+import { threadShareUrl, postShareUrl } from '../utils/share.js'
+import { setPageMeta } from '../utils/meta.js';
 
 const props = defineProps<{ id: string }>();
 
@@ -74,6 +75,12 @@ const loadData = async (page = 1) => {
       postsApi.getPostsByThreadId(threadId, page, limit),
     ]);
     thread.value = threadData;
+    if (thread.value) {
+      setPageMeta({
+        title: thread.value.title,
+        description: thread.value.content.replace(/\s+/g, ' ').trim().slice(0, 200),
+      })
+    }
     posts.value = (postsData as PaginatedResponse<PostDetail>).data;
     currentPage.value = (postsData as PaginatedResponse<PostDetail>).page;
     totalPages.value = (postsData as PaginatedResponse<PostDetail>).totalPages;
