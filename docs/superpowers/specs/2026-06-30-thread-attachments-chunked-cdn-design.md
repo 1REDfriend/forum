@@ -176,7 +176,7 @@ client can't push an oversized single part.
 inside `content`. `MarkdownRenderer.vue` already renders Markdown links; confirm DOMPurify keeps
 `href` to the CDN origin (it does for `https:` links).
 
-## 5. Open decision for the plan: broker vs. direct-to-Axite
+## 5. DECIDED: broker through forum backend (not direct-to-Axite)
 
 | | Broker through forum backend (recommended) | Browser → Axite directly |
 |---|---|---|
@@ -186,9 +186,10 @@ inside `content`. `MarkdownRenderer.vue` already renders Markdown links; confirm
 | Extra hops for 10 GB | +1 hop per chunk (browser→forum→axite) | one fewer hop |
 | Reuses prod internal network | yes (`axite-elysia:3000`) ✅ | yes |
 
-**Recommendation: broker mode.** It mirrors the existing, working image-upload trust model
+**Decided 2026-06-30: broker mode.** It mirrors the existing, working image-upload trust model
 (key server-side, `auth: true`), needs no CORS work, and the per-chunk bound keeps the extra hop
-cheap. Revisit only if the double hop proves too slow for 10 GB in practice.
+cheap. The forum→Axite hop is the internal docker network (`axite-elysia:3000`), so the extra hop is
+LAN-local and negligible. Revisit only if the double hop proves too slow for 10 GB in practice.
 
 ## 6. Validation, limits, security summary
 
