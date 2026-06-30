@@ -183,10 +183,11 @@ const handlePaste = async (event: ClipboardEvent) => {
 const handleDrop = async (event: DragEvent) => {
   const files = event.dataTransfer?.files;
   if (!files || files.length === 0) return;
-  event.preventDefault();
   for (const file of Array.from(files)) {
+    event.preventDefault();
     if (file.type.startsWith('image/')) await uploadImageFile(file);
     else await uploadAttachmentFile(file);
+    return;
   }
 };
 
