@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import { uploadApi } from '../api/index.js';
@@ -25,6 +25,14 @@ const uploadError = ref('');
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
 const attachmentProgress = ref<{ name: string; pct: number } | null>(null);
 let activeUpload: { cancel: () => void } | null = null;
+
+// Only one upload (image or attachment) runs at a time: the textarea lock and
+// trigger guards below both key off this. Without it, two concurrent uploads
+// each capture their own stale before/after snapshot of modelValue and stomp
+// each other's progress text on every tick, and a second attachment upload
+// silently orphans the first (overwrites its progress display + cancel handle
+// with no way to track or cancel it anymore).
+const isUploadingAny = computed(() => isUploadingImage.value || attachmentProgress.value !== null);
 
 const updatePreview = () => {
   marked.setOptions({ breaks: true, gfm: true });
@@ -79,6 +87,11 @@ const uploadImageFile = async (file: File) => {
     return;
   }
   if (!file.type.startsWith('image/')) return;
+  if (isUploadingAny.value) {
+    uploadError.value = 'Wait for the current upload to finish first.';
+    setTimeout(() => { uploadError.value = ''; }, 4000);
+    return;
+  }
 
   isUploadingImage.value = true;
   uploadError.value = '';
@@ -112,12 +125,19 @@ const uploadImageFile = async (file: File) => {
 
 // ─── Attachment upload helper ───────────────────────────────────────────────
 
+// Keep in sync with backend/src/domain/attachment.ts's attachmentMarkdown —
+// same escaping logic duplicated here since this runs in the browser.
 const linkMarkdown = (name: string, url: string) =>
   `[${name.replace(/[[\]]/g, '\\$&')}](${url})`;
 
 const uploadAttachmentFile = async (file: File) => {
   if (!authStore.isAuthenticated) {
     uploadError.value = 'You must be logged in to upload files.';
+    setTimeout(() => { uploadError.value = ''; }, 4000);
+    return;
+  }
+  if (isUploadingAny.value) {
+    uploadError.value = 'Wait for the current upload to finish first.';
     setTimeout(() => { uploadError.value = ''; }, 4000);
     return;
   }
@@ -194,7 +214,7 @@ const handleDrop = async (event: DragEvent) => {
 // ─── Toolbar image picker ─────────────────────────────────────────────────────
 
 const fileInputRef = ref<HTMLInputElement | null>(null);
-const triggerImagePicker = () => fileInputRef.value?.click();
+const triggerImagePicker = () => { if (!isUploadingAny.value) fileInputRef.value?.click(); };
 
 const handleFileInputChange = async (event: Event) => {
   const input = event.target as HTMLInputElement;
@@ -206,7 +226,7 @@ const handleFileInputChange = async (event: Event) => {
 // ─── Toolbar attachment picker ─────────────────────────────────────────────────
 
 const attachInputRef = ref<HTMLInputElement | null>(null);
-const triggerAttachPicker = () => attachInputRef.value?.click();
+const triggerAttachPicker = () => { if (!isUploadingAny.value) attachInputRef.value?.click(); };
 
 const handleAttachInputChange = async (event: Event) => {
   const input = event.target as HTMLInputElement;
@@ -235,12 +255,14 @@ const handleAttachInputChange = async (event: Event) => {
         :key="btn.label"
         type="button"
         :title="btn.title"
+        :disabled="btn.label === '🖼' && isUploadingAny"
         @click="btn.label === '🖼' ? triggerImagePicker() : btn.action()"
         class="toolbar-btn"
       >{{ btn.label }}</button>
       <button
         type="button"
         title="Attach File"
+        :disabled="isUploadingAny"
         @click="triggerAttachPicker()"
         class="toolbar-btn"
       >📎</button>
@@ -273,7 +295,7 @@ const handleAttachInputChange = async (event: Event) => {
         :rows="rows ?? 8"
         :style="minHeight ? `min-height: ${minHeight}` : ''"
         class="editor-area"
-        :class="{ 'editor-uploading': isUploadingImage }"
+        :class="{ 'editor-uploading': isUploadingAny }"
       />
       <!-- Upload overlay -->
       <div v-if="isUploadingImage" class="upload-overlay">
