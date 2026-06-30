@@ -1,4 +1,5 @@
 import type { ApiClient } from './client.js';
+import { uploadInChunks } from './upload-chunked.js';
 
 export interface LikeToggleResult {
   liked: boolean;
@@ -46,5 +47,17 @@ export class UploadApi {
     formData.append('image', file);
     const result = await this.client.post<{ url: string }>('/upload/image', formData);
     return result.url;
+  }
+
+  /**
+   * Upload any file as a CDN attachment via the chunked broker.
+   * Returns a handle: await `.promise` for the final URL; call `.cancel()` to abort.
+   */
+  public uploadAttachment(
+    file: File,
+    onProgress: (uploaded: number, total: number) => void,
+  ) {
+    // Imported at top: import { uploadInChunks } from './upload-chunked.js';
+    return uploadInChunks(this.client, file, onProgress);
   }
 }
