@@ -1,9 +1,28 @@
 import { Elysia, t } from 'elysia';
 import { auth } from '../http/auth.js';
-import { cdnMultipart } from '../services/cdn-multipart.service.js';
+import { CdnHttpError, cdnMultipart } from '../services/cdn-multipart.service.js';
+import { AppError, BadRequestError } from '../utils/errors.js';
 
 // Keep this in sync with Axite's UPLOAD_MAX_CHUNK_BYTES (95MB) + a little slack.
 const MAX_CHUNK_BYTES = 96 * 1024 * 1024;
+
+/**
+ * Map a CdnHttpError's real upstream status to a forum-facing one: pass
+ * through 4xx as-is (the CDN's quota/rate-limit/not-found signal is still
+ * meaningful to a client), collapse any CDN-side 5xx to 502 so an Axite
+ * outage isn't reported as if it were the forum backend's own bug.
+ */
+async function bridgeCdnErrors<T>(fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn();
+  } catch (err) {
+    if (err instanceof CdnHttpError) {
+      const status = err.status >= 400 && err.status < 500 ? err.status : 502;
+      throw new AppError(status, err.message);
+    }
+    throw err;
+  }
+}
 
 export const attachmentRoutes = new Elysia({ prefix: '/upload/attachment', tags: ['Upload'] })
   .use(auth)
@@ -11,7 +30,7 @@ export const attachmentRoutes = new Elysia({ prefix: '/upload/attachment', tags:
     app
       .post(
         '/create',
-        ({ body }) => cdnMultipart.create(body),
+        ({ body }) => bridgeCdnErrors(() => cdnMultipart.create(body)),
         {
           body: t.Object({
             filename: t.String({ minLength: 1, maxLength: 512 }),
@@ -25,14 +44,16 @@ export const attachmentRoutes = new Elysia({ prefix: '/upload/attachment', tags:
         async ({ query, body }) => {
           const buffer = Buffer.from(await body.chunk.arrayBuffer());
           if (buffer.length > MAX_CHUNK_BYTES) {
-            throw new Error('Chunk too large');
+            throw BadRequestError('Chunk too large');
           }
-          return cdnMultipart.uploadPart({
-            objectKey: query.object_key,
-            uploadId: query.upload_id,
-            partNumber: Number(query.part_number),
-            body: buffer,
-          });
+          return bridgeCdnErrors(() =>
+            cdnMultipart.uploadPart({
+              objectKey: query.object_key,
+              uploadId: query.upload_id,
+              partNumber: Number(query.part_number),
+              body: buffer,
+            }),
+          );
         },
         {
           query: t.Object({
@@ -46,11 +67,13 @@ export const attachmentRoutes = new Elysia({ prefix: '/upload/attachment', tags:
       .post(
         '/complete',
         ({ body }) =>
-          cdnMultipart.complete({
-            objectKey: body.object_key,
-            uploadId: body.upload_id,
-            parts: body.parts,
-          }),
+          bridgeCdnErrors(() =>
+            cdnMultipart.complete({
+              objectKey: body.object_key,
+              uploadId: body.upload_id,
+              parts: body.parts,
+            }),
+          ),
         {
           body: t.Object({
             object_key: t.String(),
@@ -65,7 +88,9 @@ export const attachmentRoutes = new Elysia({ prefix: '/upload/attachment', tags:
       .post(
         '/abort',
         ({ body }) =>
-          cdnMultipart.abort({ objectKey: body.object_key, uploadId: body.upload_id }),
+          bridgeCdnErrors(() =>
+            cdnMultipart.abort({ objectKey: body.object_key, uploadId: body.upload_id }),
+          ),
         { body: t.Object({ object_key: t.String(), upload_id: t.String() }) },
       ),
   );
