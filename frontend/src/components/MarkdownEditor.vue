@@ -3,6 +3,7 @@ import { ref, watch } from 'vue';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import { uploadApi } from '../api/index.js';
+import { UploadCancelledError } from '../api/upload-chunked.js';
 import { useAuthStore } from '../stores/auth.js';
 
 const props = defineProps<{
@@ -22,6 +23,8 @@ const previewHtml = ref('');
 const isUploadingImage = ref(false);
 const uploadError = ref('');
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
+const attachmentProgress = ref<{ name: string; pct: number } | null>(null);
+let activeUpload: { cancel: () => void } | null = null;
 
 const updatePreview = () => {
   marked.setOptions({ breaks: true, gfm: true });
@@ -107,18 +110,71 @@ const uploadImageFile = async (file: File) => {
   }
 };
 
+// ─── Attachment upload helper ───────────────────────────────────────────────
+
+const linkMarkdown = (name: string, url: string) =>
+  `[${name.replace(/[[\]]/g, '\\$&')}](${url})`;
+
+const uploadAttachmentFile = async (file: File) => {
+  if (!authStore.isAuthenticated) {
+    uploadError.value = 'You must be logged in to upload files.';
+    setTimeout(() => { uploadError.value = ''; }, 4000);
+    return;
+  }
+  uploadError.value = '';
+
+  const placeholder = `[Uploading ${file.name}… 0%]()`;
+  const textarea = textareaRef.value;
+  const insertPos = textarea?.selectionStart ?? props.modelValue.length;
+  const before = props.modelValue.substring(0, insertPos);
+  const after = props.modelValue.substring(insertPos);
+  let currentToken = placeholder;
+  emit('update:modelValue', before + placeholder + after);
+
+  const replaceToken = (next: string) => {
+    const whole = before + currentToken + after;
+    emit('update:modelValue', whole.replace(currentToken, next));
+    currentToken = next;
+  };
+
+  attachmentProgress.value = { name: file.name, pct: 0 };
+  const handle = uploadApi.uploadAttachment(file, (uploaded, total) => {
+    const pct = Math.floor((uploaded / total) * 100);
+    attachmentProgress.value = { name: file.name, pct };
+    replaceToken(`[Uploading ${file.name}… ${pct}%]()`);
+  });
+  activeUpload = handle;
+
+  try {
+    const result = await handle.promise;
+    replaceToken(linkMarkdown(file.name, result.url));
+  } catch (err: any) {
+    replaceToken(''); // remove placeholder
+    if (!(err instanceof UploadCancelledError)) {
+      uploadError.value = err?.message || 'File upload failed.';
+      setTimeout(() => { uploadError.value = ''; }, 5000);
+    }
+  } finally {
+    attachmentProgress.value = null;
+    activeUpload = null;
+  }
+};
+
+const cancelAttachment = () => activeUpload?.cancel();
+
 // ─── Paste handler ───────────────────────────────────────────────────────────
 
 const handlePaste = async (event: ClipboardEvent) => {
   const items = event.clipboardData?.items;
   if (!items) return;
   for (const item of Array.from(items)) {
-    if (item.kind === 'file' && item.type.startsWith('image/')) {
-      event.preventDefault();
-      const file = item.getAsFile();
-      if (file) await uploadImageFile(file);
-      return;
-    }
+    if (item.kind !== 'file') continue;
+    event.preventDefault();
+    const file = item.getAsFile();
+    if (!file) return;
+    if (file.type.startsWith('image/')) await uploadImageFile(file);
+    else await uploadAttachmentFile(file);
+    return;
   }
 };
 
@@ -127,12 +183,10 @@ const handlePaste = async (event: ClipboardEvent) => {
 const handleDrop = async (event: DragEvent) => {
   const files = event.dataTransfer?.files;
   if (!files || files.length === 0) return;
+  event.preventDefault();
   for (const file of Array.from(files)) {
-    if (file.type.startsWith('image/')) {
-      event.preventDefault();
-      await uploadImageFile(file);
-      return;
-    }
+    if (file.type.startsWith('image/')) await uploadImageFile(file);
+    else await uploadAttachmentFile(file);
   }
 };
 
@@ -147,6 +201,18 @@ const handleFileInputChange = async (event: Event) => {
   if (file) await uploadImageFile(file);
   input.value = '';
 };
+
+// ─── Toolbar attachment picker ─────────────────────────────────────────────────
+
+const attachInputRef = ref<HTMLInputElement | null>(null);
+const triggerAttachPicker = () => attachInputRef.value?.click();
+
+const handleAttachInputChange = async (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (file) await uploadAttachmentFile(file);
+  input.value = '';
+};
 </script>
 
 <template>
@@ -159,6 +225,7 @@ const handleFileInputChange = async (event: Event) => {
       style="display: none"
       @change="handleFileInputChange"
     />
+    <input ref="attachInputRef" type="file" style="display: none" @change="handleAttachInputChange" />
 
     <!-- Toolbar -->
     <div class="toolbar">
@@ -170,6 +237,12 @@ const handleFileInputChange = async (event: Event) => {
         @click="btn.label === '🖼' ? triggerImagePicker() : btn.action()"
         class="toolbar-btn"
       >{{ btn.label }}</button>
+      <button
+        type="button"
+        title="Attach File"
+        @click="triggerAttachPicker()"
+        class="toolbar-btn"
+      >📎</button>
       <div class="toolbar-sep" />
       <button
         type="button"
@@ -206,6 +279,11 @@ const handleFileInputChange = async (event: Event) => {
         <span class="upload-spinner" />
         <span>Uploading image…</span>
       </div>
+      <div v-if="attachmentProgress" class="upload-overlay">
+        <span class="upload-spinner" />
+        <span>Uploading {{ attachmentProgress.name }} — {{ attachmentProgress.pct }}%</span>
+        <button type="button" class="tab-btn" @click="cancelAttachment">Cancel</button>
+      </div>
     </div>
     <div v-else class="preview-area">
       <!-- eslint-disable-next-line vue/no-v-html -->
@@ -213,7 +291,7 @@ const handleFileInputChange = async (event: Event) => {
       <p v-else class="preview-empty">Nothing to preview yet…</p>
     </div>
 
-    <p class="markdown-hint">Markdown supported — <strong>bold</strong>, *italic*, `code`, ```blocks``` · Paste or drop images to upload</p>
+    <p class="markdown-hint">Markdown supported — <strong>bold</strong>, *italic*, `code`, ```blocks``` · Paste, drop, or attach any file (up to 10GB) — images embed, others link.</p>
   </div>
 </template>
 
