@@ -51,13 +51,13 @@ export class UploadApi {
 
   /**
    * Upload any file as a CDN attachment via the chunked broker.
-   * Returns a handle: await `.promise` for the final URL; call `.cancel()` to abort.
+   * Returns a handle: await `.promise` for `{ url, size_bytes, original_name }`;
+   * call `.cancel()` to abort.
    */
   public uploadAttachment(
     file: File,
     onProgress: (uploaded: number, total: number) => void,
   ) {
-    // Imported at top: import { uploadInChunks } from './upload-chunked.js';
     return uploadInChunks(this.client, file, onProgress);
   }
 }
