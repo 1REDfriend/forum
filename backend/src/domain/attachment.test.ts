@@ -18,8 +18,12 @@ describe('attachmentMarkdown', () => {
     expect(attachmentMarkdown('report.zip', 'https://cdn/x.zip'))
       .toBe('[report.zip](https://cdn/x.zip)');
   });
-  it('escapes ] and ( ) in the filename label', () => {
+  it('escapes ] in the filename label (parens pass through unescaped)', () => {
     expect(attachmentMarkdown('a]b(c).zip', 'https://cdn/x.zip'))
       .toBe('[a\\]b(c).zip](https://cdn/x.zip)');
+  });
+  it('escapes [ in the filename label, so the label cannot break out of the link', () => {
+    expect(attachmentMarkdown('notes[draft].txt', 'https://cdn/x.zip'))
+      .toBe('[notes\\[draft\\].txt](https://cdn/x.zip)');
   });
 });
