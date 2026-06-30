@@ -2,6 +2,7 @@ import { Elysia, t } from 'elysia';
 import { auth } from '../http/auth.js';
 import { CdnHttpError, cdnMultipart } from '../services/cdn-multipart.service.js';
 import { AppError, BadRequestError } from '../utils/errors.js';
+import { logger } from '../utils/logger.js';
 
 // Keep this in sync with Axite's UPLOAD_MAX_CHUNK_BYTES (95MB) + a little slack.
 const MAX_CHUNK_BYTES = 96 * 1024 * 1024;
@@ -11,14 +12,26 @@ const MAX_CHUNK_BYTES = 96 * 1024 * 1024;
  * through 4xx as-is (the CDN's quota/rate-limit/not-found signal is still
  * meaningful to a client), collapse any CDN-side 5xx to 502 so an Axite
  * outage isn't reported as if it were the forum backend's own bug.
+ *
+ * 4xx messages are passed through (intentionally client-facing strings like
+ * "quota exceeded"); 5xx messages are NOT — they may embed up to 300 raw
+ * characters of Axite's own error body (internal hostnames, driver errors),
+ * so the client gets a generic message while the real one is logged
+ * server-side (the global error handler only logs non-AppError throws, and
+ * this function converts CdnHttpError to AppError, so it would otherwise
+ * go unlogged).
  */
 async function bridgeCdnErrors<T>(fn: () => Promise<T>): Promise<T> {
   try {
     return await fn();
   } catch (err) {
     if (err instanceof CdnHttpError) {
-      const status = err.status >= 400 && err.status < 500 ? err.status : 502;
-      throw new AppError(status, err.message);
+      const isClientError = err.status >= 400 && err.status < 500;
+      if (!isClientError) logger.error('CDN multipart upload failed', { error: err.message, status: err.status });
+      throw new AppError(
+        isClientError ? err.status : 502,
+        isClientError ? err.message : 'Upload service temporarily unavailable',
+      );
     }
     throw err;
   }
