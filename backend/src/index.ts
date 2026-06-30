@@ -19,6 +19,7 @@ import { userRoutes } from './routes/user.routes.js';
 import { searchRoutes } from './routes/search.routes.js';
 import { likeRoutes } from './routes/like.routes.js';
 import { uploadRoutes } from './routes/upload.routes.js';
+import { attachmentRoutes } from './routes/attachment.routes.js';
 import { adminRoutes } from './routes/admin.routes.js';
 import { reportRoutes } from './routes/report.routes.js';
 import { shareRoutes } from './routes/share.routes.js';
@@ -111,6 +112,7 @@ new Elysia({ serve: { maxRequestBodySize: 16 * 1024 * 1024 } }) // ≥10MB image
   .use(searchRoutes)
   .use(likeRoutes)
   .use(uploadRoutes)
+  .use(attachmentRoutes)
   .use(adminRoutes)
   .use(reportRoutes)
   .use(shareRoutes)
