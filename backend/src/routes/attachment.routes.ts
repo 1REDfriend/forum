@@ -1,7 +1,8 @@
 import { Elysia, t } from 'elysia';
 import { auth } from '../http/auth.js';
+import { attachmentUploadRepository } from '../repositories/attachmentUpload.repository.js';
 import { CdnHttpError, cdnMultipart } from '../services/cdn-multipart.service.js';
-import { AppError, BadRequestError } from '../utils/errors.js';
+import { AppError, BadRequestError, ForbiddenError } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
 
 // Keep this in sync with Axite's UPLOAD_MAX_CHUNK_BYTES (95MB) + a little slack.
@@ -43,7 +44,15 @@ export const attachmentRoutes = new Elysia({ prefix: '/upload/attachment', tags:
     app
       .post(
         '/create',
-        ({ body }) => bridgeCdnErrors(() => cdnMultipart.create(body)),
+        async ({ body, user }) => {
+          const result = await bridgeCdnErrors(() => cdnMultipart.create(body));
+          await attachmentUploadRepository.record({
+            uploadId: result.upload_id,
+            objectKey: result.object_key,
+            userId: user.userId,
+          });
+          return result;
+        },
         {
           body: t.Object({
             filename: t.String({ minLength: 1, maxLength: 512 }),
@@ -54,7 +63,14 @@ export const attachmentRoutes = new Elysia({ prefix: '/upload/attachment', tags:
       )
       .put(
         '/part',
-        async ({ query, body }) => {
+        async ({ query, body, user }) => {
+          const owned = await attachmentUploadRepository.isOwnedBy({
+            uploadId: query.upload_id,
+            objectKey: query.object_key,
+            userId: user.userId,
+          });
+          if (!owned) throw ForbiddenError('Upload not found');
+
           const buffer = Buffer.from(await body.chunk.arrayBuffer());
           if (buffer.length > MAX_CHUNK_BYTES) {
             throw BadRequestError('Chunk too large');
@@ -79,14 +95,24 @@ export const attachmentRoutes = new Elysia({ prefix: '/upload/attachment', tags:
       )
       .post(
         '/complete',
-        ({ body }) =>
-          bridgeCdnErrors(() =>
+        async ({ body, user }) => {
+          const owned = await attachmentUploadRepository.isOwnedBy({
+            uploadId: body.upload_id,
+            objectKey: body.object_key,
+            userId: user.userId,
+          });
+          if (!owned) throw ForbiddenError('Upload not found');
+
+          const result = await bridgeCdnErrors(() =>
             cdnMultipart.complete({
               objectKey: body.object_key,
               uploadId: body.upload_id,
               parts: body.parts,
             }),
-          ),
+          );
+          await attachmentUploadRepository.deleteByUploadId(body.upload_id);
+          return result;
+        },
         {
           body: t.Object({
             object_key: t.String(),
@@ -100,10 +126,20 @@ export const attachmentRoutes = new Elysia({ prefix: '/upload/attachment', tags:
       )
       .post(
         '/abort',
-        ({ body }) =>
-          bridgeCdnErrors(() =>
+        async ({ body, user }) => {
+          const owned = await attachmentUploadRepository.isOwnedBy({
+            uploadId: body.upload_id,
+            objectKey: body.object_key,
+            userId: user.userId,
+          });
+          if (!owned) throw ForbiddenError('Upload not found');
+
+          const result = await bridgeCdnErrors(() =>
             cdnMultipart.abort({ objectKey: body.object_key, uploadId: body.upload_id }),
-          ),
+          );
+          await attachmentUploadRepository.deleteByUploadId(body.upload_id);
+          return result;
+        },
         { body: t.Object({ object_key: t.String(), upload_id: t.String() }) },
       ),
   );

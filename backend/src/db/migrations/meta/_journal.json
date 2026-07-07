@@ -57,6 +57,13 @@
       "when": 1780841207175,
       "tag": "0007_foamy_pandemic",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1783428598597,
+      "tag": "0008_normal_power_pack",
+      "breakpoints": true
     }
   ]
 }

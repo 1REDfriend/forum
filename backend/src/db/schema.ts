@@ -136,3 +136,16 @@ export const userBadges = pgTable("user_badges", {
   index("user_badges_user_idx").on(table.userId),
   unique("user_badges_user_key_unique").on(table.userId, table.badgeKey),
 ]));
+
+// Tracks who started each CDN multipart upload, so /part, /complete, /abort
+// can reject requests from a user who obtained someone else's upload_id/object_key.
+export const attachmentUploads = pgTable("attachment_uploads", {
+  id: text("id").primaryKey().$defaultFn(newId),
+  uploadId: text("upload_id").notNull(),
+  objectKey: text("object_key").notNull(),
+  userId: text("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ([
+  unique("attachment_uploads_upload_id_unique").on(table.uploadId),
+  index("attachment_uploads_user_id_idx").on(table.userId),
+]));
