@@ -1,177 +1,167 @@
-import { t } from 'elysia';
+import { z } from 'zod';
 import { TIERS as TIER_DEFS } from '../domain/tiers.js';
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
-export const RegisterDTO = t.Object({
-  name: t.String({ minLength: 2, maxLength: 100 }),
-  email: t.String({ format: 'email', maxLength: 254 }),
-  password: t.String({ minLength: 8, maxLength: 100 }),
+export const RegisterDTO = z.object({
+  name: z.string().min(2).max(100),
+  email: z.string().email().max(254),
+  password: z.string().min(8).max(100),
 });
-export type RegisterDTO = typeof RegisterDTO.static;
+export type RegisterDTO = z.infer<typeof RegisterDTO>;
 
-export const LoginDTO = t.Object({
-  email: t.String({ format: 'email', maxLength: 254 }),
-  password: t.String({ maxLength: 100 }),
+export const LoginDTO = z.object({
+  email: z.string().email().max(254),
+  password: z.string().max(100),
 });
-export type LoginDTO = typeof LoginDTO.static;
+export type LoginDTO = z.infer<typeof LoginDTO>;
 
-export const GoogleAuthDTO = t.Object({
-  idToken: t.String(),
+export const GoogleAuthDTO = z.object({
+  idToken: z.string(),
 });
-export type GoogleAuthDTO = typeof GoogleAuthDTO.static;
+export type GoogleAuthDTO = z.infer<typeof GoogleAuthDTO>;
 
-export const ForgotPasswordDTO = t.Object({
-  email: t.String({ format: 'email', maxLength: 254 }),
+export const ForgotPasswordDTO = z.object({
+  email: z.string().email().max(254),
 });
-export type ForgotPasswordDTO = typeof ForgotPasswordDTO.static;
+export type ForgotPasswordDTO = z.infer<typeof ForgotPasswordDTO>;
 
-export const ResetPasswordDTO = t.Object({
-  token: t.String({ minLength: 1 }),
-  password: t.String({ minLength: 8, maxLength: 100 }),
+export const ResetPasswordDTO = z.object({
+  token: z.string().min(1),
+  password: z.string().min(8).max(100),
 });
-export type ResetPasswordDTO = typeof ResetPasswordDTO.static;
+export type ResetPasswordDTO = z.infer<typeof ResetPasswordDTO>;
 
-export const RefreshDTO = t.Object({
-  refreshToken: t.String({ minLength: 1 }),
+export const RefreshDTO = z.object({
+  refreshToken: z.string().min(1),
 });
-export type RefreshDTO = typeof RefreshDTO.static;
+export type RefreshDTO = z.infer<typeof RefreshDTO>;
 
-export const LogoutDTO = t.Object({
-  refreshToken: t.Optional(t.String()),
+export const LogoutDTO = z.object({
+  refreshToken: z.string().optional(),
 });
-export type LogoutDTO = typeof LogoutDTO.static;
+export type LogoutDTO = z.infer<typeof LogoutDTO>;
 
 // ─── Forums ───────────────────────────────────────────────────────────────────
-export const CreateForumDTO = t.Object({
-  name: t.String({ minLength: 1, maxLength: 100 }),
-  description: t.Optional(t.String({ maxLength: 500 })),
+export const CreateForumDTO = z.object({
+  name: z.string().min(1).max(100),
+  description: z.string().max(500).optional(),
 });
-export type CreateForumDTO = typeof CreateForumDTO.static;
+export type CreateForumDTO = z.infer<typeof CreateForumDTO>;
 
-// "At least one field" can't be expressed in TypeBox — the route handler enforces it.
-export const UpdateForumDTO = t.Object({
-  name: t.Optional(t.String({ minLength: 1, maxLength: 100 })),
-  description: t.Optional(t.String({ maxLength: 500 })),
+// "At least one field" is enforced in the route handler (same as before).
+export const UpdateForumDTO = z.object({
+  name: z.string().min(1).max(100).optional(),
+  description: z.string().max(500).optional(),
 });
-export type UpdateForumDTO = typeof UpdateForumDTO.static;
+export type UpdateForumDTO = z.infer<typeof UpdateForumDTO>;
 
 // ─── Threads ──────────────────────────────────────────────────────────────────
-export const CreateThreadDTO = t.Object({
-  title: t.String({ minLength: 1, maxLength: 200 }),
-  content: t.String({ minLength: 1, maxLength: 50000 }),
-  forumId: t.String({ minLength: 1 }),
+export const CreateThreadDTO = z.object({
+  title: z.string().min(1).max(200),
+  content: z.string().min(1).max(50000),
+  forumId: z.string().min(1),
 });
-export type CreateThreadDTO = typeof CreateThreadDTO.static;
+export type CreateThreadDTO = z.infer<typeof CreateThreadDTO>;
 
-export const UpdateThreadDTO = t.Object({
-  title: t.Optional(t.String({ minLength: 1, maxLength: 200 })),
-  content: t.Optional(t.String({ minLength: 1, maxLength: 50000 })),
+export const UpdateThreadDTO = z.object({
+  title: z.string().min(1).max(200).optional(),
+  content: z.string().min(1).max(50000).optional(),
 });
-export type UpdateThreadDTO = typeof UpdateThreadDTO.static;
+export type UpdateThreadDTO = z.infer<typeof UpdateThreadDTO>;
 
 // ─── Posts ────────────────────────────────────────────────────────────────────
-export const CreatePostDTO = t.Object({
-  content: t.String({ minLength: 1, maxLength: 50000 }),
-  threadId: t.String({ minLength: 1 }),
+export const CreatePostDTO = z.object({
+  content: z.string().min(1).max(50000),
+  threadId: z.string().min(1),
 });
-export type CreatePostDTO = typeof CreatePostDTO.static;
+export type CreatePostDTO = z.infer<typeof CreatePostDTO>;
 
-export const UpdatePostDTO = t.Object({
-  content: t.String({ minLength: 1, maxLength: 50000 }),
+export const UpdatePostDTO = z.object({
+  content: z.string().min(1).max(50000),
 });
-export type UpdatePostDTO = typeof UpdatePostDTO.static;
+export type UpdatePostDTO = z.infer<typeof UpdatePostDTO>;
 
 // ─── Users ────────────────────────────────────────────────────────────────────
-export const UpdateUserDTO = t.Object({
-  name: t.Optional(t.String({ minLength: 2, maxLength: 100 })),
-  avatar: t.Optional(t.String({ maxLength: 2000 })),
-  banner: t.Optional(t.String({ maxLength: 2000 })),
-  bio: t.Optional(t.String({ maxLength: 500 })),
+export const UpdateUserDTO = z.object({
+  name: z.string().min(2).max(100).optional(),
+  avatar: z.string().max(2000).optional(),
+  banner: z.string().max(2000).optional(),
+  bio: z.string().max(500).optional(),
 });
-export type UpdateUserDTO = typeof UpdateUserDTO.static;
+export type UpdateUserDTO = z.infer<typeof UpdateUserDTO>;
 
 // ─── Tier (rank) — admin-assigned, mirrors domain/tiers.ts (single source) ────
 export const TIERS = TIER_DEFS.map((td) => td.key) as readonly string[];
 export type Tier = string;
 
-export const UpdateUserTierDTO = t.Object({
-  tier: t.Union(TIER_DEFS.map((td) => t.Literal(td.key))),
+export const UpdateUserTierDTO = z.object({
+  tier: z.enum(TIER_DEFS.map((td) => td.key) as [string, ...string[]]),
 });
-export type UpdateUserTierDTO = typeof UpdateUserTierDTO.static;
+export type UpdateUserTierDTO = z.infer<typeof UpdateUserTierDTO>;
 
-export const UpdateUserRoleDTO = t.Object({
-  role: t.Union([t.Literal('user'), t.Literal('admin')]),
+export const UpdateUserRoleDTO = z.object({
+  role: z.enum(['user', 'admin']),
 });
-export type UpdateUserRoleDTO = typeof UpdateUserRoleDTO.static;
+export type UpdateUserRoleDTO = z.infer<typeof UpdateUserRoleDTO>;
 
-export const BanUserDTO = t.Object({
-  reason: t.String({ minLength: 3, maxLength: 500 }),
+export const BanUserDTO = z.object({
+  reason: z.string().min(3).max(500),
 });
-export type BanUserDTO = typeof BanUserDTO.static;
+export type BanUserDTO = z.infer<typeof BanUserDTO>;
 
-// ─── Shared query / param models ──────────────────────────────────────────────
-// t.Numeric coerces numeric query/param strings to numbers (e.g. "?page=2" → 2).
-export const Pagination = t.Object({
-  page: t.Numeric({ minimum: 1, default: 1 }),
-  limit: t.Numeric({ minimum: 1, maximum: 100, default: 20 }),
-});
-
-export const AdminPagination = t.Object({
-  page: t.Numeric({ minimum: 1, default: 1 }),
-  limit: t.Numeric({ minimum: 1, maximum: 100, default: 20 }),
-  search: t.Optional(t.String()),
+// ─── Shared query models ──────────────────────────────────────────────────────
+// z.coerce.number() coerces numeric query strings ("?page=2" → 2), matching
+// the old t.Numeric behaviour; .default() fills absent params.
+export const Pagination = z.object({
+  page: z.coerce.number().min(1).default(1),
+  limit: z.coerce.number().min(1).max(100).default(20),
 });
 
-export const IdParam = t.Object({ id: t.String({ minLength: 1 }) });
+export const AdminPagination = z.object({
+  page: z.coerce.number().min(1).default(1),
+  limit: z.coerce.number().min(1).max(100).default(20),
+  search: z.string().optional(),
+});
 
 // ─── Reports & badges ─────────────────────────────────────────────────────────
-export const ReportDTO = t.Object({
-  targetType: t.Union([t.Literal('thread'), t.Literal('post'), t.Literal('user')]),
-  targetId: t.String({ minLength: 1 }),
-  reason: t.String({ minLength: 3, maxLength: 500 }),
+export const ReportDTO = z.object({
+  targetType: z.enum(['thread', 'post', 'user']),
+  targetId: z.string().min(1),
+  reason: z.string().min(3).max(500),
 });
-export type ReportDTO = typeof ReportDTO.static;
+export type ReportDTO = z.infer<typeof ReportDTO>;
 
-export const ReportStatusDTO = t.Object({
-  status: t.Union([t.Literal('open'), t.Literal('reviewed'), t.Literal('dismissed')]),
+export const ReportStatusDTO = z.object({
+  status: z.enum(['open', 'reviewed', 'dismissed']),
 });
-export type ReportStatusDTO = typeof ReportStatusDTO.static;
+export type ReportStatusDTO = z.infer<typeof ReportStatusDTO>;
 
-export const ReportQuery = t.Object({
-  page: t.Numeric({ minimum: 1, default: 1 }),
-  limit: t.Numeric({ minimum: 1, maximum: 100, default: 20 }),
-  status: t.Optional(t.String()),
-});
-
-export const GrantBadgeDTO = t.Object({
-  badgeKey: t.String({ minLength: 1, maxLength: 50 }),
-});
-export type GrantBadgeDTO = typeof GrantBadgeDTO.static;
-
-export const BadgeParam = t.Object({
-  id: t.String({ minLength: 1 }),
-  badgeKey: t.String({ minLength: 1, maxLength: 50 }),
+export const ReportQuery = z.object({
+  page: z.coerce.number().min(1).default(1),
+  limit: z.coerce.number().min(1).max(100).default(20),
+  status: z.string().optional(),
 });
 
-export const BadgeKeyParam = t.Object({
-  key: t.String({ minLength: 1, maxLength: 50 }),
+export const GrantBadgeDTO = z.object({
+  badgeKey: z.string().min(1).max(50),
 });
+export type GrantBadgeDTO = z.infer<typeof GrantBadgeDTO>;
 
 // key is lowercase letters/digits/underscore so it's a safe stable identifier.
-export const CreateBadgeDTO = t.Object({
-  key: t.String({ minLength: 2, maxLength: 50, pattern: '^[a-z0-9_]+$' }),
-  label: t.String({ minLength: 1, maxLength: 100 }),
-  description: t.String({ minLength: 1, maxLength: 300 }),
-  icon: t.String({ minLength: 1, maxLength: 16 }),
+export const CreateBadgeDTO = z.object({
+  key: z.string().min(2).max(50).regex(/^[a-z0-9_]+$/),
+  label: z.string().min(1).max(100),
+  description: z.string().min(1).max(300),
+  icon: z.string().min(1).max(16),
 });
-export type CreateBadgeDTO = typeof CreateBadgeDTO.static;
+export type CreateBadgeDTO = z.infer<typeof CreateBadgeDTO>;
 
-export const UpdateBadgeDTO = t.Object({
-  label: t.Optional(t.String({ minLength: 1, maxLength: 100 })),
-  description: t.Optional(t.String({ minLength: 1, maxLength: 300 })),
-  icon: t.Optional(t.String({ minLength: 1, maxLength: 16 })),
+export const UpdateBadgeDTO = z.object({
+  label: z.string().min(1).max(100).optional(),
+  description: z.string().min(1).max(300).optional(),
+  icon: z.string().min(1).max(16).optional(),
 });
-export type UpdateBadgeDTO = typeof UpdateBadgeDTO.static;
+export type UpdateBadgeDTO = z.infer<typeof UpdateBadgeDTO>;
 
 // User payload stored in JWT
 export interface JwtPayload {
