@@ -78,8 +78,10 @@ Both sites are shadcn/ui "new-york" style, light default:
 | `elysia` | `hono` |
 | `@elysiajs/cors` | `hono/cors` (built-in) |
 | `@elysiajs/static` | `hono/bun` `serveStatic` |
-| `@elysiajs/openapi` | `@hono/zod-openapi` (dev/non-prod only, as today) |
+| `@elysiajs/openapi` | dropped — see note below |
 | Elysia `t` (TypeBox) | `zod` + `@hono/zod-validator` |
+
+> **OpenAPI note:** The docs page was dev-only (production already disables it). Porting it would require `@hono/zod-openapi`'s `createRoute()` style on every route, roughly doubling migration churn for a dev convenience — so this migration drops the docs page. Re-adding docs is a possible follow-up.
 
 ### Structure
 
