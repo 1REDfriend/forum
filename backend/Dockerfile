@@ -1,4 +1,4 @@
-# Forum backend — Elysia + Drizzle ORM, running on Bun.
+# Forum backend — Hono + Drizzle ORM, running on Bun.
 # Single stage on purpose: keeps drizzle-kit available so DB migrations run in-container.
 FROM oven/bun:1-alpine
 
