@@ -37,7 +37,7 @@ const bannerStyle = computed(() =>
       <router-link :to="`/user/${author.id}`" class="pcard-name">{{ author.name }}</router-link>
 
       <div class="pcard-badges">
-        <span v-if="author.role === 'admin'" class="pcard-badge pcard-role">ADMIN</span>
+        <span v-if="author.role === 'admin'" class="pcard-badge pcard-role text-amber-700 dark:text-amber-300">ADMIN</span>
         <span
           class="pcard-badge pcard-tier"
           :style="{ background: ts.bg, color: ts.color, borderColor: ts.ring }"
@@ -127,7 +127,6 @@ const bannerStyle = computed(() =>
 }
 .pcard-role {
   background: rgba(245, 158, 11, 0.15);
-  color: #fcd34d;
 }
 .pcard-bio {
   font-size: 11px;
