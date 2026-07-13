@@ -1,55 +1,39 @@
-import { Elysia, t } from 'elysia';
+import { Hono } from 'hono';
 import { threadService } from '../services/thread.service.js';
-import { auth } from '../http/auth.js';
-import { CreateThreadDTO, UpdateThreadDTO, Pagination, IdParam } from '../types/index.js';
+import { requireAuth, optionalAuth, type OptionalAuthEnv } from '../http/auth.js';
+import { validate } from '../http/validate.js';
+import { CreateThreadDTO, UpdateThreadDTO, Pagination } from '../types/index.js';
 import { BadRequestError } from '../utils/errors.js';
 
-export const threadRoutes = new Elysia({ prefix: '/threads', tags: ['Threads'] })
-  .use(auth)
+export const threadRoutes = new Hono<OptionalAuthEnv>()
   // Public routes with optional auth (so likes are personalized for logged-in users)
-  .get('/', () => threadService.getAllThreads(), { optionalAuth: true })
-  .get(
-    '/forum/:forumId',
-    ({ params, query, user }) =>
-      threadService.getThreadsByForumId(params.forumId, query.page, query.limit, user?.userId),
-    { params: t.Object({ forumId: t.String({ minLength: 1 }) }), query: Pagination, optionalAuth: true },
-  )
-  .get('/:id', ({ params, user }) => threadService.getThreadById(params.id, user?.userId), {
-    params: IdParam,
-    optionalAuth: true,
+  .get('/', optionalAuth, async (c) => c.json(await threadService.getAllThreads()))
+  .get('/forum/:forumId', optionalAuth, validate('query', Pagination), async (c) => {
+    const { page, limit } = c.req.valid('query');
+    return c.json(
+      await threadService.getThreadsByForumId(c.req.param('forumId'), page, limit, c.get('user')?.userId),
+    );
   })
+  .get('/:id', optionalAuth, async (c) =>
+    c.json(await threadService.getThreadById(c.req.param('id'), c.get('user')?.userId)),
+  )
   // Protected routes
-  .guard({ auth: true }, (app) =>
-    app
-      .post(
-        '/',
-        ({ user, body, set }) => {
-          set.status = 201;
-          return threadService.createThread(user.userId, body);
-        },
-        { body: CreateThreadDTO },
-      )
-      .put(
-        '/:id',
-        ({ user, params, body }) => {
-          if (Object.keys(body).length === 0)
-            throw BadRequestError('At least one field (title or content) must be provided');
-          return threadService.updateThread(user.userId, params.id, body);
-        },
-        { params: IdParam, body: UpdateThreadDTO },
-      )
-      .delete(
-        '/:id',
-        async ({ user, params }) => {
-          await threadService.deleteThread(user.userId, params.id);
-          return new Response(null, { status: 204 });
-        },
-        { params: IdParam },
-      )
-      .patch('/:id/pin', ({ user, params }) => threadService.pinThread(user.userId, params.id), {
-        params: IdParam,
-      })
-      .patch('/:id/lock', ({ user, params }) => threadService.lockThread(user.userId, params.id), {
-        params: IdParam,
-      }),
+  .post('/', requireAuth, validate('json', CreateThreadDTO), async (c) =>
+    c.json(await threadService.createThread(c.get('user')!.userId, c.req.valid('json')), 201),
+  )
+  .put('/:id', requireAuth, validate('json', UpdateThreadDTO), async (c) => {
+    const body = c.req.valid('json');
+    if (Object.keys(body).length === 0)
+      throw BadRequestError('At least one field (title or content) must be provided');
+    return c.json(await threadService.updateThread(c.get('user')!.userId, c.req.param('id'), body));
+  })
+  .delete('/:id', requireAuth, async (c) => {
+    await threadService.deleteThread(c.get('user')!.userId, c.req.param('id'));
+    return c.body(null, 204);
+  })
+  .patch('/:id/pin', requireAuth, async (c) =>
+    c.json(await threadService.pinThread(c.get('user')!.userId, c.req.param('id'))),
+  )
+  .patch('/:id/lock', requireAuth, async (c) =>
+    c.json(await threadService.lockThread(c.get('user')!.userId, c.req.param('id'))),
   );

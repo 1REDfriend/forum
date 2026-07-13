@@ -1,16 +1,12 @@
-import { Elysia } from 'elysia';
+import { Hono } from 'hono';
 import { likeService } from '../services/like.service.js';
-import { auth } from '../http/auth.js';
-import { IdParam } from '../types/index.js';
+import { requireAuth, type AuthEnv } from '../http/auth.js';
 
-export const likeRoutes = new Elysia({ prefix: '/likes', tags: ['Likes'] })
-  .use(auth)
-  .guard({ auth: true }, (app) =>
-    app
-      .post('/thread/:id', ({ user, params }) => likeService.toggleThreadLike(user.userId, params.id), {
-        params: IdParam,
-      })
-      .post('/post/:id', ({ user, params }) => likeService.togglePostLike(user.userId, params.id), {
-        params: IdParam,
-      }),
+export const likeRoutes = new Hono<AuthEnv>()
+  .use(requireAuth)
+  .post('/thread/:id', async (c) =>
+    c.json(await likeService.toggleThreadLike(c.get('user').userId, c.req.param('id'))),
+  )
+  .post('/post/:id', async (c) =>
+    c.json(await likeService.togglePostLike(c.get('user').userId, c.req.param('id'))),
   );

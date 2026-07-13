@@ -1,38 +1,25 @@
-import { Elysia, t } from 'elysia';
+import { Hono } from 'hono';
 import { postService } from '../services/post.service.js';
-import { auth } from '../http/auth.js';
-import { CreatePostDTO, UpdatePostDTO, Pagination, IdParam } from '../types/index.js';
+import { requireAuth, optionalAuth, type OptionalAuthEnv } from '../http/auth.js';
+import { validate } from '../http/validate.js';
+import { CreatePostDTO, UpdatePostDTO, Pagination } from '../types/index.js';
 
-export const postRoutes = new Elysia({ prefix: '/posts', tags: ['Posts'] })
-  .use(auth)
+export const postRoutes = new Hono<OptionalAuthEnv>()
   // Get posts for a thread — optional auth so isLikedByMe is populated for logged-in users
-  .get(
-    '/thread/:threadId',
-    ({ params, query, user }) =>
-      postService.getPostsByThreadId(params.threadId, query.page, query.limit, user?.userId),
-    { params: t.Object({ threadId: t.String({ minLength: 1 }) }), query: Pagination, optionalAuth: true },
-  )
+  .get('/thread/:threadId', optionalAuth, validate('query', Pagination), async (c) => {
+    const { page, limit } = c.req.valid('query');
+    return c.json(
+      await postService.getPostsByThreadId(c.req.param('threadId'), page, limit, c.get('user')?.userId),
+    );
+  })
   // Protected routes
-  .guard({ auth: true }, (app) =>
-    app
-      .post(
-        '/',
-        ({ user, body, set }) => {
-          set.status = 201;
-          return postService.createPost(user.userId, body);
-        },
-        { body: CreatePostDTO },
-      )
-      .put('/:id', ({ user, params, body }) => postService.updatePost(user.userId, params.id, body), {
-        params: IdParam,
-        body: UpdatePostDTO,
-      })
-      .delete(
-        '/:id',
-        async ({ user, params }) => {
-          await postService.deletePost(user.userId, params.id);
-          return new Response(null, { status: 204 });
-        },
-        { params: IdParam },
-      ),
-  );
+  .post('/', requireAuth, validate('json', CreatePostDTO), async (c) =>
+    c.json(await postService.createPost(c.get('user')!.userId, c.req.valid('json')), 201),
+  )
+  .put('/:id', requireAuth, validate('json', UpdatePostDTO), async (c) =>
+    c.json(await postService.updatePost(c.get('user')!.userId, c.req.param('id'), c.req.valid('json'))),
+  )
+  .delete('/:id', requireAuth, async (c) => {
+    await postService.deletePost(c.get('user')!.userId, c.req.param('id'));
+    return c.body(null, 204);
+  });

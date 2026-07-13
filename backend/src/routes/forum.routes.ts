@@ -1,40 +1,23 @@
-import { Elysia } from 'elysia';
+import { Hono } from 'hono';
 import { forumService } from '../services/forum.service.js';
-import { auth } from '../http/auth.js';
-import { CreateForumDTO, UpdateForumDTO, IdParam } from '../types/index.js';
+import { requireAuth, requireAdmin, type OptionalAuthEnv } from '../http/auth.js';
+import { validate } from '../http/validate.js';
+import { CreateForumDTO, UpdateForumDTO } from '../types/index.js';
 import { BadRequestError } from '../utils/errors.js';
 
-export const forumRoutes = new Elysia({ prefix: '/forums', tags: ['Forums'] })
-  .use(auth)
-  .get('/', () => forumService.getAllForums())
-  .get('/:id', ({ params }) => forumService.getForumById(params.id), { params: IdParam })
-  .guard({ admin: true }, (app) =>
-    app.post(
-      '/',
-      ({ user, body, set }) => {
-        set.status = 201;
-        return forumService.createForum(user.userId, body);
-      },
-      { body: CreateForumDTO },
-    ),
+export const forumRoutes = new Hono<OptionalAuthEnv>()
+  .get('/', async (c) => c.json(await forumService.getAllForums()))
+  .get('/:id', async (c) => c.json(await forumService.getForumById(c.req.param('id'))))
+  .post('/', requireAdmin, validate('json', CreateForumDTO), async (c) =>
+    c.json(await forumService.createForum(c.get('user')!.userId, c.req.valid('json')), 201),
   )
-  .guard({ auth: true }, (app) =>
-    app
-      .put(
-        '/:id',
-        ({ user, params, body }) => {
-          if (Object.keys(body).length === 0)
-            throw BadRequestError('At least one field (name or description) must be provided');
-          return forumService.updateForum(user.userId, params.id, body);
-        },
-        { params: IdParam, body: UpdateForumDTO },
-      )
-      .delete(
-        '/:id',
-        async ({ user, params }) => {
-          await forumService.deleteForum(user.userId, params.id);
-          return new Response(null, { status: 204 });
-        },
-        { params: IdParam },
-      ),
-  );
+  .put('/:id', requireAuth, validate('json', UpdateForumDTO), async (c) => {
+    const body = c.req.valid('json');
+    if (Object.keys(body).length === 0)
+      throw BadRequestError('At least one field (name or description) must be provided');
+    return c.json(await forumService.updateForum(c.get('user')!.userId, c.req.param('id'), body));
+  })
+  .delete('/:id', requireAuth, async (c) => {
+    await forumService.deleteForum(c.get('user')!.userId, c.req.param('id'));
+    return c.body(null, 204);
+  });

@@ -1,12 +1,8 @@
-import { Elysia, t } from 'elysia';
+import { Hono } from 'hono';
 import { searchRepository } from '../repositories/search.repository.js';
 
-export const searchRoutes = new Elysia({ prefix: '/search', tags: ['Search'] }).get(
-  '/',
-  ({ query }) => {
-    const q = (query.q ?? '').trim();
-    if (!q) return { forums: [], threads: [] };
-    return searchRepository.search(q);
-  },
-  { query: t.Object({ q: t.Optional(t.String()) }) },
-);
+export const searchRoutes = new Hono().get('/', async (c) => {
+  const q = (c.req.query('q') ?? '').trim();
+  if (!q) return c.json({ forums: [], threads: [] });
+  return c.json(await searchRepository.search(q));
+});

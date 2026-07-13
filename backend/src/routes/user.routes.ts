@@ -1,20 +1,17 @@
-import { Elysia } from 'elysia';
+import { Hono } from 'hono';
 import { userService } from '../services/user.service.js';
-import { auth } from '../http/auth.js';
-import { UpdateUserDTO, IdParam } from '../types/index.js';
+import { requireAuth, type AuthEnv } from '../http/auth.js';
+import { validate } from '../http/validate.js';
+import { UpdateUserDTO } from '../types/index.js';
 import { BadRequestError } from '../utils/errors.js';
 
-export const userRoutes = new Elysia({ prefix: '/users', tags: ['Users'] })
-  .use(auth)
+export const userRoutes = new Hono<AuthEnv>()
   // Protected routes (defined before /:id so 'me' isn't captured as an id param)
-  .get('/me', ({ user }) => userService.getProfile(user.userId), { auth: true })
-  .put(
-    '/me',
-    ({ user, body }) => {
-      if (Object.keys(body).length === 0) throw BadRequestError('At least one field must be provided');
-      return userService.updateProfile(user.userId, body);
-    },
-    { auth: true, body: UpdateUserDTO },
-  )
+  .get('/me', requireAuth, async (c) => c.json(await userService.getProfile(c.get('user').userId)))
+  .put('/me', requireAuth, validate('json', UpdateUserDTO), async (c) => {
+    const body = c.req.valid('json');
+    if (Object.keys(body).length === 0) throw BadRequestError('At least one field must be provided');
+    return c.json(await userService.updateProfile(c.get('user').userId, body));
+  })
   // Public route
-  .get('/:id', ({ params }) => userService.getPublicProfile(params.id), { params: IdParam });
+  .get('/:id', async (c) => c.json(await userService.getPublicProfile(c.req.param('id'))));

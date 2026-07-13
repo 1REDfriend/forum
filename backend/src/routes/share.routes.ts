@@ -1,39 +1,20 @@
-import { Elysia, t } from 'elysia';
+import { Hono } from 'hono';
 import { shareService } from '../services/share.service.js';
 
-const html = (body: string) =>
-  new Response(body, { headers: { 'content-type': 'text/html; charset=utf-8' } });
-
-export const shareRoutes = new Elysia({ prefix: '/share', tags: ['Share'] })
-  .get(
-    '/thread/:id',
-    async ({ params }) => {
-      const out = await shareService.threadOg(params.id);
-      return out ? html(out) : new Response('Not found', { status: 404 });
-    },
-    { params: t.Object({ id: t.String({ minLength: 1 }) }) },
-  )
-  .get(
-    '/post/:id',
-    async ({ params }) => {
-      const out = await shareService.postOg(params.id);
-      return out ? html(out) : new Response('Not found', { status: 404 });
-    },
-    { params: t.Object({ id: t.String({ minLength: 1 }) }) },
-  )
-  .get(
-    '/forum/:id',
-    async ({ params }) => {
-      const out = await shareService.forumOg(params.id);
-      return out ? html(out) : new Response('Not found', { status: 404 });
-    },
-    { params: t.Object({ id: t.String({ minLength: 1 }) }) },
-  )
-  .get(
-    '/user/:id',
-    async ({ params }) => {
-      const out = await shareService.userOg(params.id);
-      return out ? html(out) : new Response('Not found', { status: 404 });
-    },
-    { params: t.Object({ id: t.String({ minLength: 1 }) }) },
-  );
+export const shareRoutes = new Hono()
+  .get('/thread/:id', async (c) => {
+    const out = await shareService.threadOg(c.req.param('id'));
+    return out ? c.html(out) : c.text('Not found', 404);
+  })
+  .get('/post/:id', async (c) => {
+    const out = await shareService.postOg(c.req.param('id'));
+    return out ? c.html(out) : c.text('Not found', 404);
+  })
+  .get('/forum/:id', async (c) => {
+    const out = await shareService.forumOg(c.req.param('id'));
+    return out ? c.html(out) : c.text('Not found', 404);
+  })
+  .get('/user/:id', async (c) => {
+    const out = await shareService.userOg(c.req.param('id'));
+    return out ? c.html(out) : c.text('Not found', 404);
+  });
