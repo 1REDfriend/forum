@@ -36,13 +36,13 @@
 ### Task 1: Install + QueryClient setup
 
 **Files:**
-- Modify: `frontend/package.json` (via bun add)
+- Modify: `frontend/package.json` (via npm install)
 - Modify: `frontend/src/main.ts`
 
 - [ ] **Step 1: Install**
 
 ```bash
-cd frontend && bun add @tanstack/vue-query
+cd frontend && npm install @tanstack/vue-query
 ```
 
 - [ ] **Step 2: Register the plugin in `frontend/src/main.ts`:**
@@ -85,14 +85,14 @@ app.mount('#app')
 - [ ] **Step 3: Verify build + existing tests**
 
 ```bash
-cd frontend && bun run type-check && bun run test:unit -- --run
+cd frontend && npm run type-check && npm run test:unit -- --run
 ```
 Expected: PASS.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add frontend/package.json frontend/bun.lock* frontend/src/main.ts
+git add frontend/package.json frontend/package-lock.json frontend/src/main.ts
 git commit -m "feat(query): install @tanstack/vue-query and register QueryClient"
 ```
 
@@ -271,7 +271,7 @@ export function useDeletePost() {
 - [ ] **Step 4: Typecheck**
 
 ```bash
-cd frontend && bun run type-check
+cd frontend && npm run type-check
 ```
 Expected: PASS (fix any api-method-name mismatches now).
 
@@ -415,7 +415,7 @@ Every query/mutation the AdminDashboardView needs must exist here by the end of 
 - [ ] **Step 5: Typecheck + commit**
 
 ```bash
-cd frontend && bun run type-check
+cd frontend && npm run type-check
 git add frontend/src/composables
 git commit -m "feat(query): likes, users, search, admin composables"
 ```
@@ -465,7 +465,7 @@ Template changes: `forums` may now be `undefined` while loading — guard with `
 - [ ] **Step 7: Typecheck + tests + commit**
 
 ```bash
-cd frontend && bun run type-check && bun run test:unit -- --run
+cd frontend && npm run type-check && npm run test:unit -- --run
 git add frontend/src
 git commit -m "feat(query): convert list/detail views to vue-query composables"
 ```
@@ -493,7 +493,7 @@ Expected: no hits (auth-store bootstrapping in `stores/auth.ts` is allowed — i
 - [ ] **Step 6: Typecheck + tests + commit**
 
 ```bash
-cd frontend && bun run type-check && bun run test:unit -- --run
+cd frontend && npm run type-check && npm run test:unit -- --run
 git add frontend/src
 git commit -m "feat(query): convert create and admin views to vue-query"
 ```

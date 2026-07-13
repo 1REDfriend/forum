@@ -32,12 +32,12 @@
 
 **Files:**
 - Modify: `frontend/src/assets/base.css` (full replace)
-- Modify: `frontend/package.json` (via bun add)
+- Modify: `frontend/package.json` (via npm install)
 
 - [ ] **Step 1: Install self-hosted fonts**
 
 ```bash
-cd frontend && bun add @fontsource-variable/inter @fontsource/ibm-plex-sans-thai
+cd frontend && npm install @fontsource-variable/inter @fontsource/ibm-plex-sans-thai
 ```
 
 - [ ] **Step 2: Replace `frontend/src/assets/base.css` entirely with:**
@@ -191,14 +191,14 @@ h1, h2, h3, h4, h5, h6 {
 - [ ] **Step 4: Verify build**
 
 ```bash
-cd frontend && bun run build-only
+cd frontend && npm run build-only
 ```
 Expected: build succeeds, no CSS errors.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add frontend/src/assets/base.css frontend/index.html frontend/package.json frontend/bun.lock*
+git add frontend/src/assets/base.css frontend/index.html frontend/package.json frontend/package-lock.json
 git commit -m "feat(theme): white shadcn-style token system with orange accent + self-hosted fonts"
 ```
 
@@ -282,7 +282,7 @@ export const useUiStore = defineStore('ui', () => {
 - [ ] **Step 3: Run the existing ui store spec**
 
 ```bash
-cd frontend && bun run test:unit -- --run src/stores/ui.spec.ts
+cd frontend && npm run test:unit -- --run src/stores/ui.spec.ts
 ```
 Expected: PASS (the spec tests the sidebar state, which is unchanged).
 
@@ -365,7 +365,7 @@ cd frontend && grep -rnE "slate-[0-9]|gray-[0-9]|white/[0-9]|text-white|bg-white
 - [ ] **Step 4: Run existing component tests**
 
 ```bash
-cd frontend && bun run test:unit -- --run
+cd frontend && npm run test:unit -- --run
 ```
 Expected: all existing specs PASS.
 
@@ -422,7 +422,7 @@ git commit -m "feat(theme): convert landing, auth, and search views to light the
 - [ ] **Step 4: Run all frontend tests + typecheck**
 
 ```bash
-cd frontend && bun run test:unit -- --run && bun run type-check
+cd frontend && npm run test:unit -- --run && npm run type-check
 ```
 Expected: PASS.
 
