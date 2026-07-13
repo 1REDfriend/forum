@@ -4,13 +4,13 @@ import { TIERS as TIER_DEFS } from '../domain/tiers.js';
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 export const RegisterDTO = z.object({
   name: z.string().min(2).max(100),
-  email: z.string().email().max(254),
+  email: z.email().max(254),
   password: z.string().min(8).max(100),
 });
 export type RegisterDTO = z.infer<typeof RegisterDTO>;
 
 export const LoginDTO = z.object({
-  email: z.string().email().max(254),
+  email: z.email().max(254),
   password: z.string().max(100),
 });
 export type LoginDTO = z.infer<typeof LoginDTO>;
@@ -21,7 +21,7 @@ export const GoogleAuthDTO = z.object({
 export type GoogleAuthDTO = z.infer<typeof GoogleAuthDTO>;
 
 export const ForgotPasswordDTO = z.object({
-  email: z.string().email().max(254),
+  email: z.email().max(254),
 });
 export type ForgotPasswordDTO = z.infer<typeof ForgotPasswordDTO>;
 
@@ -95,7 +95,7 @@ export const TIERS = TIER_DEFS.map((td) => td.key) as readonly string[];
 export type Tier = string;
 
 export const UpdateUserTierDTO = z.object({
-  tier: z.enum(TIER_DEFS.map((td) => td.key) as [string, ...string[]]),
+  tier: z.enum(TIERS as string[]),
 });
 export type UpdateUserTierDTO = z.infer<typeof UpdateUserTierDTO>;
 
