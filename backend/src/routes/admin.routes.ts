@@ -1,5 +1,6 @@
-import { Elysia, status } from 'elysia';
-import { auth } from '../http/auth.js';
+import { Hono } from 'hono';
+import { requireAdmin, type AuthEnv } from '../http/auth.js';
+import { validate } from '../http/validate.js';
 import { adminRepository } from '../repositories/admin.repository.js';
 import { forumRepository } from '../repositories/forum.repository.js';
 import { threadRepository } from '../repositories/thread.repository.js';
@@ -8,204 +9,133 @@ import { reportService } from '../services/report.service.js';
 import { badgeService } from '../services/badge.service.js';
 import {
   AdminPagination,
-  IdParam,
   UpdateUserRoleDTO,
   UpdateUserTierDTO,
   ReportQuery,
   ReportStatusDTO,
   GrantBadgeDTO,
-  BadgeParam,
-  BadgeKeyParam,
   CreateBadgeDTO,
   UpdateBadgeDTO,
   BanUserDTO,
 } from '../types/index.js';
 
-export const adminRoutes = new Elysia({ prefix: '/admin', tags: ['Admin'] })
-  .use(auth)
-  // All admin routes require authentication + admin role
-  .guard({ admin: true }, (app) =>
-    app
-      // ─── Stats & Activity ──────────────────────────────────────────────────
-      .get('/stats', () => adminRepository.getSystemStats())
-      .get('/activity', () => adminRepository.getRecentActivity(20))
-      // ─── Users ─────────────────────────────────────────────────────────────
-      .get(
-        '/users',
-        async ({ query }) => {
-          const { page, limit, search } = query;
-          const result = await adminRepository.getAllUsers(page, limit, search);
-          return { ...result, page, limit, totalPages: Math.ceil(result.total / limit) };
-        },
-        { query: AdminPagination },
-      )
-      .patch(
-        '/users/:id/role',
-        async ({ user, params, body }) => {
-          // Prevent self-demotion
-          if (params.id === user.userId) return status(400, { error: 'Cannot change your own role' });
-          const updated = await adminRepository.updateUserRole(params.id, body.role);
-          if (!updated) return status(404, { error: 'User not found' });
-          return updated;
-        },
-        { params: IdParam, body: UpdateUserRoleDTO },
-      )
-      .patch(
-        '/users/:id/tier',
-        async ({ params, body }) => {
-          const updated = await adminRepository.updateUserTier(params.id, body.tier);
-          if (!updated) return status(404, { error: 'User not found' });
-          return updated;
-        },
-        { params: IdParam, body: UpdateUserTierDTO },
-      )
-      .delete(
-        '/users/:id',
-        async ({ user, params }) => {
-          if (params.id === user.userId)
-            return status(400, { error: 'Cannot delete your own account via admin panel' });
-          await adminRepository.deleteUser(params.id);
-          return new Response(null, { status: 204 });
-        },
-        { params: IdParam },
-      )
-      .patch(
-        '/users/:id/ban',
-        async ({ user, params, body }) => {
-          if (params.id === user.userId) return status(400, { error: 'Cannot ban yourself' });
-          const updated = await adminRepository.banUser(params.id, body.reason, user.userId);
-          if (!updated) return status(404, { error: 'User not found' });
-          return updated;
-        },
-        { params: IdParam, body: BanUserDTO },
-      )
-      .patch(
-        '/users/:id/unban',
-        async ({ params }) => {
-          const updated = await adminRepository.unbanUser(params.id);
-          if (!updated) return status(404, { error: 'User not found' });
-          return updated;
-        },
-        { params: IdParam },
-      )
-      // ─── Forums ────────────────────────────────────────────────────────────
-      .get(
-        '/forums',
-        async ({ query }) => {
-          const { page, limit } = query;
-          const result = await adminRepository.getAllForumsAdmin(page, limit);
-          return { ...result, page, limit, totalPages: Math.ceil(result.total / limit) };
-        },
-        { query: AdminPagination },
-      )
-      .delete(
-        '/forums/:id',
-        async ({ params }) => {
-          await forumRepository.delete(params.id);
-          return new Response(null, { status: 204 });
-        },
-        { params: IdParam },
-      )
-      // ─── Threads ───────────────────────────────────────────────────────────
-      .get(
-        '/threads',
-        async ({ query }) => {
-          const { page, limit, search } = query;
-          const result = await adminRepository.getAllThreadsAdmin(page, limit, search);
-          return { ...result, page, limit, totalPages: Math.ceil(result.total / limit) };
-        },
-        { query: AdminPagination },
-      )
-      .delete(
-        '/threads/:id',
-        async ({ params }) => {
-          await threadRepository.delete(params.id);
-          return new Response(null, { status: 204 });
-        },
-        { params: IdParam },
-      )
-      // ─── Posts ─────────────────────────────────────────────────────────────
-      .get(
-        '/posts',
-        async ({ query }) => {
-          const { page, limit } = query;
-          const result = await adminRepository.getAllPostsAdmin(page, limit);
-          return { ...result, page, limit, totalPages: Math.ceil(result.total / limit) };
-        },
-        { query: AdminPagination },
-      )
-      .delete(
-        '/posts/:id',
-        async ({ params }) => {
-          await postRepository.delete(params.id);
-          return new Response(null, { status: 204 });
-        },
-        { params: IdParam },
-      )
-      // ─── Reports ───────────────────────────────────────────────────────────
-      .get(
-        '/reports',
-        async ({ query }) => {
-          const { page, limit, status } = query;
-          const result = await reportService.list(page, limit, status);
-          return { ...result, page, limit, totalPages: Math.ceil(result.total / limit) };
-        },
-        { query: ReportQuery },
-      )
-      .patch(
-        '/reports/:id',
-        ({ params, body }) => reportService.resolve(params.id, body.status),
-        { params: IdParam, body: ReportStatusDTO },
-      )
-      // ─── Badges ────────────────────────────────────────────────────────────
-      .get('/badges', () => badgeService.catalog())
-      .post(
-        '/badges',
-        async ({ body }) => {
-          const result = await badgeService.createDef(body);
-          if (!result.ok) return status(409, { error: 'A badge with this key already exists' });
-          return result.badge;
-        },
-        { body: CreateBadgeDTO },
-      )
-      .put(
-        '/badges/:key',
-        async ({ params, body }) => {
-          const updated = await badgeService.updateDef(params.key, body);
-          if (!updated) return status(404, { error: 'Badge not found' });
-          return updated;
-        },
-        { params: BadgeKeyParam, body: UpdateBadgeDTO },
-      )
-      .delete(
-        '/badges/:key',
-        async ({ params }) => {
-          const removed = await badgeService.deleteDef(params.key);
-          if (!removed) return status(404, { error: 'Badge not found' });
-          return new Response(null, { status: 204 });
-        },
-        { params: BadgeKeyParam },
-      )
-      .post(
-        '/users/:id/badges',
-        async ({ params, body }) => {
-          const result = await badgeService.grant(params.id, body.badgeKey);
-          if (!result.ok) {
-            return result.reason === 'unknown'
-              ? status(400, { error: 'Unknown badge' })
-              : status(409, { error: 'User already has this badge' });
-          }
-          return { message: 'Badge granted' };
-        },
-        { params: IdParam, body: GrantBadgeDTO },
-      )
-      .delete(
-        '/users/:id/badges/:badgeKey',
-        async ({ params }) => {
-          const removed = await badgeService.revoke(params.id, params.badgeKey);
-          if (!removed) return status(404, { error: 'User does not have this badge' });
-          return new Response(null, { status: 204 });
-        },
-        { params: BadgeParam },
-      ),
-  );
+export const adminRoutes = new Hono<AuthEnv>()
+  .use(requireAdmin)
+  // ─── Stats & Activity ──────────────────────────────────────────────────
+  .get('/stats', async (c) => c.json(await adminRepository.getSystemStats()))
+  .get('/activity', async (c) => c.json(await adminRepository.getRecentActivity(20)))
+  // ─── Users ─────────────────────────────────────────────────────────────
+  .get('/users', validate('query', AdminPagination), async (c) => {
+    const { page, limit, search } = c.req.valid('query');
+    const result = await adminRepository.getAllUsers(page, limit, search);
+    return c.json({ ...result, page, limit, totalPages: Math.ceil(result.total / limit) });
+  })
+  .patch('/users/:id/role', validate('json', UpdateUserRoleDTO), async (c) => {
+    // Prevent self-demotion
+    if (c.req.param('id') === c.get('user').userId)
+      return c.json({ error: 'Cannot change your own role' }, 400);
+    const updated = await adminRepository.updateUserRole(c.req.param('id'), c.req.valid('json').role);
+    if (!updated) return c.json({ error: 'User not found' }, 404);
+    return c.json(updated);
+  })
+  .patch('/users/:id/tier', validate('json', UpdateUserTierDTO), async (c) => {
+    const updated = await adminRepository.updateUserTier(c.req.param('id'), c.req.valid('json').tier);
+    if (!updated) return c.json({ error: 'User not found' }, 404);
+    return c.json(updated);
+  })
+  .delete('/users/:id', async (c) => {
+    if (c.req.param('id') === c.get('user').userId)
+      return c.json({ error: 'Cannot delete your own account via admin panel' }, 400);
+    await adminRepository.deleteUser(c.req.param('id'));
+    return c.body(null, 204);
+  })
+  .patch('/users/:id/ban', validate('json', BanUserDTO), async (c) => {
+    if (c.req.param('id') === c.get('user').userId) return c.json({ error: 'Cannot ban yourself' }, 400);
+    const updated = await adminRepository.banUser(
+      c.req.param('id'),
+      c.req.valid('json').reason,
+      c.get('user').userId,
+    );
+    if (!updated) return c.json({ error: 'User not found' }, 404);
+    return c.json(updated);
+  })
+  .patch('/users/:id/unban', async (c) => {
+    const updated = await adminRepository.unbanUser(c.req.param('id'));
+    if (!updated) return c.json({ error: 'User not found' }, 404);
+    return c.json(updated);
+  })
+  // ─── Forums ────────────────────────────────────────────────────────────
+  .get('/forums', validate('query', AdminPagination), async (c) => {
+    const { page, limit } = c.req.valid('query');
+    const result = await adminRepository.getAllForumsAdmin(page, limit);
+    return c.json({ ...result, page, limit, totalPages: Math.ceil(result.total / limit) });
+  })
+  .delete('/forums/:id', async (c) => {
+    await forumRepository.delete(c.req.param('id'));
+    return c.body(null, 204);
+  })
+  // ─── Threads ───────────────────────────────────────────────────────────
+  .get('/threads', validate('query', AdminPagination), async (c) => {
+    const { page, limit, search } = c.req.valid('query');
+    const result = await adminRepository.getAllThreadsAdmin(page, limit, search);
+    return c.json({ ...result, page, limit, totalPages: Math.ceil(result.total / limit) });
+  })
+  .delete('/threads/:id', async (c) => {
+    await threadRepository.delete(c.req.param('id'));
+    return c.body(null, 204);
+  })
+  // ─── Posts ─────────────────────────────────────────────────────────────
+  .get('/posts', validate('query', AdminPagination), async (c) => {
+    const { page, limit } = c.req.valid('query');
+    const result = await adminRepository.getAllPostsAdmin(page, limit);
+    return c.json({ ...result, page, limit, totalPages: Math.ceil(result.total / limit) });
+  })
+  .delete('/posts/:id', async (c) => {
+    await postRepository.delete(c.req.param('id'));
+    return c.body(null, 204);
+  })
+  // ─── Reports ───────────────────────────────────────────────────────────
+  .get('/reports', validate('query', ReportQuery), async (c) => {
+    const { page, limit, status } = c.req.valid('query');
+    const result = await reportService.list(page, limit, status);
+    return c.json({ ...result, page, limit, totalPages: Math.ceil(result.total / limit) });
+  })
+  .patch('/reports/:id', validate('json', ReportStatusDTO), async (c) =>
+    c.json(await reportService.resolve(c.req.param('id'), c.req.valid('json').status)),
+  )
+  // ─── Badges ────────────────────────────────────────────────────────────
+  .get('/badges', async (c) => c.json(await badgeService.catalog()))
+  .post('/badges', validate('json', CreateBadgeDTO), async (c) => {
+    const result = await badgeService.createDef(c.req.valid('json'));
+    if (!result.ok) return c.json({ error: 'A badge with this key already exists' }, 409);
+    return c.json(result.badge);
+  })
+  .put('/badges/:key', validate('json', UpdateBadgeDTO), async (c) => {
+    // Zod's `.optional()` types the field as `T | undefined` (present-but-undefined
+    // allowed); badgeService.updateDef's Partial<T> forbids that under
+    // exactOptionalPropertyTypes. At runtime Zod omits absent keys rather than
+    // setting them to undefined, so this cast is safe.
+    const patch = c.req.valid('json') as Partial<{ label: string; description: string; icon: string }>;
+    const updated = await badgeService.updateDef(c.req.param('key'), patch);
+    if (!updated) return c.json({ error: 'Badge not found' }, 404);
+    return c.json(updated);
+  })
+  .delete('/badges/:key', async (c) => {
+    const removed = await badgeService.deleteDef(c.req.param('key'));
+    if (!removed) return c.json({ error: 'Badge not found' }, 404);
+    return c.body(null, 204);
+  })
+  .post('/users/:id/badges', validate('json', GrantBadgeDTO), async (c) => {
+    const result = await badgeService.grant(c.req.param('id'), c.req.valid('json').badgeKey);
+    if (!result.ok) {
+      return result.reason === 'unknown'
+        ? c.json({ error: 'Unknown badge' }, 400)
+        : c.json({ error: 'User already has this badge' }, 409);
+    }
+    return c.json({ message: 'Badge granted' });
+  })
+  .delete('/users/:id/badges/:badgeKey', async (c) => {
+    const removed = await badgeService.revoke(c.req.param('id'), c.req.param('badgeKey'));
+    if (!removed) return c.json({ error: 'User does not have this badge' }, 404);
+    return c.body(null, 204);
+  });

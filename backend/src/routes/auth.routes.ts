@@ -1,5 +1,6 @@
-import { Elysia } from 'elysia';
+import { Hono } from 'hono';
 import { authService } from '../services/auth.service.js';
+import { validate } from '../http/validate.js';
 import {
   RegisterDTO,
   LoginDTO,
@@ -17,30 +18,25 @@ import {
   refreshRateLimit,
 } from '../http/rateLimit.js';
 
-export const authRoutes = new Elysia({ prefix: '/auth', tags: ['Auth'] })
-  .post(
-    '/register',
-    ({ body, set }) => {
-      set.status = 201;
-      return authService.register(body);
-    },
-    { body: RegisterDTO, beforeHandle: registerRateLimit },
+export const authRoutes = new Hono()
+  .post('/register', registerRateLimit, validate('json', RegisterDTO), async (c) =>
+    c.json(await authService.register(c.req.valid('json')), 201),
   )
-  .post('/login', ({ body }) => authService.login(body), {
-    body: LoginDTO,
-    beforeHandle: loginRateLimit,
-  })
-  .post('/google', ({ body }) => authService.googleAuth(body), {
-    body: GoogleAuthDTO,
-    beforeHandle: googleRateLimit,
-  })
-  .post('/forgot-password', ({ body }) => authService.forgotPassword(body), {
-    body: ForgotPasswordDTO,
-    beforeHandle: forgotPasswordRateLimit,
-  })
-  .post('/reset-password', ({ body }) => authService.resetPassword(body), { body: ResetPasswordDTO })
-  .post('/refresh', ({ body }) => authService.refresh(body.refreshToken), {
-    body: RefreshDTO,
-    beforeHandle: refreshRateLimit,
-  })
-  .post('/logout', ({ body }) => authService.logout(body.refreshToken), { body: LogoutDTO });
+  .post('/login', loginRateLimit, validate('json', LoginDTO), async (c) =>
+    c.json(await authService.login(c.req.valid('json'))),
+  )
+  .post('/google', googleRateLimit, validate('json', GoogleAuthDTO), async (c) =>
+    c.json(await authService.googleAuth(c.req.valid('json'))),
+  )
+  .post('/forgot-password', forgotPasswordRateLimit, validate('json', ForgotPasswordDTO), async (c) =>
+    c.json(await authService.forgotPassword(c.req.valid('json'))),
+  )
+  .post('/reset-password', validate('json', ResetPasswordDTO), async (c) =>
+    c.json(await authService.resetPassword(c.req.valid('json'))),
+  )
+  .post('/refresh', refreshRateLimit, validate('json', RefreshDTO), async (c) =>
+    c.json(await authService.refresh(c.req.valid('json').refreshToken)),
+  )
+  .post('/logout', validate('json', LogoutDTO), async (c) =>
+    c.json(await authService.logout(c.req.valid('json').refreshToken)),
+  );
