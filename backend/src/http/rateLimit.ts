@@ -1,4 +1,5 @@
-import { Elysia, status } from 'elysia';
+import type { Context, Next } from 'hono';
+import { getConnInfo } from 'hono/bun';
 
 interface LimitOptions {
   windowMs: number;
@@ -6,42 +7,40 @@ interface LimitOptions {
   message: string;
 }
 
-// Minimal structural shape of what we need from Elysia's context (avoids Bun's
-// generic Server type); Elysia's real context is assignable to this.
-interface LimiterContext {
-  request: Request;
-  server: { requestIP(request: Request): { address: string } | null } | null;
-}
-
 /**
  * Faithful in-memory port of express-rate-limit: fixed window, per-IP buckets.
- * Returns a hook usable as a route-local `beforeHandle` or inside a plugin.
- * Each call to `makeLimiter` owns its own bucket store (one window/limit set).
+ * Returns Hono middleware. Each call to `makeLimiter` owns its own bucket store.
  *
- * Client IP via Bun's `server.requestIP` matches Express's default (no `trust proxy`),
- * i.e. the socket peer — same behaviour the app had before.
+ * Client IP via Bun's connection info matches the previous behaviour
+ * (socket peer, no `trust proxy`).
  */
 export function makeLimiter({ windowMs, max, message }: LimitOptions) {
   const hits = new Map<string, { count: number; reset: number }>();
 
-  return ({ request, server }: LimiterContext) => {
-    const ip = server?.requestIP(request)?.address ?? 'unknown';
+  return async (c: Context, next: Next) => {
+    let ip = 'unknown';
+    try {
+      ip = getConnInfo(c).remote.address ?? 'unknown';
+    } catch {
+      /* keep 'unknown' */
+    }
     const now = Date.now();
     const rec = hits.get(ip);
 
     if (!rec || rec.reset <= now) {
       hits.set(ip, { count: 1, reset: now + windowMs });
-      return;
+      return next();
     }
 
     rec.count += 1;
     if (rec.count > max) {
-      return status(429, { error: message });
+      return c.json({ error: message }, 429);
     }
+    return next();
   };
 }
 
-// ─── Auth-specific limiters (attach as route-local `beforeHandle`) ────────────
+// ─── Auth-specific limiters (attach per-route) ────────────────────────────────
 export const loginRateLimit = makeLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10,
@@ -73,19 +72,15 @@ export const refreshRateLimit = makeLimiter({
 });
 
 // ─── Global limiter (generous; just prevents abuse) ───────────────────────────
-// Skips static uploads and the OpenAPI docs so image-heavy pages aren't throttled
-// (mirrors the old setup where /uploads was mounted before the global limiter).
+// Skips static uploads so image-heavy pages aren't throttled.
 const globalLimiter = makeLimiter({
   windowMs: 60 * 1000, // 1 minute
   max: 200,
   message: 'Too many requests. Please slow down.',
 });
 
-export const globalRateLimit = new Elysia({ name: 'rate-limit-global' }).onBeforeHandle(
-  { as: 'global' },
-  (ctx) => {
-    const path = new URL(ctx.request.url).pathname;
-    if (path.startsWith('/uploads') || path.startsWith('/openapi')) return;
-    return globalLimiter(ctx);
-  },
-);
+export const globalRateLimit = async (c: Context, next: Next) => {
+  const path = new URL(c.req.url).pathname;
+  if (path.startsWith('/uploads')) return next();
+  return globalLimiter(c, next);
+};

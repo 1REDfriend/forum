@@ -1,8 +1,12 @@
-import { Elysia, status } from 'elysia';
+import { createMiddleware } from 'hono/factory';
 import jwt from 'jsonwebtoken';
 import { userRepository } from '../repositories/user.repository.js';
 import type { JwtPayload } from '../types/index.js';
 import { jwtSecret } from '../config/jwt.js';
+
+/** Hono context variables set by the auth middlewares. */
+export type AuthEnv = { Variables: { user: JwtPayload } };
+export type OptionalAuthEnv = { Variables: { user: JwtPayload | null } };
 
 /** Verify a `Bearer <token>` header. Returns the payload, or null when missing/invalid. */
 export function verifyBearer(authHeader?: string): JwtPayload | null {
@@ -16,50 +20,50 @@ export function verifyBearer(authHeader?: string): JwtPayload | null {
 }
 
 /**
- * Auth plugin exposing three route-level macros (replaces the Express
- * auth/admin middlewares). Used as `{ auth: true }`, `{ optionalAuth: true }`,
- * or `{ admin: true }` on routes/guards. `name` lets Elysia dedupe it across modules.
+ * Require a valid token + non-banned account; sets `user: JwtPayload`.
+ * Loads the user row so a freshly-banned holder of a still-valid token is blocked.
  */
-export const auth = new Elysia({ name: 'auth' }).macro({
-  // Require a valid token + non-banned account; injects `user: JwtPayload`.
-  // Loads the user row so a freshly-banned holder of a still-valid token is blocked.
-  auth: {
-    async resolve({ headers }) {
-      const payload = verifyBearer(headers.authorization);
-      if (!payload) return status(401, { error: 'Unauthorized: Missing or invalid token format' });
-      const row = await userRepository.findById(payload.userId);
-      if (!row) return status(401, { error: 'Unauthorized' });
-      if (row.isBanned) {
-        return status(403, {
-          error: 'Account banned',
-          reason: row.banReason || 'No reason provided',
-          bannedAt: row.bannedAt,
-        });
-      }
-      return { user: { userId: row.id } };
-    },
-  },
-  // Never blocks; injects `user: JwtPayload | null` (personalizes responses when logged in).
-  optionalAuth: {
-    resolve({ headers }) {
-      return { user: verifyBearer(headers.authorization) };
-    },
-  },
-  // Require an authenticated admin (DB role check); injects `user: JwtPayload`.
-  admin: {
-    async resolve({ headers }) {
-      const user = verifyBearer(headers.authorization);
-      if (!user) return status(401, { error: 'Unauthorized' });
-      const row = await userRepository.findById(user.userId);
-      if (!row || row.role !== 'admin') return status(403, { error: 'Forbidden: Admin access required' });
-      if (row.isBanned) {
-        return status(403, {
-          error: 'Account banned',
-          reason: row.banReason || 'No reason provided',
-          bannedAt: row.bannedAt,
-        });
-      }
-      return { user };
-    },
-  },
+export const requireAuth = createMiddleware<AuthEnv>(async (c, next) => {
+  const payload = verifyBearer(c.req.header('authorization'));
+  if (!payload) return c.json({ error: 'Unauthorized: Missing or invalid token format' }, 401);
+  const row = await userRepository.findById(payload.userId);
+  if (!row) return c.json({ error: 'Unauthorized' }, 401);
+  if (row.isBanned) {
+    return c.json(
+      {
+        error: 'Account banned',
+        reason: row.banReason || 'No reason provided',
+        bannedAt: row.bannedAt,
+      },
+      403,
+    );
+  }
+  c.set('user', { userId: row.id });
+  await next();
+});
+
+/** Never blocks; sets `user: JwtPayload | null` (personalizes responses when logged in). */
+export const optionalAuth = createMiddleware<OptionalAuthEnv>(async (c, next) => {
+  c.set('user', verifyBearer(c.req.header('authorization')));
+  await next();
+});
+
+/** Require an authenticated admin (DB role check); sets `user: JwtPayload`. */
+export const requireAdmin = createMiddleware<AuthEnv>(async (c, next) => {
+  const user = verifyBearer(c.req.header('authorization'));
+  if (!user) return c.json({ error: 'Unauthorized' }, 401);
+  const row = await userRepository.findById(user.userId);
+  if (!row || row.role !== 'admin') return c.json({ error: 'Forbidden: Admin access required' }, 403);
+  if (row.isBanned) {
+    return c.json(
+      {
+        error: 'Account banned',
+        reason: row.banReason || 'No reason provided',
+        bannedAt: row.bannedAt,
+      },
+      403,
+    );
+  }
+  c.set('user', user);
+  await next();
 });
