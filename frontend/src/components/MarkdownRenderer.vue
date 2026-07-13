@@ -40,7 +40,7 @@ const renderedHtml = computed(() => {
   font-weight: 700;
   margin-top: 1.2em;
   margin-bottom: 0.5em;
-  color: #f1f5f9;
+  color: var(--color-heading);
 }
 .prose-content :deep(h1) { font-size: 1.5em; }
 .prose-content :deep(h2) { font-size: 1.25em; }
@@ -55,17 +55,18 @@ const renderedHtml = computed(() => {
 .prose-content :deep(em) { font-style: italic; }
 
 .prose-content :deep(code) {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--color-background-mute);
+  border: 1px solid var(--color-border);
   border-radius: 4px;
   padding: 1px 5px;
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
   font-size: 0.875em;
-  color: #c4b5fd;
+  color: var(--color-indigo-700);
 }
 
 .prose-content :deep(pre) {
-  background: #1e1e2e;
+  background: var(--color-background-mute);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 1em 1.2em;
   overflow-x: auto;
@@ -76,14 +77,14 @@ const renderedHtml = computed(() => {
   background: none;
   border: none;
   padding: 0;
-  color: #cdd6f4;
+  color: var(--color-text);
   font-size: 0.875em;
 }
 
 .prose-content :deep(blockquote) {
-  border-left: 3px solid #6366f1;
+  border-left: 3px solid var(--color-indigo-600);
   padding-left: 1em;
-  color: #94a3b8;
+  color: var(--color-text-muted);
   font-style: italic;
   margin: 0.8em 0;
 }
@@ -100,14 +101,14 @@ const renderedHtml = computed(() => {
 }
 
 .prose-content :deep(a) {
-  color: #93c5fd;
+  color: var(--color-indigo-600);
   text-decoration: underline;
 }
-.prose-content :deep(a:hover) { color: #bfdbfe; }
+.prose-content :deep(a:hover) { color: var(--color-indigo-500); }
 
 .prose-content :deep(hr) {
   border: none;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 1px solid var(--color-border);
   margin: 1em 0;
 }
 
@@ -118,12 +119,12 @@ const renderedHtml = computed(() => {
 }
 .prose-content :deep(th),
 .prose-content :deep(td) {
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--color-border);
   padding: 6px 12px;
   text-align: left;
 }
 .prose-content :deep(th) {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--color-background-soft);
   font-weight: 600;
 }
 </style>

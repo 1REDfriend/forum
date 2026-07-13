@@ -52,10 +52,11 @@ const bannerStyle = computed(() =>
 <style scoped>
 .pcard {
   width: 100%;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--glass-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
   border-radius: 12px;
   overflow: hidden;
   text-align: center;
@@ -64,11 +65,11 @@ const bannerStyle = computed(() =>
   height: 56px;
   background-size: cover;
   background-position: center;
-  background-color: #14264a;
+  background-color: var(--color-background-mute);
 }
 .pcard-banner-fallback {
   height: 100%;
-  background: linear-gradient(135deg, #6366f1, #a855f7);
+  background: linear-gradient(135deg, var(--color-indigo-500), var(--color-purple-500));
 }
 .pcard-avatar-wrap {
   margin-top: -28px;
@@ -78,16 +79,16 @@ const bannerStyle = computed(() =>
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  border: 3px solid #fff;
+  border: 3px solid var(--color-background);
   object-fit: cover;
-  background: #fff;
+  background: var(--color-background);
   display: inline-block;
 }
 .pcard-avatar-fallback {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #6366f1;
+  background: var(--color-indigo-600);
   color: #fff;
   font-weight: 700;
   font-size: 1.1rem;
@@ -98,14 +99,14 @@ const bannerStyle = computed(() =>
 .pcard-name {
   display: block;
   font-weight: 700;
-  color: #f1f5f9;
+  color: var(--color-heading);
   font-size: 0.9rem;
   text-decoration: none;
   margin-top: 4px;
   word-break: break-word;
 }
 .pcard-name:hover {
-  color: #93c5fd;
+  color: var(--color-indigo-600);
 }
 .pcard-badges {
   display: flex;
@@ -130,7 +131,7 @@ const bannerStyle = computed(() =>
 }
 .pcard-bio {
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--color-text-muted);
   margin: 8px 0 0;
   line-height: 1.45;
   display: -webkit-box;

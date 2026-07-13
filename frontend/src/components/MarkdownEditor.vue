@@ -320,10 +320,10 @@ const handleAttachInputChange = async (event: Event) => {
 
 <style scoped>
 .markdown-editor {
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--color-background);
 }
 
 .toolbar {
@@ -331,8 +331,8 @@ const handleAttachInputChange = async (event: Event) => {
   align-items: center;
   gap: 2px;
   padding: 6px 8px;
-  background: rgba(255, 255, 255, 0.04);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--color-background-soft);
+  border-bottom: 1px solid var(--color-border);
   flex-wrap: wrap;
 }
 
@@ -340,15 +340,15 @@ const handleAttachInputChange = async (event: Event) => {
   padding: 3px 8px;
   font-size: 12px;
   font-weight: 600;
-  color: #cbd5e1;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--color-text);
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.15s;
   font-family: monospace;
 }
-.toolbar-btn:hover { background: rgba(255, 255, 255, 0.1); color: #f1f5f9; }
+.toolbar-btn:hover { background: var(--color-background-mute); color: var(--color-heading); }
 
 .toolbar-sep {
   flex: 1;
@@ -358,18 +358,18 @@ const handleAttachInputChange = async (event: Event) => {
   padding: 3px 12px;
   font-size: 12px;
   font-weight: 500;
-  color: #94a3b8;
+  color: var(--color-text-muted);
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--color-border);
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.15s;
 }
-.tab-btn:hover { color: #93c5fd; }
+.tab-btn:hover { color: var(--color-indigo-600); }
 .tab-active {
-  background: #4f46e5 !important;
+  background: var(--color-indigo-700) !important;
   color: white !important;
-  border-color: #4f46e5 !important;
+  border-color: var(--color-indigo-700) !important;
 }
 
 .editor-wrap {
@@ -386,7 +386,8 @@ const handleAttachInputChange = async (event: Event) => {
   font-size: 14px;
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
   line-height: 1.7;
-  color: #f1f5f9;
+  color: var(--color-heading);
+  background: var(--color-background);
   min-height: 160px;
   display: block;
 }
@@ -402,9 +403,9 @@ const handleAttachInputChange = async (event: Event) => {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  background: rgba(15, 23, 42, 0.82);
+  background: var(--glass-bg-strong);
   font-size: 14px;
-  color: #93c5fd;
+  color: var(--color-indigo-600);
   font-weight: 500;
 }
 
@@ -412,8 +413,8 @@ const handleAttachInputChange = async (event: Event) => {
   display: inline-block;
   width: 18px;
   height: 18px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-top-color: #93c5fd;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-indigo-600);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
@@ -422,7 +423,7 @@ const handleAttachInputChange = async (event: Event) => {
 .upload-error {
   padding: 6px 12px;
   background: rgba(239, 68, 68, 0.12);
-  color: #fca5a5;
+  color: #ef4444;
   font-size: 12px;
   border-bottom: 1px solid rgba(239, 68, 68, 0.25);
 }
@@ -432,40 +433,40 @@ const handleAttachInputChange = async (event: Event) => {
   min-height: 160px;
 }
 .preview-empty {
-  color: #9ca3af;
+  color: var(--color-text-muted);
   font-style: italic;
   font-size: 14px;
 }
 
 .markdown-hint {
   font-size: 11px;
-  color: #9ca3af;
+  color: var(--color-text-muted);
   padding: 4px 12px 6px;
-  background: rgba(255, 255, 255, 0.04);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--color-background-soft);
+  border-top: 1px solid var(--color-border);
   margin: 0;
 }
 
 /* reuse prose styles */
 .prose-preview :deep(h1), .prose-preview :deep(h2), .prose-preview :deep(h3) {
-  font-weight: 700; margin: 0.8em 0 0.3em; color: #f1f5f9;
+  font-weight: 700; margin: 0.8em 0 0.3em; color: var(--color-heading);
 }
 .prose-preview :deep(p) { margin: 0.5em 0; line-height: 1.7; }
 .prose-preview :deep(strong) { font-weight: 700; }
 .prose-preview :deep(em) { font-style: italic; }
 .prose-preview :deep(code) {
-  background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 4px;
-  padding: 1px 5px; font-family: monospace; font-size: 0.875em; color: #c4b5fd;
+  background: var(--color-background-mute); border: 1px solid var(--color-border); border-radius: 4px;
+  padding: 1px 5px; font-family: monospace; font-size: 0.875em; color: var(--color-indigo-700);
 }
 .prose-preview :deep(pre) {
-  background: #1e1e2e; border-radius: 8px; padding: 0.8em 1em; overflow-x: auto; margin: 0.6em 0;
+  background: var(--color-background-mute); border: 1px solid var(--color-border); border-radius: 8px; padding: 0.8em 1em; overflow-x: auto; margin: 0.6em 0;
 }
-.prose-preview :deep(pre code) { background: none; border: none; padding: 0; color: #cdd6f4; }
+.prose-preview :deep(pre code) { background: none; border: none; padding: 0; color: var(--color-text); }
 .prose-preview :deep(blockquote) {
-  border-left: 3px solid #6366f1; padding-left: 0.8em; color: #94a3b8; font-style: italic; margin: 0.5em 0;
+  border-left: 3px solid var(--color-indigo-600); padding-left: 0.8em; color: var(--color-text-muted); font-style: italic; margin: 0.5em 0;
 }
 .prose-preview :deep(ul), .prose-preview :deep(ol) { padding-left: 1.4em; margin: 0.4em 0; }
 .prose-preview :deep(li) { margin: 0.2em 0; }
-.prose-preview :deep(a) { color: #93c5fd; text-decoration: underline; }
+.prose-preview :deep(a) { color: var(--color-indigo-600); text-decoration: underline; }
 .prose-preview :deep(img) { max-width: 100%; border-radius: 6px; margin: 0.5em 0; }
 </style>

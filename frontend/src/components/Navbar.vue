@@ -31,7 +31,7 @@ const isAdmin = computed(() => route.path === '/admin');
 
     <!-- Primary Navigation (forum quick-nav; hidden on admin at mobile width) -->
     <nav
-      class="items-center gap-8 text-slate-600"
+      class="items-center gap-8 text-(--color-text)"
       :class="isAdmin ? 'hidden md:flex' : 'flex'"
       aria-label="Primary navigation"
     >
@@ -47,7 +47,7 @@ const isAdmin = computed(() => route.path === '/admin');
     </nav>
 
     <!-- Admin context (mobile only): hamburger toggles the sidebar drawer -->
-    <div v-if="isAdmin" class="flex md:hidden items-center gap-3 text-slate-300">
+    <div v-if="isAdmin" class="flex md:hidden items-center gap-3 text-(--color-text)">
       <button
         type="button"
         @click="ui.toggleAdminSidebar()"
@@ -80,10 +80,9 @@ const isAdmin = computed(() => route.path === '/admin');
 
 <style scoped>
 .navbar {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
   backdrop-filter: blur(18px) saturate(180%);
   transition: background 0.3s ease, border-color 0.3s ease;
 }

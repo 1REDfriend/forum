@@ -79,14 +79,14 @@ const formatTimeAgo = (dateStr: string | null) => {
       <!-- Header -->
       <div class="md:hidden flex justify-center items-center pb-6">
         <div>
-          <h1 class="text-3xl font-extrabold text-slate-100">Discussion Forums</h1>
-          <p class="text-lg text-slate-400 mt-1">Browse all discussion categories</p>
+          <h1 class="text-3xl font-extrabold text-(--color-heading)">Discussion Forums</h1>
+          <p class="text-lg text-(--color-text-muted) mt-1">Browse all discussion categories</p>
         </div>
       </div>
       <div class="flex justify-between items-center pb-6">
         <div class="max-md:hidden">
-          <h1 class="text-2xl font-extrabold text-slate-100">Discussion Forums</h1>
-          <p class="text-sm text-slate-400 mt-1">Browse all discussion categories</p>
+          <h1 class="text-2xl font-extrabold text-(--color-heading)">Discussion Forums</h1>
+          <p class="text-sm text-(--color-text-muted) mt-1">Browse all discussion categories</p>
         </div>
         <div class="flex items-center gap-3">
           <button v-if="anyUnread" @click="markAllRead"
@@ -102,12 +102,12 @@ const formatTimeAgo = (dateStr: string | null) => {
 
       <!-- Loading -->
       <div v-if="isLoading" class="space-y-3">
-        <div v-for="i in 4" :key="i" class="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-5 animate-pulse">
+        <div v-for="i in 4" :key="i" class="glass rounded-xl p-5 animate-pulse">
           <div class="flex gap-4">
-            <div class="w-10 h-10 rounded-full bg-white/10 flex-shrink-0"></div>
+            <div class="w-10 h-10 rounded-full bg-(--color-background-mute) flex-shrink-0"></div>
             <div class="flex-1">
-              <div class="h-4 bg-white/10 rounded w-1/3 mb-2"></div>
-              <div class="h-3 bg-white/10 rounded w-2/3"></div>
+              <div class="h-4 bg-(--color-background-mute) rounded w-1/3 mb-2"></div>
+              <div class="h-3 bg-(--color-background-mute) rounded w-2/3"></div>
             </div>
           </div>
         </div>
@@ -115,18 +115,18 @@ const formatTimeAgo = (dateStr: string | null) => {
 
       <!-- Error -->
       <div v-else-if="error" class="text-center py-12">
-        <div class="bg-red-500/10 text-red-300 rounded-xl p-6 border border-red-500/20">
+        <div class="bg-red-500/10 text-red-600 dark:text-red-300 rounded-xl p-6 border border-red-500/20">
           <p class="font-medium">Failed to load forums</p>
           <p class="text-sm mt-1">{{ error }}</p>
         </div>
       </div>
 
       <!-- Forum Table -->
-      <div v-else class="bg-white/5 backdrop-blur-xl shadow-sm border border-white/10 rounded-xl overflow-hidden">
+      <div v-else class="glass overflow-hidden">
 
         <!-- Column Headers -->
         <div
-          class="hidden sm:grid grid-cols-12 gap-2 h-10 bg-white/5 border-b border-white/10 text-xs uppercase tracking-wider font-semibold text-slate-500 px-5 items-center select-none">
+          class="hidden sm:grid grid-cols-12 gap-2 h-10 bg-(--color-background-soft) border-b border-(--color-border) text-xs uppercase tracking-wider font-semibold text-(--color-text-muted) px-5 items-center select-none">
           <div class="col-span-5">Forum</div>
           <div class="col-span-2 text-center">Threads</div>
           <div class="col-span-2 text-center">Posts</div>
@@ -134,18 +134,18 @@ const formatTimeAgo = (dateStr: string | null) => {
         </div>
 
         <!-- Empty -->
-        <div v-if="forums.length === 0" class="p-10 text-center text-slate-500">
-          <svg class="h-12 w-12 mx-auto mb-3 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div v-if="forums.length === 0" class="p-10 text-center text-(--color-text-muted)">
+          <svg class="h-12 w-12 mx-auto mb-3 text-(--color-text-muted)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
               d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
           </svg>
-          <p class="font-medium text-slate-400">No forums yet</p>
+          <p class="font-medium text-(--color-text-muted)">No forums yet</p>
           <p class="text-sm mt-1">Be the first to create a discussion forum!</p>
         </div>
 
         <!-- Forum Rows -->
         <div v-for="forum in forums" :key="forum.id"
-          class="grid grid-cols-12 gap-2 border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors group relative px-5 py-4 items-center">
+          class="grid grid-cols-12 gap-2 border-b border-(--color-border) last:border-0 hover:bg-(--color-background-mute) transition-colors group relative px-5 py-4 items-center">
 
           <!-- Forum info -->
           <div class="col-span-12 sm:col-span-5 flex items-start gap-3 min-w-0">
@@ -153,23 +153,23 @@ const formatTimeAgo = (dateStr: string | null) => {
             <div class="flex-shrink-0 mt-1 relative">
               <div :class="[
                 'w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm',
-                isForumUnread(forum) ? 'bg-indigo-600' : 'bg-white/10'
+                isForumUnread(forum) ? 'bg-indigo-600' : 'bg-(--color-background-mute)'
               ]">
                 <span :class="isForumUnread(forum) ? 'text-white' : 'text-sky-400'">
                   {{ forum.name.charAt(0).toUpperCase() }}
                 </span>
               </div>
               <span v-if="isForumUnread(forum)"
-                class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-orange-500 rounded-full ring-2 ring-slate-900"></span>
+                class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-orange-500 rounded-full ring-2 ring-(--color-background)"></span>
             </div>
             <div class="min-w-0 flex-1">
               <router-link :to="`/forum/${forum.id}`"
-                class="font-bold text-slate-100 group-hover:text-sky-400 transition-colors text-base leading-tight block truncate">
+                class="font-bold text-(--color-heading) group-hover:text-sky-400 transition-colors text-base leading-tight block truncate">
                 {{ forum.name }}
               </router-link>
-              <p v-if="forum.description" class="text-xs text-slate-400 mt-0.5 line-clamp-1">{{ forum.description }}</p>
+              <p v-if="forum.description" class="text-xs text-(--color-text-muted) mt-0.5 line-clamp-1">{{ forum.description }}</p>
               <!-- Mobile stats -->
-              <div class="flex items-center gap-3 mt-1 sm:hidden text-xs text-slate-500">
+              <div class="flex items-center gap-3 mt-1 sm:hidden text-xs text-(--color-text-muted)">
                 <span>{{ forum.threadCount ?? 0 }} threads</span>
                 <span>{{ forum.postCount ?? 0 }} posts</span>
                 <span v-if="forum.lastPostAt" class="text-sky-400">{{ formatTimeAgo(forum.lastPostAt) }}</span>
@@ -179,30 +179,30 @@ const formatTimeAgo = (dateStr: string | null) => {
 
           <!-- Threads -->
           <div class="hidden sm:flex col-span-2 justify-center items-center">
-            <span class="text-sm font-semibold text-slate-300">{{ forum.threadCount ?? 0 }}</span>
+            <span class="text-sm font-semibold text-(--color-text)">{{ forum.threadCount ?? 0 }}</span>
           </div>
 
           <!-- Posts -->
           <div class="hidden sm:flex col-span-2 justify-center items-center">
-            <span class="text-sm font-semibold text-slate-300">{{ forum.postCount ?? 0 }}</span>
+            <span class="text-sm font-semibold text-(--color-text)">{{ forum.postCount ?? 0 }}</span>
           </div>
 
           <!-- Last Post -->
           <div class="hidden sm:flex col-span-3 items-center gap-2 min-w-0">
             <div v-if="forum.lastPostAt" class="min-w-0 flex-1">
-              <p class="text-xs font-medium text-slate-300 truncate">
-                <span class="text-slate-500">by</span> @{{ forum.lastPostAuthor ?? '—' }}
+              <p class="text-xs font-medium text-(--color-text) truncate">
+                <span class="text-(--color-text-muted)">by</span> @{{ forum.lastPostAuthor ?? '—' }}
               </p>
               <p
-                :class="['text-xs truncate', isForumUnread(forum) ? 'text-orange-500 font-semibold' : 'text-slate-500']">
+                :class="['text-xs truncate', isForumUnread(forum) ? 'text-orange-500 font-semibold' : 'text-(--color-text-muted)']">
                 {{ formatTimeAgo(forum.lastPostAt) }}
               </p>
             </div>
-            <div v-else class="text-xs text-slate-600 italic">No posts yet</div>
+            <div v-else class="text-xs text-(--color-text-muted) italic">No posts yet</div>
 
             <!-- Mark as Read button -->
             <button v-if="isForumUnread(forum)" @click="markForumRead(forum, $event)" title="Mark as read"
-              class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-slate-600 hover:text-sky-400 hover:bg-sky-500/10 transition-all opacity-0 group-hover:opacity-100">
+              class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-(--color-text-muted) hover:text-sky-400 hover:bg-sky-500/10 transition-all opacity-0 group-hover:opacity-100">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
               </svg>
