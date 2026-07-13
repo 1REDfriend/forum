@@ -21,6 +21,7 @@ declare module 'vue' {
     MarkdownEditor: typeof import('./src/components/MarkdownEditor.vue')['default']
     MarkdownRenderer: typeof import('./src/components/MarkdownRenderer.vue')['default']
     MenuIcon: typeof import('./src/components/icons/MenuIcon.vue')['default']
+    MoonIcon: typeof import('./src/components/icons/MoonIcon.vue')['default']
     Navbar: typeof import('./src/components/Navbar.vue')['default']
     ProfileCard: typeof import('./src/components/ProfileCard.vue')['default']
     ReportButton: typeof import('./src/components/ReportButton.vue')['default']
@@ -28,6 +29,7 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     SearchIcon: typeof import('./src/components/icons/SearchIcon.vue')['default']
     ShareButton: typeof import('./src/components/ShareButton.vue')['default']
+    SunIcon: typeof import('./src/components/icons/SunIcon.vue')['default']
     UserDropdown: typeof import('./src/components/UserDropdown.vue')['default']
   }
 }
@@ -43,6 +45,7 @@ declare global {
   const MarkdownEditor: typeof import('./src/components/MarkdownEditor.vue')['default']
   const MarkdownRenderer: typeof import('./src/components/MarkdownRenderer.vue')['default']
   const MenuIcon: typeof import('./src/components/icons/MenuIcon.vue')['default']
+  const MoonIcon: typeof import('./src/components/icons/MoonIcon.vue')['default']
   const Navbar: typeof import('./src/components/Navbar.vue')['default']
   const ProfileCard: typeof import('./src/components/ProfileCard.vue')['default']
   const ReportButton: typeof import('./src/components/ReportButton.vue')['default']
@@ -50,5 +53,6 @@ declare global {
   const RouterView: typeof import('vue-router')['RouterView']
   const SearchIcon: typeof import('./src/components/icons/SearchIcon.vue')['default']
   const ShareButton: typeof import('./src/components/ShareButton.vue')['default']
+  const SunIcon: typeof import('./src/components/icons/SunIcon.vue')['default']
   const UserDropdown: typeof import('./src/components/UserDropdown.vue')['default']
 }
