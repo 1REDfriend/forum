@@ -14,12 +14,12 @@ export const postRoutes = new Hono<OptionalAuthEnv>()
   })
   // Protected routes
   .post('/', requireAuth, validate('json', CreatePostDTO), async (c) =>
-    c.json(await postService.createPost(c.get('user')!.userId, c.req.valid('json')), 201),
+    c.json(await postService.createPost(c.get('user').userId, c.req.valid('json')), 201),
   )
   .put('/:id', requireAuth, validate('json', UpdatePostDTO), async (c) =>
-    c.json(await postService.updatePost(c.get('user')!.userId, c.req.param('id'), c.req.valid('json'))),
+    c.json(await postService.updatePost(c.get('user').userId, c.req.param('id'), c.req.valid('json'))),
   )
   .delete('/:id', requireAuth, async (c) => {
-    await postService.deletePost(c.get('user')!.userId, c.req.param('id'));
+    await postService.deletePost(c.get('user').userId, c.req.param('id'));
     return c.body(null, 204);
   });

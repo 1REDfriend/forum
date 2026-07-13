@@ -19,21 +19,21 @@ export const threadRoutes = new Hono<OptionalAuthEnv>()
   )
   // Protected routes
   .post('/', requireAuth, validate('json', CreateThreadDTO), async (c) =>
-    c.json(await threadService.createThread(c.get('user')!.userId, c.req.valid('json')), 201),
+    c.json(await threadService.createThread(c.get('user').userId, c.req.valid('json')), 201),
   )
   .put('/:id', requireAuth, validate('json', UpdateThreadDTO), async (c) => {
     const body = c.req.valid('json');
     if (Object.keys(body).length === 0)
       throw BadRequestError('At least one field (title or content) must be provided');
-    return c.json(await threadService.updateThread(c.get('user')!.userId, c.req.param('id'), body));
+    return c.json(await threadService.updateThread(c.get('user').userId, c.req.param('id'), body));
   })
   .delete('/:id', requireAuth, async (c) => {
-    await threadService.deleteThread(c.get('user')!.userId, c.req.param('id'));
+    await threadService.deleteThread(c.get('user').userId, c.req.param('id'));
     return c.body(null, 204);
   })
   .patch('/:id/pin', requireAuth, async (c) =>
-    c.json(await threadService.pinThread(c.get('user')!.userId, c.req.param('id'))),
+    c.json(await threadService.pinThread(c.get('user').userId, c.req.param('id'))),
   )
   .patch('/:id/lock', requireAuth, async (c) =>
-    c.json(await threadService.lockThread(c.get('user')!.userId, c.req.param('id'))),
+    c.json(await threadService.lockThread(c.get('user').userId, c.req.param('id'))),
   );
