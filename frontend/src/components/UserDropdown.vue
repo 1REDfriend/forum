@@ -103,7 +103,7 @@ const handleLogout = () => {
     <template v-else>
       <router-link
         to="/login"
-        class="text-sm text-(--color-text) hover:text-sky-700 font-medium transition-colors"
+        class="text-sm text-(--color-text) hover:text-sky-700 dark:hover:text-sky-300 font-medium transition-colors"
       >
         Login
       </router-link>

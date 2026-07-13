@@ -60,6 +60,12 @@
   --color-text: oklch(28% 0.005 107.1);
   --color-text-muted: oklch(55.6% 0 0);
 
+  /* Semantic status colors — readable on light backgrounds (darker end of
+     the Tailwind red/green ramps); `.dark` overrides with the lighter end
+     so the same tokens stay legible on dark surfaces too. */
+  --color-error: oklch(57.7% 0.245 27.325); /* red-600 */
+  --color-success: oklch(62.7% 0.194 149.214); /* green-600 */
+
   --section-gap: 96px;
 
   /* "glass" tokens now render as clean white cards with hairline borders
@@ -81,6 +87,9 @@
   --color-heading: oklch(98.5% 0 0);
   --color-text: oklch(87% 0 0);
   --color-text-muted: oklch(70.8% 0 0);
+
+  --color-error: oklch(70.4% 0.191 22.216); /* red-400 */
+  --color-success: oklch(79.2% 0.209 151.711); /* green-400 */
 
   --glass-bg: oklch(20.5% 0 0);
   --glass-bg-strong: oklch(24% 0 0);

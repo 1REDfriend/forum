@@ -27,7 +27,7 @@ async function share() {
 <template>
   <button
     type="button"
-    class="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium text-(--color-text-muted) hover:text-sky-500 hover:bg-(--color-background-mute) transition-all"
+    class="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium text-(--color-text-muted) hover:text-sky-700 dark:hover:text-sky-300 hover:bg-(--color-background-mute) transition-all"
     @click="share"
   >
     <span>🔗</span>

@@ -11,7 +11,7 @@
 
         <div class="flex flex-col p-3 flex-1 border-r border-(--color-border) justify-center">
             <slot name="main">
-                <a href="#" class="font-bold hover:text-sky-400 transition-colors"></a>
+                <a href="#" class="font-bold hover:text-sky-600 dark:hover:text-sky-400 transition-colors"></a>
                 <p class="text-xs text-(--color-text-muted) mt-0.5"></p>
             </slot>
         </div>

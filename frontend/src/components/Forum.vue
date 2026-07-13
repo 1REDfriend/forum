@@ -90,7 +90,7 @@ const formatTimeAgo = (dateStr: string | null) => {
         </div>
         <div class="flex items-center gap-3">
           <button v-if="anyUnread" @click="markAllRead"
-            class="text-xs text-sky-400 hover:text-sky-300 font-medium border border-sky-500/30 hover:border-sky-500/50 px-3 py-1.5 rounded-full transition-colors">
+            class="text-xs text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-medium border border-sky-500/30 hover:border-sky-500/50 px-3 py-1.5 rounded-full transition-colors">
             ✓ Mark All Read
           </button>
           <router-link v-if="authStore.isAuthenticated" to="/forum/create"
@@ -102,7 +102,7 @@ const formatTimeAgo = (dateStr: string | null) => {
 
       <!-- Loading -->
       <div v-if="isLoading" class="space-y-3">
-        <div v-for="i in 4" :key="i" class="glass rounded-xl p-5 animate-pulse">
+        <div v-for="i in 4" :key="i" class="glass p-5 animate-pulse">
           <div class="flex gap-4">
             <div class="w-10 h-10 rounded-full bg-(--color-background-mute) flex-shrink-0"></div>
             <div class="flex-1">
@@ -115,7 +115,7 @@ const formatTimeAgo = (dateStr: string | null) => {
 
       <!-- Error -->
       <div v-else-if="error" class="text-center py-12">
-        <div class="bg-red-500/10 text-red-600 dark:text-red-300 rounded-xl p-6 border border-red-500/20">
+        <div class="bg-red-500/10 text-(--color-error) rounded-xl p-6 border border-red-500/20">
           <p class="font-medium">Failed to load forums</p>
           <p class="text-sm mt-1">{{ error }}</p>
         </div>
@@ -155,7 +155,7 @@ const formatTimeAgo = (dateStr: string | null) => {
                 'w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm',
                 isForumUnread(forum) ? 'bg-indigo-600' : 'bg-(--color-background-mute)'
               ]">
-                <span :class="isForumUnread(forum) ? 'text-white' : 'text-sky-400'">
+                <span :class="isForumUnread(forum) ? 'text-white' : 'text-sky-600 dark:text-sky-400'">
                   {{ forum.name.charAt(0).toUpperCase() }}
                 </span>
               </div>
@@ -164,7 +164,7 @@ const formatTimeAgo = (dateStr: string | null) => {
             </div>
             <div class="min-w-0 flex-1">
               <router-link :to="`/forum/${forum.id}`"
-                class="font-bold text-(--color-heading) group-hover:text-sky-400 transition-colors text-base leading-tight block truncate">
+                class="font-bold text-(--color-heading) group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors text-base leading-tight block truncate">
                 {{ forum.name }}
               </router-link>
               <p v-if="forum.description" class="text-xs text-(--color-text-muted) mt-0.5 line-clamp-1">{{ forum.description }}</p>
@@ -172,7 +172,7 @@ const formatTimeAgo = (dateStr: string | null) => {
               <div class="flex items-center gap-3 mt-1 sm:hidden text-xs text-(--color-text-muted)">
                 <span>{{ forum.threadCount ?? 0 }} threads</span>
                 <span>{{ forum.postCount ?? 0 }} posts</span>
-                <span v-if="forum.lastPostAt" class="text-sky-400">{{ formatTimeAgo(forum.lastPostAt) }}</span>
+                <span v-if="forum.lastPostAt" class="text-sky-600 dark:text-sky-400">{{ formatTimeAgo(forum.lastPostAt) }}</span>
               </div>
             </div>
           </div>
@@ -202,7 +202,7 @@ const formatTimeAgo = (dateStr: string | null) => {
 
             <!-- Mark as Read button -->
             <button v-if="isForumUnread(forum)" @click="markForumRead(forum, $event)" title="Mark as read"
-              class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-(--color-text-muted) hover:text-sky-400 hover:bg-sky-500/10 transition-all opacity-0 group-hover:opacity-100">
+              class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-(--color-text-muted) hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-500/10 transition-all opacity-0 group-hover:opacity-100">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
               </svg>
@@ -211,7 +211,7 @@ const formatTimeAgo = (dateStr: string | null) => {
 
           <!-- Mobile mark as read -->
           <button v-if="isForumUnread(forum)" @click="markForumRead(forum, $event)"
-            class="absolute top-3 right-3 sm:hidden text-xs text-sky-400 border border-sky-500/30 px-2 py-0.5 rounded-full">
+            class="absolute top-3 right-3 sm:hidden text-xs text-sky-600 dark:text-sky-400 border border-sky-500/30 px-2 py-0.5 rounded-full">
             Mark read
           </button>
         </div>

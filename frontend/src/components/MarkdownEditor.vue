@@ -422,10 +422,10 @@ const handleAttachInputChange = async (event: Event) => {
 
 .upload-error {
   padding: 6px 12px;
-  background: rgba(239, 68, 68, 0.12);
-  color: #ef4444;
+  background: color-mix(in oklch, var(--color-error) 12%, transparent);
+  color: var(--color-error);
   font-size: 12px;
-  border-bottom: 1px solid rgba(239, 68, 68, 0.25);
+  border-bottom: 1px solid color-mix(in oklch, var(--color-error) 25%, transparent);
 }
 
 .preview-area {

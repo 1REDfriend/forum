@@ -66,8 +66,8 @@ const submit = async () => {
             placeholder="เช่น สแปม, เนื้อหาไม่เหมาะสม…"
             class="w-full text-sm text-(--color-heading) placeholder-(--color-text-muted) border border-(--color-border) rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-400 resize-y bg-(--color-background)"
           ></textarea>
-          <p v-if="error" class="text-xs text-red-600 dark:text-red-400 mt-1">{{ error }}</p>
-          <p v-if="done" class="text-xs text-green-600 dark:text-green-400 mt-1">{{ done }}</p>
+          <p v-if="error" class="text-xs text-(--color-error) mt-1">{{ error }}</p>
+          <p v-if="done" class="text-xs text-(--color-success) mt-1">{{ done }}</p>
           <div class="flex gap-2 justify-end mt-4">
             <button @click="open = false" class="px-3 py-1.5 text-sm text-(--color-text-muted) hover:bg-(--color-background-mute) rounded-lg">
               ยกเลิก
