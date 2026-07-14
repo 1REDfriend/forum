@@ -21,19 +21,24 @@ export function useAdminActivity() {
 export function useAdminUsers(
   page: MaybeRef<number>,
   search: MaybeRef<string>,
+  limit: MaybeRef<number> = 15,
   enabled: MaybeRef<boolean> = true,
 ) {
   return useQuery({
-    queryKey: ['admin', 'users', page, search],
-    queryFn: () => adminApi.getUsers(unref(page), 20, unref(search) || undefined),
+    queryKey: ['admin', 'users', page, search, limit],
+    queryFn: () => adminApi.getUsers(unref(page), unref(limit), unref(search) || undefined),
     enabled: computed(() => unref(enabled)),
   });
 }
 
-export function useAdminForums(page: MaybeRef<number>, enabled: MaybeRef<boolean> = true) {
+export function useAdminForums(
+  page: MaybeRef<number>,
+  limit: MaybeRef<number> = 20,
+  enabled: MaybeRef<boolean> = true,
+) {
   return useQuery({
-    queryKey: ['admin', 'forums', page],
-    queryFn: () => adminApi.getForums(unref(page)),
+    queryKey: ['admin', 'forums', page, limit],
+    queryFn: () => adminApi.getForums(unref(page), unref(limit)),
     enabled: computed(() => unref(enabled)),
   });
 }
@@ -41,19 +46,24 @@ export function useAdminForums(page: MaybeRef<number>, enabled: MaybeRef<boolean
 export function useAdminThreads(
   page: MaybeRef<number>,
   search: MaybeRef<string>,
+  limit: MaybeRef<number> = 15,
   enabled: MaybeRef<boolean> = true,
 ) {
   return useQuery({
-    queryKey: ['admin', 'threads', page, search],
-    queryFn: () => adminApi.getThreads(unref(page), 20, unref(search) || undefined),
+    queryKey: ['admin', 'threads', page, search, limit],
+    queryFn: () => adminApi.getThreads(unref(page), unref(limit), unref(search) || undefined),
     enabled: computed(() => unref(enabled)),
   });
 }
 
-export function useAdminPosts(page: MaybeRef<number>, enabled: MaybeRef<boolean> = true) {
+export function useAdminPosts(
+  page: MaybeRef<number>,
+  limit: MaybeRef<number> = 15,
+  enabled: MaybeRef<boolean> = true,
+) {
   return useQuery({
-    queryKey: ['admin', 'posts', page],
-    queryFn: () => adminApi.getPosts(unref(page)),
+    queryKey: ['admin', 'posts', page, limit],
+    queryFn: () => adminApi.getPosts(unref(page), unref(limit)),
     enabled: computed(() => unref(enabled)),
   });
 }
@@ -61,11 +71,12 @@ export function useAdminPosts(page: MaybeRef<number>, enabled: MaybeRef<boolean>
 export function useAdminReports(
   page: MaybeRef<number>,
   status: MaybeRef<string>,
+  limit: MaybeRef<number> = 15,
   enabled: MaybeRef<boolean> = true,
 ) {
   return useQuery({
-    queryKey: ['admin', 'reports', page, status],
-    queryFn: () => adminApi.getReports(unref(page), 20, unref(status) || undefined),
+    queryKey: ['admin', 'reports', page, status, limit],
+    queryFn: () => adminApi.getReports(unref(page), unref(limit), unref(status) || undefined),
     enabled: computed(() => unref(enabled)),
   });
 }

@@ -55,13 +55,13 @@ const usersSearch = ref('');
 const usersSearchInput = ref('');
 let usersSearchTimer: ReturnType<typeof setTimeout>;
 const usersEnabled = computed(() => activeTab.value === 'users');
-const { data: usersData, isPending: usersLoading } = useAdminUsers(usersPage, usersSearch, usersEnabled);
+const { data: usersData, isPending: usersLoading } = useAdminUsers(usersPage, usersSearch, 15, usersEnabled);
 const users = computed(() => usersData.value ?? null);
 
 // ─── Forums ───────────────────────────────────────────────────────────────────
 const forumsPage = ref(1);
 const forumsEnabled = computed(() => activeTab.value === 'forums');
-const { data: forumsData, isPending: forumsLoading } = useAdminForums(forumsPage, forumsEnabled);
+const { data: forumsData, isPending: forumsLoading } = useAdminForums(forumsPage, 20, forumsEnabled);
 const forums = computed(() => forumsData.value ?? null);
 
 // ─── Threads ──────────────────────────────────────────────────────────────────
@@ -70,20 +70,20 @@ const threadsSearch = ref('');
 const threadsSearchInput = ref('');
 let threadsSearchTimer: ReturnType<typeof setTimeout>;
 const threadsEnabled = computed(() => activeTab.value === 'threads');
-const { data: threadsData, isPending: threadsLoading } = useAdminThreads(threadsPage, threadsSearch, threadsEnabled);
+const { data: threadsData, isPending: threadsLoading } = useAdminThreads(threadsPage, threadsSearch, 15, threadsEnabled);
 const threads = computed(() => threadsData.value ?? null);
 
 // ─── Posts ────────────────────────────────────────────────────────────────────
 const postsPage = ref(1);
 const postsEnabled = computed(() => activeTab.value === 'posts');
-const { data: postsData, isPending: postsLoading } = useAdminPosts(postsPage, postsEnabled);
+const { data: postsData, isPending: postsLoading } = useAdminPosts(postsPage, 15, postsEnabled);
 const posts = computed(() => postsData.value ?? null);
 
 // ─── Reports ──────────────────────────────────────────────────────────────────
 const reportsPage = ref(1);
 const reportsStatus = ref('open');
 const reportsEnabled = computed(() => activeTab.value === 'reports');
-const { data: reportsData, isPending: reportsLoading } = useAdminReports(reportsPage, reportsStatus, reportsEnabled);
+const { data: reportsData, isPending: reportsLoading } = useAdminReports(reportsPage, reportsStatus, 15, reportsEnabled);
 const reports = computed(() => reportsData.value ?? null);
 
 // ─── Badges ───────────────────────────────────────────────────────────────────
