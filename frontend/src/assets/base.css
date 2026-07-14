@@ -78,6 +78,10 @@
   /* Landing hero decorative background blobs — lighter wash on white,
      fuller glow against the dark surface. */
   --hero-shape-opacity: 0.18;
+
+  /* "Lift" shadow for hover-elevated cards (feature/step/top-forum cards) —
+     subtle on a white surface, needs real weight to read against dark. */
+  --shadow-hover: 0 14px 44px oklch(0% 0 0 / 0.18);
 }
 
 .dark {
@@ -101,8 +105,17 @@
   --glass-shadow: 0 1px 3px oklch(0% 0 0 / 0.5), 0 1px 2px oklch(0% 0 0 / 0.3);
 
   --hero-shape-opacity: 0.35;
+
+  --shadow-hover: 0 14px 44px oklch(0% 0 0 / 0.55);
 }
 
+/* These reset/base rules stay unlayered on purpose: no component ever puts a
+   Tailwind utility class on `*`/`html`/`body` competing for box-sizing,
+   margin, scroll-behavior, or the body's base color/font, so the unlayered-
+   beats-layered cascade trap below doesn't apply to them. `h1-h6` is
+   different — components routinely apply `text-*` utilities straight to
+   heading elements, so that rule alone needs `@layer base` (see below) to
+   let those utilities win instead of losing to this file. */
 *,
 *::before,
 *::after {

@@ -560,7 +560,7 @@ const formatCount = (n: number) => {
 .feature-card:hover {
   border-color: color-mix(in oklch, var(--color-indigo-500) 45%, transparent);
   transform: translateY(-4px);
-  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.18);
+  box-shadow: var(--shadow-hover);
 }
 .feature-card:hover::before { opacity: 1; }
 .feature-icon { font-size: 2rem; margin-bottom: 16px; }
@@ -589,7 +589,7 @@ const formatCount = (n: number) => {
 .step:hover {
   border-color: color-mix(in oklch, var(--color-indigo-500) 45%, transparent);
   transform: translateY(-4px);
-  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.18);
+  box-shadow: var(--shadow-hover);
 }
 .step-num {
   width: 52px; height: 52px;
@@ -645,7 +645,7 @@ const formatCount = (n: number) => {
 .top-forum-card:hover {
   border-color: color-mix(in oklch, var(--color-indigo-500) 45%, transparent);
   transform: translateX(6px);
-  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.18);
+  box-shadow: var(--shadow-hover);
 }
 
 .top-rank { font-size: 1.8rem; flex-shrink: 0; }
