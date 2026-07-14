@@ -507,14 +507,14 @@ onUnmounted(() => {
             </div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon" style="background:#d1fae5;color:#059669">🗂️</div>
+            <div class="stat-icon" style="background:var(--color-green-100);color:var(--color-green-700)">🗂️</div>
             <div>
               <p class="stat-label">Total Forums</p>
               <p class="stat-value">{{ stats.totalForums.toLocaleString() }}</p>
             </div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon" style="background:#fef3c7;color:#d97706">💬</div>
+            <div class="stat-icon" style="background:var(--color-amber-100);color:var(--color-amber-700)">💬</div>
             <div>
               <p class="stat-label">Total Threads</p>
               <p class="stat-value">{{ stats.totalThreads.toLocaleString() }}</p>
@@ -522,7 +522,7 @@ onUnmounted(() => {
             </div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon" style="background:#fce7f3;color:#db2777">📝</div>
+            <div class="stat-icon" style="background:var(--color-pink-100);color:var(--color-pink-700)">📝</div>
             <div>
               <p class="stat-label">Total Posts</p>
               <p class="stat-value">{{ stats.totalPosts.toLocaleString() }}</p>
@@ -1070,19 +1070,17 @@ onUnmounted(() => {
 .admin-layout {
   --admin-accent: var(--color-indigo-700);
   --admin-accent-strong: var(--color-indigo-800);
-  --admin-accent-soft-bg: oklch(55.3% 0.195 38.402 / 12%);
-  --admin-accent-soft-bg-strong: oklch(55.3% 0.195 38.402 / 22%);
+  --admin-accent-soft-bg: color-mix(in oklch, var(--admin-accent) 12%, transparent);
+  --admin-accent-soft-bg-strong: color-mix(in oklch, var(--admin-accent) 22%, transparent);
   --admin-amber: #b45309;
-  --admin-btn-bg: var(--color-indigo-700);
   --admin-btn-bg-hover: var(--color-indigo-600);
 }
 .dark .admin-layout {
   --admin-accent: var(--color-indigo-600);
   --admin-accent-strong: var(--color-indigo-500);
-  --admin-accent-soft-bg: oklch(64.6% 0.222 41.116 / 20%);
-  --admin-accent-soft-bg-strong: oklch(64.6% 0.222 41.116 / 32%);
+  --admin-accent-soft-bg: color-mix(in oklch, var(--admin-accent) 20%, transparent);
+  --admin-accent-soft-bg-strong: color-mix(in oklch, var(--admin-accent) 32%, transparent);
   --admin-amber: #fcd34d;
-  --admin-btn-bg: var(--color-indigo-600);
   --admin-btn-bg-hover: var(--color-indigo-500);
 }
 
@@ -1258,7 +1256,7 @@ onUnmounted(() => {
   font-size: 14px; flex-shrink: 0;
 }
 .badge-thread { background: var(--admin-accent-soft-bg); }
-.badge-post { background: rgba(236, 72, 153, 0.18); }
+.badge-post { background: color-mix(in oklch, var(--color-pink-600) 18%, transparent); }
 .activity-info { flex: 1; min-width: 0; }
 .activity-text { font-size: 13px; color: var(--color-text); margin: 0 0 2px; line-height: 1.5; }
 .activity-meta { font-size: 11px; color: var(--color-text-muted); margin: 0; }
@@ -1280,7 +1278,7 @@ onUnmounted(() => {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--color-text-muted);
-  background: var(--color-background-soft);
+  background: var(--color-background-mute);
   border-bottom: 1px solid var(--color-border);
   white-space: nowrap;
 }
@@ -1302,7 +1300,7 @@ onUnmounted(() => {
 .user-avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
 .user-avatar-placeholder {
   width: 28px; height: 28px; border-radius: 50%;
-  background: var(--admin-btn-bg); color: white;
+  background: var(--admin-accent); color: white;
   display: flex; align-items: center; justify-content: center;
   font-size: 12px; font-weight: 700; flex-shrink: 0;
 }
@@ -1434,7 +1432,7 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   padding: 8px 18px;
-  background: var(--admin-btn-bg);
+  background: var(--admin-accent);
   color: white;
   font-size: 13px;
   font-weight: 600;
@@ -1479,14 +1477,14 @@ onUnmounted(() => {
 }
 .btn-cancel:hover { background: var(--color-background-mute); }
 .btn-danger {
-  padding: 8px 18px; background: #dc2626; color: white; border: none;
+  padding: 8px 18px; background: var(--color-error); color: white; border: none;
   border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
   transition: background 0.15s;
 }
-.btn-danger:hover:not(:disabled) { background: #b91c1c; }
+.btn-danger:hover:not(:disabled) { background: color-mix(in oklch, var(--color-error) 85%, black); }
 .btn-danger:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-save {
-  padding: 8px 18px; background: var(--admin-btn-bg); color: white; border: none;
+  padding: 8px 18px; background: var(--admin-accent); color: white; border: none;
   border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
   transition: background 0.15s;
 }
@@ -1542,7 +1540,7 @@ onUnmounted(() => {
 .badge-manage-label { font-size: 13px; font-weight: 600; color: var(--color-heading); margin: 0; }
 .badge-manage-desc { font-size: 11px; color: var(--color-text-muted); margin: 2px 0 0; }
 .btn-grant {
-  padding: 5px 14px; border: none; border-radius: 8px; background: var(--admin-btn-bg); color: #fff;
+  padding: 5px 14px; border: none; border-radius: 8px; background: var(--admin-accent); color: #fff;
   font-size: 12px; font-weight: 600; cursor: pointer; flex-shrink: 0; transition: background 0.15s;
 }
 .btn-grant:hover:not(:disabled) { background: var(--admin-btn-bg-hover); }

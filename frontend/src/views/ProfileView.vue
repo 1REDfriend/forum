@@ -204,7 +204,7 @@ const formatDate = (dateStr: string | undefined) => {
                                         class="w-full h-full object-cover" alt="Avatar" />
                                 </div>
                                 <div v-else
-                                    class="w-20 h-20 rounded-full bg-indigo-600 text-white flex items-center justify-center text-2xl font-bold border-4 border-(--color-background) shadow-md">
+                                    class="w-20 h-20 rounded-full bg-indigo-700 text-white flex items-center justify-center text-2xl font-bold border-4 border-(--color-background) shadow-md">
                                     {{ getInitials(profileUser.name) }}
                                 </div>
                                 <label v-if="isOwnProfile"

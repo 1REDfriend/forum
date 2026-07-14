@@ -133,7 +133,7 @@ const formatTimeAgo = (dateStr: string | null) => {
             ✓ Mark All Read
           </button>
           <router-link v-if="authStore.isAuthenticated && forumData" :to="`/forum/${forumData.id}/create-thread`"
-            class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-full shadow-sm text-sm font-medium transition-colors whitespace-nowrap">
+            class="bg-indigo-700 hover:bg-indigo-600 text-white px-4 py-2 rounded-full shadow-sm text-sm font-medium transition-colors whitespace-nowrap">
             + New Thread
           </router-link>
         </div>
@@ -279,7 +279,7 @@ const formatTimeAgo = (dateStr: string | null) => {
           <button v-for="page in totalPages" :key="page" @click="goToPage(page)" :class="[
             'px-3 py-2 text-sm rounded-lg border transition-colors',
             page === currentPage
-              ? 'bg-indigo-600 text-white border-indigo-600'
+              ? 'bg-indigo-700 text-white border-indigo-700'
               : 'border-(--color-border) hover:bg-(--color-background-mute)'
           ]">
             {{ page }}
