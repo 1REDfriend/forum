@@ -499,7 +499,7 @@ onUnmounted(() => {
         </div>
         <div v-else-if="stats" class="stat-grid">
           <div class="stat-card">
-            <div class="stat-icon" style="background:#e0e7ff;color:#4f46e5">👥</div>
+            <div class="stat-icon" style="background:var(--color-indigo-100);color:var(--color-indigo-700)">👥</div>
             <div>
               <p class="stat-label">Total Users</p>
               <p class="stat-value">{{ stats.totalUsers.toLocaleString() }}</p>
@@ -1068,20 +1068,22 @@ onUnmounted(() => {
 <style scoped>
 /* ── Local accent tokens: light defaults, .dark override ─────────────── */
 .admin-layout {
-  --admin-accent: #2563eb;
-  --admin-accent-strong: #1d4ed8;
-  --admin-accent-soft-bg: rgba(37, 99, 235, 0.1);
+  --admin-accent: var(--color-indigo-700);
+  --admin-accent-strong: var(--color-indigo-800);
+  --admin-accent-soft-bg: oklch(55.3% 0.195 38.402 / 12%);
+  --admin-accent-soft-bg-strong: oklch(55.3% 0.195 38.402 / 22%);
   --admin-amber: #b45309;
-  --admin-btn-bg: #4f46e5;
-  --admin-btn-bg-hover: #4338ca;
+  --admin-btn-bg: var(--color-indigo-700);
+  --admin-btn-bg-hover: var(--color-indigo-600);
 }
 .dark .admin-layout {
-  --admin-accent: #93c5fd;
-  --admin-accent-strong: #818cf8;
-  --admin-accent-soft-bg: rgba(99, 102, 241, 0.2);
+  --admin-accent: var(--color-indigo-600);
+  --admin-accent-strong: var(--color-indigo-500);
+  --admin-accent-soft-bg: oklch(64.6% 0.222 41.116 / 20%);
+  --admin-accent-soft-bg-strong: oklch(64.6% 0.222 41.116 / 32%);
   --admin-amber: #fcd34d;
-  --admin-btn-bg: #6366f1;
-  --admin-btn-bg-hover: #4f46e5;
+  --admin-btn-bg: var(--color-indigo-600);
+  --admin-btn-bg-hover: var(--color-indigo-500);
 }
 
 /* ── Layout ─────────────────────────────────────────────────────────── */
@@ -1255,7 +1257,7 @@ onUnmounted(() => {
   display: flex; align-items: center; justify-content: center;
   font-size: 14px; flex-shrink: 0;
 }
-.badge-thread { background: rgba(99, 102, 241, 0.18); }
+.badge-thread { background: var(--admin-accent-soft-bg); }
 .badge-post { background: rgba(236, 72, 153, 0.18); }
 .activity-info { flex: 1; min-width: 0; }
 .activity-text { font-size: 13px; color: var(--color-text); margin: 0 0 2px; line-height: 1.5; }
@@ -1300,7 +1302,7 @@ onUnmounted(() => {
 .user-avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
 .user-avatar-placeholder {
   width: 28px; height: 28px; border-radius: 50%;
-  background: #6366f1; color: white;
+  background: var(--admin-btn-bg); color: white;
   display: flex; align-items: center; justify-content: center;
   font-size: 12px; font-weight: 700; flex-shrink: 0;
 }
@@ -1319,7 +1321,7 @@ onUnmounted(() => {
 .role-admin { background: rgba(245, 158, 11, 0.16); color: var(--admin-amber); }
 .role-admin:hover { background: rgba(245, 158, 11, 0.26); }
 .role-user { background: var(--admin-accent-soft-bg); color: var(--admin-accent); }
-.role-user:hover { background: rgba(99, 102, 241, 0.22); }
+.role-user:hover { background: var(--admin-accent-soft-bg-strong); }
 .tier-select {
   padding: 3px 8px;
   border: 1px solid var(--color-border);
