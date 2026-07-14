@@ -86,7 +86,7 @@ const totalResults = () => {
                     <div class="space-y-2">
                         <router-link v-for="forum in results.forums" :key="forum.id" :to="`/forum/${forum.id}`"
                             class="block bg-(--color-background-soft) rounded-xl border border-(--color-border) px-5 py-4 hover:bg-(--color-background-mute) transition-colors group">
-                            <h3 class="font-bold text-(--color-heading) group-hover:!text-sky-600 dark:group-hover:!text-sky-400 transition-colors">{{
+                            <h3 class="font-bold text-(--color-heading) group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">{{
                                 forum.name }}</h3>
                             <p class="text-sm text-(--color-text-muted) mt-1" v-if="forum.description">{{ forum.description }}</p>
                         </router-link>
@@ -99,7 +99,7 @@ const totalResults = () => {
                     <div class="space-y-2">
                         <router-link v-for="thread in results.threads" :key="thread.id" :to="`/thread/${thread.id}`"
                             class="block bg-(--color-background-soft) rounded-xl border border-(--color-border) px-5 py-4 hover:bg-(--color-background-mute) transition-colors group">
-                            <h3 class="font-bold text-(--color-heading) group-hover:!text-sky-600 dark:group-hover:!text-sky-400 transition-colors">{{
+                            <h3 class="font-bold text-(--color-heading) group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">{{
                                 thread.title }}</h3>
                             <div class="flex gap-3 text-xs text-(--color-text-muted) mt-1">
                                 <span>in {{ thread.forumName }}</span>

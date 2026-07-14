@@ -4,7 +4,7 @@
 <template>
     <main class="min-h-screen flex flex-col items-center justify-center pt-16">
         <div class="text-center px-6">
-            <h1 class="text-8xl font-extrabold !text-indigo-700 mb-4">404</h1>
+            <h1 class="text-8xl font-extrabold text-indigo-700 mb-4">404</h1>
             <h2 class="text-2xl font-bold text-(--color-heading) mb-2">Page Not Found</h2>
             <p class="text-(--color-text-muted) mb-8 max-w-md mx-auto">
                 Sorry, the page you're looking for doesn't exist or has been moved.

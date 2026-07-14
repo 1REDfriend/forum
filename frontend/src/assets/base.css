@@ -74,6 +74,10 @@
   --glass-bg-strong: oklch(100% 0 0);
   --glass-border: oklch(93% 0.007 106.5);
   --glass-shadow: 0 1px 3px oklch(0% 0 0 / 0.08), 0 1px 2px oklch(0% 0 0 / 0.04);
+
+  /* Landing hero decorative background blobs — lighter wash on white,
+     fuller glow against the dark surface. */
+  --hero-shape-opacity: 0.18;
 }
 
 .dark {
@@ -95,6 +99,8 @@
   --glass-bg-strong: oklch(24% 0 0);
   --glass-border: oklch(100% 0 0 / 12%);
   --glass-shadow: 0 1px 3px oklch(0% 0 0 / 0.5), 0 1px 2px oklch(0% 0 0 / 0.3);
+
+  --hero-shape-opacity: 0.35;
 }
 
 *,
@@ -121,10 +127,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  color: var(--color-heading);
-  font-weight: 700;
-  letter-spacing: -0.01em;
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--color-heading);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
 }
 
 /* ── Card surfaces ──────────────────────────────────────────────────────────

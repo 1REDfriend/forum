@@ -338,7 +338,7 @@ const formatCount = (n: number) => {
   position: absolute;
   border-radius: 50%;
   filter: blur(80px);
-  opacity: 0.35;
+  opacity: var(--hero-shape-opacity, 0.18);
   animation: float 8s ease-in-out infinite;
 }
 .shape-1 { width: 1000px; height: 1000px; background: var(--color-indigo-400); top: -500px; left: -450px; animation-delay: 0s; }
