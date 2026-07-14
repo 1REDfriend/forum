@@ -1,4 +1,4 @@
-import { unref, type MaybeRef } from 'vue';
+import { computed, unref, type MaybeRef } from 'vue';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query';
 import { adminApi } from '../api/index.js';
 
@@ -18,45 +18,63 @@ export function useAdminActivity() {
   });
 }
 
-export function useAdminUsers(page: MaybeRef<number>, search: MaybeRef<string>) {
+export function useAdminUsers(
+  page: MaybeRef<number>,
+  search: MaybeRef<string>,
+  enabled: MaybeRef<boolean> = true,
+) {
   return useQuery({
     queryKey: ['admin', 'users', page, search],
     queryFn: () => adminApi.getUsers(unref(page), 20, unref(search) || undefined),
+    enabled: computed(() => unref(enabled)),
   });
 }
 
-export function useAdminForums(page: MaybeRef<number>) {
+export function useAdminForums(page: MaybeRef<number>, enabled: MaybeRef<boolean> = true) {
   return useQuery({
     queryKey: ['admin', 'forums', page],
     queryFn: () => adminApi.getForums(unref(page)),
+    enabled: computed(() => unref(enabled)),
   });
 }
 
-export function useAdminThreads(page: MaybeRef<number>, search: MaybeRef<string>) {
+export function useAdminThreads(
+  page: MaybeRef<number>,
+  search: MaybeRef<string>,
+  enabled: MaybeRef<boolean> = true,
+) {
   return useQuery({
     queryKey: ['admin', 'threads', page, search],
     queryFn: () => adminApi.getThreads(unref(page), 20, unref(search) || undefined),
+    enabled: computed(() => unref(enabled)),
   });
 }
 
-export function useAdminPosts(page: MaybeRef<number>) {
+export function useAdminPosts(page: MaybeRef<number>, enabled: MaybeRef<boolean> = true) {
   return useQuery({
     queryKey: ['admin', 'posts', page],
     queryFn: () => adminApi.getPosts(unref(page)),
+    enabled: computed(() => unref(enabled)),
   });
 }
 
-export function useAdminReports(page: MaybeRef<number>, status: MaybeRef<string>) {
+export function useAdminReports(
+  page: MaybeRef<number>,
+  status: MaybeRef<string>,
+  enabled: MaybeRef<boolean> = true,
+) {
   return useQuery({
     queryKey: ['admin', 'reports', page, status],
     queryFn: () => adminApi.getReports(unref(page), 20, unref(status) || undefined),
+    enabled: computed(() => unref(enabled)),
   });
 }
 
-export function useAdminBadgeCatalog() {
+export function useAdminBadgeCatalog(enabled: MaybeRef<boolean> = true) {
   return useQuery({
     queryKey: ['admin', 'badges'],
     queryFn: () => adminApi.getBadgeCatalog(),
+    enabled: computed(() => unref(enabled)),
   });
 }
 

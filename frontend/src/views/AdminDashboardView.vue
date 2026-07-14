@@ -1,19 +1,29 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
-import { adminApi, threadsApi } from '../api/index.js';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { useQueryClient } from '@tanstack/vue-query';
 import type {
-  AdminStats, AdminUser, AdminForum, AdminThread, AdminPost, ActivityItem, AdminReport,
-  PaginatedAdminResult, BadgeCatalogItem,
+  AdminUser, AdminForum, AdminThread, AdminReport, BadgeCatalogItem,
 } from '../api/admin.js';
 import { TIERS } from '../api/types.js';
 import { useAuthStore } from '../stores/auth.js';
 import { useRouter } from 'vue-router';
 import { useUiStore } from '../stores/ui.js';
+import {
+  useAdminStats, useAdminActivity, useAdminUsers, useAdminForums, useAdminThreads,
+  useAdminPosts, useAdminReports, useAdminBadgeCatalog,
+  useUpdateUserRole, useUpdateUserTier, useDeleteUser, useBanUser, useUnbanUser,
+  useUpdateAdminForum, useDeleteAdminForum, useDeleteAdminThread, useDeleteAdminPost,
+  useResolveReport, useCreateBadge, useUpdateBadge, useDeleteBadge, useGrantBadge, useRevokeBadge,
+} from '../composables/useAdmin.js';
+import { usePinThread, useLockThread } from '../composables/useThreads.js';
 
 const authStore = useAuthStore();
 const router = useRouter();
+const qc = useQueryClient();
 
 const ui = useUiStore();
+
+const errorMessage = (err: unknown) => (err instanceof Error ? err.message : undefined);
 
 // Switch tab and close the mobile drawer so content is visible after tapping.
 const selectTab = (key: Tab) => {
@@ -26,48 +36,62 @@ type Tab = 'overview' | 'users' | 'forums' | 'threads' | 'posts' | 'reports' | '
 const activeTab = ref<Tab>('overview');
 
 // ─── Stats ────────────────────────────────────────────────────────────────────
-const stats = ref<AdminStats | null>(null);
-const activity = ref<ActivityItem[]>([]);
-const statsLoading = ref(true);
+const statsQuery = useAdminStats();
+const activityQuery = useAdminActivity();
+const stats = computed(() => statsQuery.data.value ?? null);
+const activity = computed(() => activityQuery.data.value ?? []);
+const statsLoading = computed(() => statsQuery.isPending.value || activityQuery.isPending.value);
+
+// Any create/update/delete that changes counts also invalidates the overview,
+// so switching back to it (or leaving it open) reflects fresh numbers.
+const invalidateOverview = () => {
+  qc.invalidateQueries({ queryKey: ['admin', 'stats'] });
+  qc.invalidateQueries({ queryKey: ['admin', 'activity'] });
+};
 
 // ─── Users ────────────────────────────────────────────────────────────────────
-const users = ref<PaginatedAdminResult<AdminUser> | null>(null);
-const usersLoading = ref(false);
 const usersPage = ref(1);
 const usersSearch = ref('');
 const usersSearchInput = ref('');
 let usersSearchTimer: ReturnType<typeof setTimeout>;
+const usersEnabled = computed(() => activeTab.value === 'users');
+const { data: usersData, isPending: usersLoading } = useAdminUsers(usersPage, usersSearch, usersEnabled);
+const users = computed(() => usersData.value ?? null);
 
 // ─── Forums ───────────────────────────────────────────────────────────────────
-const forums = ref<PaginatedAdminResult<AdminForum> | null>(null);
-const forumsLoading = ref(false);
 const forumsPage = ref(1);
+const forumsEnabled = computed(() => activeTab.value === 'forums');
+const { data: forumsData, isPending: forumsLoading } = useAdminForums(forumsPage, forumsEnabled);
+const forums = computed(() => forumsData.value ?? null);
 
 // ─── Threads ──────────────────────────────────────────────────────────────────
-const threads = ref<PaginatedAdminResult<AdminThread> | null>(null);
-const threadsLoading = ref(false);
 const threadsPage = ref(1);
 const threadsSearch = ref('');
 const threadsSearchInput = ref('');
 let threadsSearchTimer: ReturnType<typeof setTimeout>;
+const threadsEnabled = computed(() => activeTab.value === 'threads');
+const { data: threadsData, isPending: threadsLoading } = useAdminThreads(threadsPage, threadsSearch, threadsEnabled);
+const threads = computed(() => threadsData.value ?? null);
 
 // ─── Posts ────────────────────────────────────────────────────────────────────
-const posts = ref<PaginatedAdminResult<AdminPost> | null>(null);
-const postsLoading = ref(false);
 const postsPage = ref(1);
+const postsEnabled = computed(() => activeTab.value === 'posts');
+const { data: postsData, isPending: postsLoading } = useAdminPosts(postsPage, postsEnabled);
+const posts = computed(() => postsData.value ?? null);
+
+// ─── Reports ──────────────────────────────────────────────────────────────────
+const reportsPage = ref(1);
+const reportsStatus = ref('open');
+const reportsEnabled = computed(() => activeTab.value === 'reports');
+const { data: reportsData, isPending: reportsLoading } = useAdminReports(reportsPage, reportsStatus, reportsEnabled);
+const reports = computed(() => reportsData.value ?? null);
 
 // ─── Badges ───────────────────────────────────────────────────────────────────
-const badgeCatalog = ref<BadgeCatalogItem[]>([]);
-const badgeCatalogLoading = ref(false);
-const loadBadgeCatalog = async () => {
-  if (badgeCatalog.value.length > 0) return;
-  badgeCatalogLoading.value = true;
-  try {
-    badgeCatalog.value = await adminApi.getBadgeCatalog();
-  } catch { /* ignore */ } finally {
-    badgeCatalogLoading.value = false;
-  }
-};
+// Shared by the Users tab (badge chips), the Manage Badges modal, and the Badges tab,
+// so it's loaded unconditionally rather than gated to a single tab.
+const badgeCatalogQuery = useAdminBadgeCatalog();
+const badgeCatalog = computed(() => badgeCatalogQuery.data.value ?? []);
+const badgeCatalogLoading = computed(() => badgeCatalogQuery.isPending.value);
 const badgeMap = computed<Record<string, BadgeCatalogItem>>(() =>
   Object.fromEntries(badgeCatalog.value.map((b) => [b.key, b])),
 );
@@ -75,7 +99,6 @@ const badgeMap = computed<Record<string, BadgeCatalogItem>>(() =>
 // ─── Badge definition CRUD (admin catalog) ──────────────────────────────────
 type BadgeFormMode = 'create' | 'edit';
 const badgeForm = ref<{ mode: BadgeFormMode; key: string; label: string; description: string; icon: string } | null>(null);
-const isSavingBadge = ref(false);
 const badgeError = ref('');
 
 const openCreateBadge = () => {
@@ -88,7 +111,11 @@ const openEditBadge = (b: BadgeCatalogItem) => {
   badgeForm.value = { mode: 'edit', key: b.key, label: b.label, description: b.desc, icon: b.icon };
 };
 
-const saveBadge = async () => {
+const createBadgeMutation = useCreateBadge();
+const updateBadgeMutation = useUpdateBadge();
+const isSavingBadge = computed(() => createBadgeMutation.isPending.value || updateBadgeMutation.isPending.value);
+
+const saveBadge = () => {
   const f = badgeForm.value;
   if (!f) return;
   const key = f.key.trim();
@@ -100,203 +127,132 @@ const saveBadge = async () => {
     badgeError.value = 'Key must be 2–50 chars: lowercase letters, digits, underscore.';
     return;
   }
-  isSavingBadge.value = true;
   badgeError.value = '';
-  try {
-    if (f.mode === 'create') {
-      const created = await adminApi.createBadge({ key, label, description, icon });
-      badgeCatalog.value.push(created);
-    } else {
-      const updated = await adminApi.updateBadge(key, { label, description, icon });
-      const i = badgeCatalog.value.findIndex((x) => x.key === key);
-      if (i !== -1) badgeCatalog.value[i] = updated;
-    }
-    badgeForm.value = null;
-  } catch (err: any) {
-    badgeError.value = err.message || 'Failed to save badge';
-  } finally {
-    isSavingBadge.value = false;
+  const onSuccess = () => { badgeForm.value = null; };
+  const onError = (err: unknown) => { badgeError.value = errorMessage(err) || 'Failed to save badge'; };
+  if (f.mode === 'create') {
+    createBadgeMutation.mutate({ key, label, description, icon }, { onSuccess, onError });
+  } else {
+    updateBadgeMutation.mutate({ key, data: { label, description, icon } }, { onSuccess, onError });
   }
 };
 
-const deleteBadge = async (b: BadgeCatalogItem) => {
+const deleteBadgeMutation = useDeleteBadge();
+const deleteBadge = (b: BadgeCatalogItem) => {
   if (!confirm(`Delete badge "${b.label}" (${b.key})? It will be removed from all users who have it. This cannot be undone.`)) return;
-  try {
-    await adminApi.deleteBadge(b.key);
-    badgeCatalog.value = badgeCatalog.value.filter((x) => x.key !== b.key);
-  } catch (err: any) {
-    alert(err.message || 'Failed to delete badge');
-  }
+  deleteBadgeMutation.mutate(b.key, {
+    onError: (err: unknown) => alert(errorMessage(err) || 'Failed to delete badge'),
+  });
 };
 
 // Per-user badge management modal
 const manageBadgesUser = ref<AdminUser | null>(null);
-const badgeBusy = ref<string | null>(null); // key currently being mutated
+// Per-badge in-flight state (grant/revoke), keyed by badge key — not a single
+// shared ref, since multiple badge buttons in the modal can be clicked in succession.
+const badgeBusyKeys = ref<Set<string>>(new Set());
 
-const openManageBadges = async (user: AdminUser) => {
-  await loadBadgeCatalog();
+const openManageBadges = (user: AdminUser) => {
   manageBadgesUser.value = user;
 };
 
-const grantBadge = async (key: string) => {
+const grantBadgeMutation = useGrantBadge();
+const grantBadge = (key: string) => {
   const user = manageBadgesUser.value;
   if (!user) return;
-  badgeBusy.value = key;
-  try {
-    await adminApi.grantBadge(user.id, key);
-    if (!user.badgeKeys.includes(key)) user.badgeKeys.push(key);
-  } catch (err: any) {
-    alert(err.message || 'Failed to grant badge');
-  } finally {
-    badgeBusy.value = null;
-  }
+  badgeBusyKeys.value.add(key);
+  grantBadgeMutation.mutate(
+    { userId: user.id, badgeKey: key },
+    {
+      onSuccess: () => { if (!user.badgeKeys.includes(key)) user.badgeKeys.push(key); },
+      onError: (err: unknown) => alert(errorMessage(err) || 'Failed to grant badge'),
+      onSettled: () => { badgeBusyKeys.value.delete(key); },
+    },
+  );
 };
 
-const revokeBadge = async (key: string) => {
+const revokeBadgeMutation = useRevokeBadge();
+const revokeBadge = (key: string) => {
   const user = manageBadgesUser.value;
   if (!user) return;
-  badgeBusy.value = key;
-  try {
-    await adminApi.revokeBadge(user.id, key);
-    user.badgeKeys = user.badgeKeys.filter((k) => k !== key);
-  } catch (err: any) {
-    alert(err.message || 'Failed to revoke badge');
-  } finally {
-    badgeBusy.value = null;
-  }
+  badgeBusyKeys.value.add(key);
+  revokeBadgeMutation.mutate(
+    { userId: user.id, badgeKey: key },
+    {
+      onSuccess: () => { user.badgeKeys = user.badgeKeys.filter((k) => k !== key); },
+      onError: (err: unknown) => alert(errorMessage(err) || 'Failed to revoke badge'),
+      onSettled: () => { badgeBusyKeys.value.delete(key); },
+    },
+  );
 };
 
 // ─── Ban / unban ────────────────────────────────────────────────────────────
 const banTarget = ref<AdminUser | null>(null);
 const banReasonInput = ref('');
-const isBanning = ref(false);
 
 const askBan = (u: AdminUser) => { banTarget.value = u; banReasonInput.value = ''; };
 
-const confirmBan = async () => {
+const banUserMutation = useBanUser();
+const isBanning = banUserMutation.isPending;
+
+const confirmBan = () => {
   const target = banTarget.value;
   if (!target) return;
   const reason = banReasonInput.value.trim();
   if (reason.length < 3) return;
-  isBanning.value = true;
-  try {
-    await adminApi.banUser(target.id, reason);
-    const row = users.value?.data.find((u) => u.id === target.id);
-    if (row) { row.isBanned = true; row.banReason = reason; row.bannedAt = new Date().toISOString(); }
-    banTarget.value = null;
-  } catch (err: any) {
-    alert(err.message || 'Failed to ban user');
-  } finally {
-    isBanning.value = false;
-  }
+  banUserMutation.mutate(
+    { id: target.id, reason },
+    {
+      onSuccess: () => { banTarget.value = null; },
+      onError: (err: unknown) => alert(errorMessage(err) || 'Failed to ban user'),
+    },
+  );
 };
 
-const unban = async (u: AdminUser) => {
-  try {
-    await adminApi.unbanUser(u.id);
-    const row = users.value?.data.find((r) => r.id === u.id);
-    if (row) { row.isBanned = false; row.banReason = null; row.bannedAt = null; }
-  } catch (err: any) {
-    alert(err.message || 'Failed to unban user');
-  }
+const unbanUserMutation = useUnbanUser();
+const unban = (u: AdminUser) => {
+  unbanUserMutation.mutate(u.id, {
+    onError: (err: unknown) => alert(errorMessage(err) || 'Failed to unban user'),
+  });
 };
 
 // ─── Delete confirm ───────────────────────────────────────────────────────────
 const confirmDelete = ref<{ type: string; id: string; label: string } | null>(null);
 const editForum = ref<{ id: string; name: string; description: string } | null>(null);
-const isSavingForum = ref(false);
-const isDeleting = ref(false);
 
-// ─── Load functions ───────────────────────────────────────────────────────────
+const deleteUserMutation = useDeleteUser();
+const deleteForumMutation = useDeleteAdminForum();
+const deleteThreadMutation = useDeleteAdminThread();
+const deletePostMutation = useDeleteAdminPost();
+const isDeleting = computed(() =>
+  deleteUserMutation.isPending.value ||
+  deleteForumMutation.isPending.value ||
+  deleteThreadMutation.isPending.value ||
+  deletePostMutation.isPending.value,
+);
 
-const loadStats = async () => {
-  statsLoading.value = true;
-  try {
-    const [s, a] = await Promise.all([adminApi.getStats(), adminApi.getRecentActivity()]);
-    stats.value = s;
-    activity.value = a;
-  } catch { /* ignore */ } finally {
-    statsLoading.value = false;
-  }
+// ─── Reports ──────────────────────────────────────────────────────────────────
+
+const resolveReportMutation = useResolveReport();
+const resolveReport = (id: string, status: 'reviewed' | 'dismissed') => {
+  resolveReportMutation.mutate(
+    { id, status },
+    { onError: (err: unknown) => alert(errorMessage(err) || 'Failed to resolve report') },
+  );
 };
 
-const loadUsers = async () => {
-  usersLoading.value = true;
-  try {
-    users.value = await adminApi.getUsers(usersPage.value, 15, usersSearch.value || undefined);
-  } catch { /* ignore */ } finally {
-    usersLoading.value = false;
-  }
-};
-
-const loadForums = async () => {
-  forumsLoading.value = true;
-  try {
-    forums.value = await adminApi.getForums(forumsPage.value, 20);
-  } catch { /* ignore */ } finally {
-    forumsLoading.value = false;
-  }
-};
-
-const loadThreads = async () => {
-  threadsLoading.value = true;
-  try {
-    threads.value = await adminApi.getThreads(threadsPage.value, 15, threadsSearch.value || undefined);
-  } catch { /* ignore */ } finally {
-    threadsLoading.value = false;
-  }
-};
-
-const loadPosts = async () => {
-  postsLoading.value = true;
-  try {
-    posts.value = await adminApi.getPosts(postsPage.value, 15);
-  } catch { /* ignore */ } finally {
-    postsLoading.value = false;
-  }
-};
-
-// ─── Tab change ───────────────────────────────────────────────────────────────
-
-// Reports
-const reports = ref<PaginatedAdminResult<AdminReport> | null>(null);
-const reportsLoading = ref(false);
-const reportsPage = ref(1);
-const reportsStatus = ref('open');
-const loadReports = async () => {
-  reportsLoading.value = true;
-  try {
-    reports.value = await adminApi.getReports(reportsPage.value, 15, reportsStatus.value || undefined);
-  } finally {
-    reportsLoading.value = false;
-  }
-};
-const resolveReport = async (id: string, status: 'reviewed' | 'dismissed') => {
-  await adminApi.resolveReport(id, status);
-  loadReports();
-};
-const deleteReportTarget = async (r: AdminReport) => {
+const deleteReportTarget = (r: AdminReport) => {
   if (r.targetType === 'user') { alert('Use the Users tab to delete a user.'); return; }
   if (!confirm(`Delete this ${r.targetType} permanently? This cannot be undone.`)) return;
-  try {
-    if (r.targetType === 'thread') await adminApi.deleteThread(r.targetId);
-    else await adminApi.deletePost(r.targetId);
-    await adminApi.resolveReport(r.id, 'reviewed');
-    loadReports();
-  } catch (err: any) {
-    alert(err.message || 'Failed to delete target');
-  }
+  const onError = (err: unknown) => alert(errorMessage(err) || 'Failed to delete target');
+  const onSuccess = () => {
+    resolveReportMutation.mutate({ id: r.id, status: 'reviewed' });
+    invalidateOverview();
+  };
+  if (r.targetType === 'thread') deleteThreadMutation.mutate(r.targetId, { onSuccess, onError });
+  else deletePostMutation.mutate(r.targetId, { onSuccess, onError });
 };
-const setReportsPage = (p: number) => { reportsPage.value = p; loadReports(); };
 
-watch(activeTab, (tab) => {
-  if (tab === 'users') { loadBadgeCatalog(); if (!users.value) loadUsers(); }
-  if (tab === 'forums' && !forums.value) loadForums();
-  if (tab === 'threads' && !threads.value) loadThreads();
-  if (tab === 'posts' && !posts.value) loadPosts();
-  if (tab === 'reports' && !reports.value) loadReports();
-  if (tab === 'badges') loadBadgeCatalog();
-});
+const setReportsPage = (p: number) => { reportsPage.value = p; };
 
 // ─── Search debounce ──────────────────────────────────────────────────────────
 
@@ -305,7 +261,6 @@ const onUsersSearchInput = () => {
   usersSearchTimer = setTimeout(() => {
     usersSearch.value = usersSearchInput.value;
     usersPage.value = 1;
-    loadUsers();
   }, 400);
 };
 
@@ -314,56 +269,51 @@ const onThreadsSearchInput = () => {
   threadsSearchTimer = setTimeout(() => {
     threadsSearch.value = threadsSearchInput.value;
     threadsPage.value = 1;
-    loadThreads();
   }, 400);
 };
 
 // ─── Pagination ───────────────────────────────────────────────────────────────
 
-const setUsersPage = (p: number) => { usersPage.value = p; loadUsers(); };
-const setForumsPage = (p: number) => { forumsPage.value = p; loadForums(); };
-const setThreadsPage = (p: number) => { threadsPage.value = p; loadThreads(); };
-const setPostsPage = (p: number) => { postsPage.value = p; loadPosts(); };
+const setUsersPage = (p: number) => { usersPage.value = p; };
+const setForumsPage = (p: number) => { forumsPage.value = p; };
+const setThreadsPage = (p: number) => { threadsPage.value = p; };
+const setPostsPage = (p: number) => { postsPage.value = p; };
 
 // ─── Actions ──────────────────────────────────────────────────────────────────
 
-const toggleUserRole = async (user: AdminUser) => {
+const updateUserRoleMutation = useUpdateUserRole();
+const toggleUserRole = (user: AdminUser) => {
   const newRole = user.role === 'admin' ? 'user' : 'admin';
-  try {
-    await adminApi.updateUserRole(user.id, newRole);
-    user.role = newRole;
-  } catch (err: any) {
-    alert(err.message || 'Failed to update role');
-  }
+  updateUserRoleMutation.mutate(
+    { id: user.id, role: newRole },
+    { onError: (err: unknown) => alert(errorMessage(err) || 'Failed to update role') },
+  );
 };
 
-const setUserTier = async (user: AdminUser, tier: string) => {
-  const prev = user.tier;
-  user.tier = tier;
-  try {
-    await adminApi.updateUserTier(user.id, tier);
-  } catch (err: any) {
-    user.tier = prev;
-    alert(err.message || 'Failed to update tier');
-  }
+const updateUserTierMutation = useUpdateUserTier();
+const setUserTier = (user: AdminUser, tier: string) => {
+  updateUserTierMutation.mutate(
+    { id: user.id, tier },
+    { onError: (err: unknown) => alert(errorMessage(err) || 'Failed to update tier') },
+  );
 };
 
-const toggleThreadPin = async (thread: AdminThread) => {
-  try {
-    const { isPinned } = await threadsApi.pinThread(thread.id);
-    thread.isPinned = isPinned;
-  } catch (err: any) {
-    alert(err.message || 'Failed to toggle pin');
-  }
+// Thread pin/lock live on the public thread composables (not admin-specific),
+// so their own invalidation doesn't know about the admin threads list — invalidate it here too.
+const pinThreadMutation = usePinThread();
+const toggleThreadPin = (thread: AdminThread) => {
+  pinThreadMutation.mutate(thread.id, {
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'threads'] }),
+    onError: (err: unknown) => alert(errorMessage(err) || 'Failed to toggle pin'),
+  });
 };
 
-const toggleThreadLock = async (thread: AdminThread) => {
-  try {
-    const { isLocked } = await threadsApi.lockThread(thread.id);
-    thread.isLocked = isLocked;
-  } catch (err: any) {
-    alert(err.message || 'Failed to toggle lock');
-  }
+const lockThreadMutation = useLockThread();
+const toggleThreadLock = (thread: AdminThread) => {
+  lockThreadMutation.mutate(thread.id, {
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'threads'] }),
+    onError: (err: unknown) => alert(errorMessage(err) || 'Failed to toggle lock'),
+  });
 };
 
 const askDelete = (type: string, id: string, label: string) => {
@@ -374,39 +324,34 @@ const openEditForum = (forum: AdminForum) => {
   editForum.value = { id: forum.id, name: forum.name, description: forum.description || '' };
 };
 
-const saveForum = async () => {
+const updateForumMutation = useUpdateAdminForum();
+const isSavingForum = updateForumMutation.isPending;
+const saveForum = () => {
   if (!editForum.value) return;
   const name = editForum.value.name.trim();
   const description = editForum.value.description.trim();
   if (!name) return;
-  isSavingForum.value = true;
-  try {
-    await adminApi.updateForum(editForum.value.id, { name, description });
-    const row = forums.value?.data.find((f) => f.id === editForum.value!.id);
-    if (row) { row.name = name; row.description = description; }
-    editForum.value = null;
-  } catch (err: any) {
-    alert(err.message || 'Failed to update forum');
-  } finally {
-    isSavingForum.value = false;
-  }
+  updateForumMutation.mutate(
+    { id: editForum.value.id, data: { name, description } },
+    {
+      onSuccess: () => { editForum.value = null; },
+      onError: (err: unknown) => alert(errorMessage(err) || 'Failed to update forum'),
+    },
+  );
 };
 
-const doDelete = async () => {
+const doDelete = () => {
   if (!confirmDelete.value) return;
-  isDeleting.value = true;
-  try {
-    const { type, id } = confirmDelete.value;
-    if (type === 'user') { await adminApi.deleteUser(id); loadUsers(); if (activeTab.value === 'overview') loadStats(); }
-    if (type === 'forum') { await adminApi.deleteForum(id); loadForums(); if (activeTab.value === 'overview') loadStats(); }
-    if (type === 'thread') { await adminApi.deleteThread(id); loadThreads(); if (activeTab.value === 'overview') loadStats(); }
-    if (type === 'post') { await adminApi.deletePost(id); loadPosts(); if (activeTab.value === 'overview') loadStats(); }
+  const { type, id } = confirmDelete.value;
+  const onSuccess = () => {
     confirmDelete.value = null;
-  } catch (err: any) {
-    alert(err.message || 'Delete failed');
-  } finally {
-    isDeleting.value = false;
-  }
+    invalidateOverview();
+  };
+  const onError = (err: unknown) => alert(errorMessage(err) || 'Delete failed');
+  if (type === 'user') deleteUserMutation.mutate(id, { onSuccess, onError });
+  else if (type === 'forum') deleteForumMutation.mutate(id, { onSuccess, onError });
+  else if (type === 'thread') deleteThreadMutation.mutate(id, { onSuccess, onError });
+  else if (type === 'post') deletePostMutation.mutate(id, { onSuccess, onError });
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -446,7 +391,6 @@ onMounted(() => {
     router.push('/forums');
     return;
   }
-  loadStats();
 });
 
 onUnmounted(() => {
@@ -843,7 +787,7 @@ onUnmounted(() => {
         <div class="section-card">
           <div style="display:flex; gap:8px; margin-bottom:14px">
             <button v-for="s in ['open', 'reviewed', 'dismissed']" :key="s"
-              @click="reportsStatus = s; reportsPage = 1; loadReports()" class="page-btn"
+              @click="reportsStatus = s; reportsPage = 1" class="page-btn"
               :style="reportsStatus === s ? { background: 'var(--admin-accent-strong)', color: '#fff', borderColor: 'var(--admin-accent-strong)' } : {}">
               {{ s }}
             </button>
@@ -984,15 +928,15 @@ onUnmounted(() => {
               <button
                 v-if="manageBadgesUser.badgeKeys.includes(b.key)"
                 @click="revokeBadge(b.key)"
-                :disabled="badgeBusy === b.key"
+                :disabled="badgeBusyKeys.has(b.key)"
                 class="btn-revoke"
-              >{{ badgeBusy === b.key ? '…' : 'Revoke' }}</button>
+              >{{ badgeBusyKeys.has(b.key) ? '…' : 'Revoke' }}</button>
               <button
                 v-else
                 @click="grantBadge(b.key)"
-                :disabled="badgeBusy === b.key"
+                :disabled="badgeBusyKeys.has(b.key)"
                 class="btn-grant"
-              >{{ badgeBusy === b.key ? '…' : 'Grant' }}</button>
+              >{{ badgeBusyKeys.has(b.key) ? '…' : 'Grant' }}</button>
             </div>
             <p v-if="badgeCatalog.length === 0" class="empty-text">No badges available.</p>
           </div>

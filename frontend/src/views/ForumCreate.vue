@@ -1,25 +1,26 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { forumsApi } from '../api/index.js';
+import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useCreateForum } from '../composables/useForums.js';
 
 const router = useRouter();
 const name = ref('');
 const description = ref('');
-const error = ref('');
-const isLoading = ref(false);
 
-const handleCreate = async () => {
-    isLoading.value = true;
-    error.value = '';
-    try {
-        await forumsApi.createForum({ name: name.value, description: description.value });
-        router.push('/');
-    } catch (err: any) {
-        error.value = err.message || 'Failed to create forum';
-    } finally {
-        isLoading.value = false;
-    }
+const { mutate: createForumMutate, isPending: isLoading, error: createForumError } = useCreateForum();
+
+const errorMessage = (err: unknown) => (err instanceof Error ? err.message : undefined);
+const error = computed(() => errorMessage(createForumError.value) ?? '');
+
+const handleCreate = () => {
+    createForumMutate(
+        { name: name.value, description: description.value },
+        {
+            onSuccess: () => {
+                router.push('/');
+            },
+        },
+    );
 };
 </script>
 

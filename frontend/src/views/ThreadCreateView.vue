@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { threadsApi, forumsApi } from '../api/index.js';
-import type { Forum } from '../api/types.js';
+import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import MarkdownEditor from '../components/MarkdownEditor.vue';
+import { useForum } from '../composables/useForums.js';
+import { useCreateThread } from '../composables/useThreads.js';
 
 const props = defineProps<{
     forum: string // This is the forum ID from route
@@ -12,33 +12,26 @@ const props = defineProps<{
 const router = useRouter();
 const title = ref('');
 const content = ref('');
-const error = ref('');
-const isLoading = ref(false);
-const forumData = ref<Forum | null>(null);
 
-onMounted(async () => {
-    try {
-        forumData.value = await forumsApi.getForumById(props.forum);
-    } catch (err) {
-        error.value = "Failed to load forum info";
-    }
+const { data: forumData, error: forumQueryError } = useForum(computed(() => props.forum));
+const { mutate: createThreadMutate, isPending: isLoading, error: createThreadError } = useCreateThread();
+
+const errorMessage = (err: unknown) => (err instanceof Error ? err.message : undefined);
+const error = computed(() => {
+    if (createThreadError.value) return errorMessage(createThreadError.value) ?? 'Failed to create thread';
+    if (forumQueryError.value) return 'Failed to load forum info';
+    return '';
 });
 
-const handleCreate = async () => {
-    isLoading.value = true;
-    error.value = '';
-    try {
-        const newThread = await threadsApi.createThread({ 
-            title: title.value, 
-            content: content.value,
-            forumId: props.forum
-        });
-        router.push(`/thread/${newThread.id}`);
-    } catch (err: any) {
-        error.value = err.message || 'Failed to create thread';
-    } finally {
-        isLoading.value = false;
-    }
+const handleCreate = () => {
+    createThreadMutate(
+        { title: title.value, content: content.value, forumId: props.forum },
+        {
+            onSuccess: (newThread) => {
+                router.push(`/thread/${newThread.id}`);
+            },
+        },
+    );
 };
 </script>
 
