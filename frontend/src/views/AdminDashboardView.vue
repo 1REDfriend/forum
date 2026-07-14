@@ -1407,6 +1407,7 @@ onUnmounted(() => {
   transition: border-color 0.15s;
 }
 .search-input:focus { border-color: var(--admin-accent-strong); }
+.search-input::placeholder { color: var(--color-text-muted); }
 
 /* ── Pagination ─────────────────────────────────────────────────────── */
 .pagination {
@@ -1513,6 +1514,7 @@ onUnmounted(() => {
   transition: border-color 0.15s;
 }
 .form-input:focus { border-color: var(--admin-accent-strong); }
+.form-input::placeholder { color: var(--color-text-muted); }
 
 /* ── Badge chips (users table) ──────────────────────────────────────── */
 .badge-chips { display: flex; flex-wrap: wrap; gap: 2px; max-width: 120px; }

@@ -266,7 +266,7 @@ const formatDate = (dateStr: string | undefined) => {
                                 <label class="block text-xs font-medium text-(--color-text-muted) mb-1">Bio / Description</label>
                                 <textarea v-model="editBio" rows="3" maxlength="500"
                                     placeholder="Tell others about yourself…"
-                                    class="w-full text-sm text-(--color-text) bg-(--color-background) border border-(--color-border) rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-y"></textarea>
+                                    class="w-full text-sm text-(--color-text) placeholder-(--color-text-muted) bg-(--color-background) border border-(--color-border) rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-y"></textarea>
                                 <p class="text-xs text-(--color-text-muted) mt-1">{{ editBio.length }}/500</p>
                             </template>
                         </div>
