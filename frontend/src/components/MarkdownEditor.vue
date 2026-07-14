@@ -391,6 +391,10 @@ const handleAttachInputChange = async (event: Event) => {
   min-height: 160px;
   display: block;
 }
+.editor-area::placeholder {
+  color: var(--color-text-muted);
+  opacity: 1;
+}
 .editor-area.editor-uploading {
   opacity: 0.6;
   pointer-events: none;
