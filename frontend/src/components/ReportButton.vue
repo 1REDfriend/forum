@@ -1,41 +1,44 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { reportsApi } from '../api/index.js';
 import { useAuthStore } from '../stores/auth.js';
+import { useCreateReport } from '../composables/useReports.js';
 
 const props = defineProps<{ targetType: 'thread' | 'post' | 'user'; targetId: string }>();
 const auth = useAuthStore();
 
 const open = ref(false);
 const reason = ref('');
-const sending = ref(false);
 const done = ref('');
 const error = ref('');
 
-const submit = async () => {
+const { mutate: createReportMutate, isPending: sending } = useCreateReport();
+
+const submit = () => {
   if (reason.value.trim().length < 3) {
     error.value = 'กรุณาระบุเหตุผลอย่างน้อย 3 ตัวอักษร';
     return;
   }
-  sending.value = true;
   error.value = '';
-  try {
-    const r = await reportsApi.create({
+  createReportMutate(
+    {
       targetType: props.targetType,
       targetId: props.targetId,
       reason: reason.value.trim(),
-    });
-    done.value = r.message;
-    reason.value = '';
-    setTimeout(() => {
-      open.value = false;
-      done.value = '';
-    }, 1500);
-  } catch (e: any) {
-    error.value = e.message || 'ส่งรายงานไม่สำเร็จ';
-  } finally {
-    sending.value = false;
-  }
+    },
+    {
+      onSuccess: (r) => {
+        done.value = r.message;
+        reason.value = '';
+        setTimeout(() => {
+          open.value = false;
+          done.value = '';
+        }, 1500);
+      },
+      onError: (e: unknown) => {
+        error.value = e instanceof Error ? e.message : 'ส่งรายงานไม่สำเร็จ';
+      },
+    },
+  );
 };
 </script>
 
