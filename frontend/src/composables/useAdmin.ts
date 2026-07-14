@@ -1,4 +1,4 @@
-import { computed, unref, type MaybeRef } from 'vue';
+import { unref, type MaybeRef } from 'vue';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query';
 import { adminApi } from '../api/index.js';
 
@@ -74,7 +74,10 @@ export function useUpdateUserRole() {
   return useMutation({
     mutationFn: ({ id, role }: { id: string; role: 'user' | 'admin' }) =>
       adminApi.updateUserRole(id, role),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'users'] }),
+    onSuccess: (_res, { id }) => {
+      qc.invalidateQueries({ queryKey: ['admin', 'users'] });
+      qc.invalidateQueries({ queryKey: ['user', id] });
+    },
   });
 }
 
@@ -82,7 +85,10 @@ export function useUpdateUserTier() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, tier }: { id: string; tier: string }) => adminApi.updateUserTier(id, tier),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'users'] }),
+    onSuccess: (_res, { id }) => {
+      qc.invalidateQueries({ queryKey: ['admin', 'users'] });
+      qc.invalidateQueries({ queryKey: ['user', id] });
+    },
   });
 }
 
@@ -90,7 +96,10 @@ export function useDeleteUser() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => adminApi.deleteUser(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'users'] }),
+    onSuccess: (_res, id) => {
+      qc.invalidateQueries({ queryKey: ['admin', 'users'] });
+      qc.invalidateQueries({ queryKey: ['user', id] });
+    },
   });
 }
 
@@ -98,7 +107,10 @@ export function useBanUser() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, reason }: { id: string; reason: string }) => adminApi.banUser(id, reason),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'users'] }),
+    onSuccess: (_res, { id }) => {
+      qc.invalidateQueries({ queryKey: ['admin', 'users'] });
+      qc.invalidateQueries({ queryKey: ['user', id] });
+    },
   });
 }
 
@@ -106,7 +118,10 @@ export function useUnbanUser() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => adminApi.unbanUser(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'users'] }),
+    onSuccess: (_res, id) => {
+      qc.invalidateQueries({ queryKey: ['admin', 'users'] });
+      qc.invalidateQueries({ queryKey: ['user', id] });
+    },
   });
 }
 
@@ -225,7 +240,10 @@ export function useGrantBadge() {
   return useMutation({
     mutationFn: ({ userId, badgeKey }: { userId: string; badgeKey: string }) =>
       adminApi.grantBadge(userId, badgeKey),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'users'] }),
+    onSuccess: (_res, { userId }) => {
+      qc.invalidateQueries({ queryKey: ['admin', 'users'] });
+      qc.invalidateQueries({ queryKey: ['user', userId] });
+    },
   });
 }
 
@@ -234,6 +252,9 @@ export function useRevokeBadge() {
   return useMutation({
     mutationFn: ({ userId, badgeKey }: { userId: string; badgeKey: string }) =>
       adminApi.revokeBadge(userId, badgeKey),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'users'] }),
+    onSuccess: (_res, { userId }) => {
+      qc.invalidateQueries({ queryKey: ['admin', 'users'] });
+      qc.invalidateQueries({ queryKey: ['user', userId] });
+    },
   });
 }
