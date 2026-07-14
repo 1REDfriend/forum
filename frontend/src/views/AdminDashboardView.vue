@@ -1339,12 +1339,12 @@ onUnmounted(() => {
 .ban-pill {
   padding: 2px 10px; border-radius: 100px; font-size: 11px; font-weight: 700;
   text-transform: uppercase; letter-spacing: 0.04em;
-  background: rgba(239, 68, 68, 0.14); color: var(--color-error); cursor: default;
+  background: color-mix(in oklch, var(--color-error) 14%, transparent); color: var(--color-error); cursor: default;
 }
 .active-pill {
   padding: 2px 10px; border-radius: 100px; font-size: 11px; font-weight: 700;
   text-transform: uppercase; letter-spacing: 0.04em;
-  background: rgba(34, 197, 94, 0.14); color: var(--color-success);
+  background: color-mix(in oklch, var(--color-success) 14%, transparent); color: var(--color-success);
 }
 
 /* ── Links ──────────────────────────────────────────────────────────── */
@@ -1371,7 +1371,7 @@ onUnmounted(() => {
 .btn-danger-sm {
   width: 28px; height: 28px;
   border-radius: 6px;
-  background: rgba(239, 68, 68, 0.12);
+  background: color-mix(in oklch, var(--color-error) 12%, transparent);
   color: var(--color-error);
   font-size: 13px;
   border: none;
@@ -1379,7 +1379,7 @@ onUnmounted(() => {
   transition: all 0.15s;
   display: flex; align-items: center; justify-content: center;
 }
-.btn-danger-sm:hover { background: rgba(239, 68, 68, 0.22); }
+.btn-danger-sm:hover { background: color-mix(in oklch, var(--color-error) 22%, transparent); }
 .btn-edit-sm {
   width: 28px; height: 28px;
   border-radius: 6px;
@@ -1523,7 +1523,7 @@ onUnmounted(() => {
 .btn-toggle-on {
   width: 28px; height: 28px;
   border-radius: 6px;
-  background: rgba(34, 197, 94, 0.18);
+  background: color-mix(in oklch, var(--color-success) 18%, transparent);
   color: var(--color-success);
   font-size: 13px;
   border: none;
@@ -1531,7 +1531,7 @@ onUnmounted(() => {
   transition: all 0.15s;
   display: flex; align-items: center; justify-content: center;
 }
-.btn-toggle-on:hover { background: rgba(34, 197, 94, 0.28); }
+.btn-toggle-on:hover { background: color-mix(in oklch, var(--color-success) 28%, transparent); }
 
 /* ── Badge manage modal ─────────────────────────────────────────────── */
 .badge-manage-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 20px; max-height: 60vh; overflow-y: auto; }
@@ -1550,11 +1550,11 @@ onUnmounted(() => {
 .btn-grant:hover:not(:disabled) { background: var(--admin-btn-bg-hover); }
 .btn-grant:disabled, .btn-revoke:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-revoke {
-  padding: 5px 14px; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px;
-  background: rgba(239, 68, 68, 0.12); color: var(--color-error);
+  padding: 5px 14px; border: 1px solid color-mix(in oklch, var(--color-error) 40%, transparent); border-radius: 8px;
+  background: color-mix(in oklch, var(--color-error) 12%, transparent); color: var(--color-error);
   font-size: 12px; font-weight: 600; cursor: pointer; flex-shrink: 0; transition: background 0.15s;
 }
-.btn-revoke:hover:not(:disabled) { background: rgba(239, 68, 68, 0.22); }
+.btn-revoke:hover:not(:disabled) { background: color-mix(in oklch, var(--color-error) 22%, transparent); }
 
 /* ── Responsive ─────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
