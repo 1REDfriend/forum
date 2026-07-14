@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
-import { forumsApi } from '../api/index.js';
+import { ref, computed } from 'vue';
 import type { ForumWithStats } from '../api/types.js';
 import { useAuthStore } from '../stores/auth.js';
+import { useForums } from '../composables/useForums.js';
 
-const forums = ref<ForumWithStats[]>([]);
-const isLoading = ref(true);
-const error = ref('');
+const { data: forumsData, isPending: isLoading, error: forumsError } = useForums();
+const forums = computed<ForumWithStats[]>(() => forumsData.value ?? []);
+const error = computed(() => (forumsError.value ? (forumsError.value as Error).message || 'Failed to load forums' : ''));
 const authStore = useAuthStore();
 
 // Mark as Read (localStorage-based)
@@ -45,16 +45,6 @@ const markAllRead = () => {
 };
 
 const anyUnread = computed(() => forums.value.some(f => isForumUnread(f)));
-
-onMounted(async () => {
-  try {
-    forums.value = await forumsApi.getAllForums();
-  } catch (err: any) {
-    error.value = err.message || 'Failed to load forums';
-  } finally {
-    isLoading.value = false;
-  }
-});
 
 const formatTimeAgo = (dateStr: string | null) => {
   if (!dateStr) return '—';

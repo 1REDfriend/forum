@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, nextTick } from 'vue';
-import { threadsApi, postsApi, likesApi } from '../api/index.js';
-import type { ThreadDetail, PostDetail, PaginatedResponse } from '../api/types.js';
+import { ref, computed, nextTick, watch } from 'vue';
+import type { PostDetail } from '../api/types.js';
 import { useAuthStore } from '../stores/auth.js';
 import { useRouter } from 'vue-router';
 import MarkdownRenderer from '../components/MarkdownRenderer.vue';
@@ -11,49 +10,74 @@ import ReportButton from '../components/ReportButton.vue';
 import ShareButton from '../components/ShareButton.vue';
 import { threadShareUrl, postShareUrl } from '../utils/share.js'
 import { setPageMeta } from '../utils/meta.js';
+import { useThread, useUpdateThread, useDeleteThread, usePinThread, useLockThread } from '../composables/useThreads.js';
+import { useThreadPosts, useCreatePost, useUpdatePost, useDeletePost } from '../composables/usePosts.js';
+import { useToggleThreadLike, useTogglePostLike } from '../composables/useLikes.js';
 
 const props = defineProps<{ id: string }>();
 
 const router = useRouter();
 const authStore = useAuthStore();
-const thread = ref<ThreadDetail | null>(null);
-const posts = ref<PostDetail[]>([]);
-const error = ref('');
-const isLoading = ref(true);
+const threadId = computed(() => props.id);
 
 // Reply
 const replyContent = ref('');
-const isReplying = ref(false);
-const replyError = ref('');
 
 // Edit thread
 const isEditingThread = ref(false);
 const editThreadTitle = ref('');
 const editThreadContent = ref('');
-const editThreadError = ref('');
-const isSavingThread = ref(false);
 
 // Edit post
 const editingPostId = ref<string | null>(null);
 const editPostContent = ref('');
-const editPostError = ref('');
-const isSavingPost = ref(false);
 
 // Delete
 const confirmDeleteType = ref<'thread' | 'post' | null>(null);
 const confirmDeleteId = ref<string | null>(null);
-const isDeleting = ref(false);
 
 // Pagination
 const currentPage = ref(1);
-const totalPages = ref(1);
-const total = ref(0);
-const limit = 20;
 
-// Like states
-const threadLikeCount = ref(0);
-const threadIsLiked = ref(false);
-const isLikingThread = ref(false);
+// Data
+const { data: thread, isPending: isThreadLoading, error: threadQueryError } = useThread(threadId);
+const { data: postsResult, isPending: isPostsLoading, error: postsQueryError } = useThreadPosts(threadId, currentPage);
+
+const posts = computed<PostDetail[]>(() => postsResult.value?.data ?? []);
+const totalPages = computed(() => postsResult.value?.totalPages ?? 1);
+const total = computed(() => postsResult.value?.total ?? 0);
+const isLoading = computed(() => isThreadLoading.value || isPostsLoading.value);
+
+// Mutations
+const { mutate: createPostMutate, isPending: isReplying, error: createPostMutationError } = useCreatePost();
+const { mutate: updateThreadMutate, isPending: isSavingThread, error: updateThreadMutationError } = useUpdateThread();
+const { mutate: updatePostMutate, isPending: isSavingPost, error: updatePostMutationError } = useUpdatePost();
+const { mutate: deleteThreadMutate, isPending: isDeletingThread, error: deleteThreadMutationError } = useDeleteThread();
+const { mutate: deletePostMutate, isPending: isDeletingPost, error: deletePostMutationError } = useDeletePost();
+const { mutate: pinThreadMutate, isPending: isPinning, error: pinThreadMutationError } = usePinThread();
+const { mutate: lockThreadMutate, isPending: isLocking, error: lockThreadMutationError } = useLockThread();
+const { mutate: toggleThreadLikeMutate, isPending: isLikingThread } = useToggleThreadLike();
+const { mutate: togglePostLikeMutate } = useTogglePostLike();
+
+const isDeleting = computed(() => isDeletingThread.value || isDeletingPost.value);
+
+const errorMessage = (err: unknown) => (err instanceof Error ? err.message : undefined);
+
+const replyError = computed(() => errorMessage(createPostMutationError.value) ?? '');
+const editThreadError = computed(() => errorMessage(updateThreadMutationError.value) ?? '');
+const editPostError = computed(() => errorMessage(updatePostMutationError.value) ?? '');
+// General banner: load failures + delete/pin/lock failures (mirrors the old shared `error` ref).
+const error = computed(() => {
+  const err =
+    threadQueryError.value ||
+    postsQueryError.value ||
+    deleteThreadMutationError.value ||
+    deletePostMutationError.value ||
+    pinThreadMutationError.value ||
+    lockThreadMutationError.value;
+  return err ? errorMessage(err) ?? 'Something went wrong' : '';
+});
+
 const likingPostId = ref<string | null>(null);
 
 const isAdmin = computed(() => authStore.user?.role === 'admin');
@@ -65,38 +89,11 @@ const isThreadOwnerOrAdmin = computed(() =>
 const isPostOwnerOrAdmin = (post: PostDetail) =>
   authStore.user && (authStore.user.id === post.author.id || authStore.user.role === 'admin');
 
-const loadData = async (page = 1) => {
-  isLoading.value = true;
-  error.value = '';
-  try {
-    const threadId = props.id;
-    const [threadData, postsData] = await Promise.all([
-      threadsApi.getThreadById(threadId),
-      postsApi.getPostsByThreadId(threadId, page, limit),
-    ]);
-    thread.value = threadData;
-    if (thread.value) {
-      setPageMeta({
-        title: thread.value.title,
-        description: thread.value.content.replace(/\s+/g, ' ').trim().slice(0, 200),
-      })
-    }
-    posts.value = (postsData as PaginatedResponse<PostDetail>).data;
-    currentPage.value = (postsData as PaginatedResponse<PostDetail>).page;
-    totalPages.value = (postsData as PaginatedResponse<PostDetail>).totalPages;
-    total.value = (postsData as PaginatedResponse<PostDetail>).total;
-    // Initialize like state from server data
-    threadLikeCount.value = (threadData as any).likeCount ?? 0;
-    threadIsLiked.value = (threadData as any).isLikedByMe ?? false;
-  } catch (err: any) {
-    error.value = err.message || 'Failed to load thread';
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-onMounted(async () => {
-  await loadData();
+// Scroll to a deep-linked post (#post-<id>) once the thread/posts have loaded. Runs once.
+let hasScrolledToHash = false;
+watch(isLoading, async (loading) => {
+  if (loading || hasScrolledToHash) return;
+  hasScrolledToHash = true;
   const hash = window.location.hash; // e.g. "#post-<cuid>"
   if (hash.startsWith('#post-')) {
     await nextTick();
@@ -107,26 +104,27 @@ onMounted(async () => {
       setTimeout(() => el.classList.remove('post-highlight'), 2000);
     }
   }
-});
+}, { immediate: true });
+
+watch(thread, (t) => {
+  if (t) {
+    setPageMeta({
+      title: t.title,
+      description: t.content.replace(/\s+/g, ' ').trim().slice(0, 200),
+    });
+  }
+}, { immediate: true });
 
 const goToPage = (page: number) => {
-  if (page >= 1 && page <= totalPages.value) loadData(page);
+  if (page >= 1 && page <= totalPages.value) currentPage.value = page;
 };
 
 // Reply
-const submitReply = async () => {
+const submitReply = () => {
   if (!replyContent.value.trim()) return;
-  isReplying.value = true;
-  replyError.value = '';
-  try {
-    await postsApi.createPost({ content: replyContent.value, threadId: props.id });
-    replyContent.value = '';
-    await loadData(currentPage.value);
-  } catch (err: any) {
-    replyError.value = err.message || 'Failed to post reply';
-  } finally {
-    isReplying.value = false;
-  }
+  createPostMutate({ content: replyContent.value, threadId: props.id }, {
+    onSuccess: () => { replyContent.value = ''; },
+  });
 };
 
 // Edit thread
@@ -135,48 +133,30 @@ const startEditThread = () => {
   editThreadTitle.value = thread.value.title;
   editThreadContent.value = thread.value.content;
   isEditingThread.value = true;
-  editThreadError.value = '';
 };
 
-const cancelEditThread = () => { isEditingThread.value = false; editThreadError.value = ''; };
+const cancelEditThread = () => { isEditingThread.value = false; };
 
-const saveEditThread = async () => {
+const saveEditThread = () => {
   if (!thread.value) return;
-  isSavingThread.value = true;
-  editThreadError.value = '';
-  try {
-    await threadsApi.updateThread(thread.value.id, { title: editThreadTitle.value, content: editThreadContent.value });
-    await loadData(currentPage.value);
-    isEditingThread.value = false;
-  } catch (err: any) {
-    editThreadError.value = err.message || 'Failed to update thread';
-  } finally {
-    isSavingThread.value = false;
-  }
+  updateThreadMutate({ id: thread.value.id, data: { title: editThreadTitle.value, content: editThreadContent.value } }, {
+    onSuccess: () => { isEditingThread.value = false; },
+  });
 };
 
 // Edit post
 const startEditPost = (post: PostDetail) => {
   editingPostId.value = post.id;
   editPostContent.value = post.content;
-  editPostError.value = '';
 };
 
-const cancelEditPost = () => { editingPostId.value = null; editPostError.value = ''; };
+const cancelEditPost = () => { editingPostId.value = null; };
 
-const saveEditPost = async () => {
+const saveEditPost = () => {
   if (!editingPostId.value) return;
-  isSavingPost.value = true;
-  editPostError.value = '';
-  try {
-    await postsApi.updatePost(editingPostId.value, { content: editPostContent.value });
-    await loadData(currentPage.value);
-    editingPostId.value = null;
-  } catch (err: any) {
-    editPostError.value = err.message || 'Failed to update post';
-  } finally {
-    isSavingPost.value = false;
-  }
+  updatePostMutate({ id: editingPostId.value, data: { content: editPostContent.value } }, {
+    onSuccess: () => { editingPostId.value = null; },
+  });
 };
 
 // Delete
@@ -187,83 +167,47 @@ const showDeleteConfirm = (type: 'thread' | 'post', id: string) => {
 
 const cancelDelete = () => { confirmDeleteType.value = null; confirmDeleteId.value = null; };
 
-const confirmDelete = async () => {
+const confirmDelete = () => {
   if (!confirmDeleteId.value || !confirmDeleteType.value) return;
-  isDeleting.value = true;
-  try {
-    if (confirmDeleteType.value === 'thread') {
-      await threadsApi.deleteThread(confirmDeleteId.value);
-      if (thread.value) router.push(`/forum/${thread.value.forum.id}`);
-      else router.push('/');
-      return;
-    } else {
-      await postsApi.deletePost(confirmDeleteId.value);
-      await loadData(currentPage.value);
-    }
-  } catch (err: any) {
-    error.value = err.message || 'Failed to delete';
-  } finally {
-    isDeleting.value = false;
-    cancelDelete();
+  if (confirmDeleteType.value === 'thread') {
+    const targetForumId = thread.value?.forum.id;
+    deleteThreadMutate(confirmDeleteId.value, {
+      onSuccess: () => {
+        router.push(targetForumId ? `/forum/${targetForumId}` : '/');
+      },
+      onSettled: () => cancelDelete(),
+    });
+  } else {
+    deletePostMutate(confirmDeleteId.value, {
+      onSettled: () => cancelDelete(),
+    });
   }
 };
 
 // Like thread
-const toggleThreadLike = async () => {
+const toggleThreadLike = () => {
   if (!authStore.isAuthenticated || !thread.value || isLikingThread.value) return;
-  isLikingThread.value = true;
-  try {
-    const result = await likesApi.toggleThreadLike(thread.value.id);
-    threadIsLiked.value = result.liked;
-    threadLikeCount.value = result.likeCount;
-  } catch { /* silent */ } finally {
-    isLikingThread.value = false;
-  }
+  toggleThreadLikeMutate(thread.value.id);
 };
 
 // Like post
-const togglePostLike = async (post: PostDetail) => {
+const togglePostLike = (post: PostDetail) => {
   if (!authStore.isAuthenticated || likingPostId.value === post.id) return;
   likingPostId.value = post.id;
-  try {
-    const result = await likesApi.togglePostLike(post.id);
-    const idx = posts.value.findIndex(p => p.id === post.id);
-    if (idx !== -1) {
-      posts.value[idx] = { ...posts.value[idx]!, likeCount: result.likeCount, isLikedByMe: result.liked };
-    }
-  } catch { /* silent */ } finally {
-    likingPostId.value = null;
-  }
+  togglePostLikeMutate(post.id, {
+    onSettled: () => { likingPostId.value = null; },
+  });
 };
 
 // Admin: Pin/Lock
-const isPinning = ref(false);
-const isLocking = ref(false);
-
-const togglePin = async () => {
+const togglePin = () => {
   if (!thread.value || isPinning.value) return;
-  isPinning.value = true;
-  try {
-    await threadsApi.pinThread(thread.value.id);
-    thread.value = { ...thread.value, isPinned: !thread.value.isPinned };
-  } catch (err: any) {
-    error.value = err.message || 'Failed to toggle pin';
-  } finally {
-    isPinning.value = false;
-  }
+  pinThreadMutate(thread.value.id);
 };
 
-const toggleLock = async () => {
+const toggleLock = () => {
   if (!thread.value || isLocking.value) return;
-  isLocking.value = true;
-  try {
-    await threadsApi.lockThread(thread.value.id);
-    thread.value = { ...thread.value, isLocked: !thread.value.isLocked };
-  } catch (err: any) {
-    error.value = err.message || 'Failed to toggle lock';
-  } finally {
-    isLocking.value = false;
-  }
+  lockThreadMutate(thread.value.id);
 };
 
 const formatDate = (dateStr: string) =>
@@ -326,12 +270,12 @@ const formatDate = (dateStr: string) =>
                 <!-- Like thread button -->
                 <button v-if="authStore.isAuthenticated" @click="toggleThreadLike" :disabled="isLikingThread" :class="[
                   'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all',
-                  threadIsLiked
+                  thread.isLikedByMe
                     ? 'bg-sky-500/15 text-sky-700 dark:text-sky-300 hover:bg-sky-500/25'
                     : 'bg-(--color-background-mute) text-(--color-text-muted) hover:bg-(--color-border)'
                 ]">
-                  <span>{{ threadIsLiked ? '👍' : '👍' }}</span>
-                  <span>{{ threadLikeCount }}</span>
+                  <span>{{ thread.isLikedByMe ? '👍' : '👍' }}</span>
+                  <span>{{ thread.likeCount }}</span>
                 </button>
                 <!-- Admin controls -->
                 <template v-if="isAdmin">

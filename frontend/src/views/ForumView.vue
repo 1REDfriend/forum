@@ -1,25 +1,41 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
-import { threadsApi, forumsApi } from '../api/index.js';
-import type { ThreadDetail, Forum, PaginatedResponse } from '../api/types.js';
+import { ref, computed, watch } from 'vue';
+import type { ThreadDetail } from '../api/types.js';
 import { useAuthStore } from '../stores/auth.js'
 import { setPageMeta } from '../utils/meta.js';
+import { useForum } from '../composables/useForums.js';
+import { useForumThreads } from '../composables/useThreads.js';
 
 const props = defineProps<{
   forum: string
 }>();
 
 const authStore = useAuthStore();
-const threads = ref<ThreadDetail[]>([]);
-const forumData = ref<Forum | null>(null);
-const isLoading = ref(true);
-const error = ref('');
+const forumId = computed(() => props.forum);
 
 // Pagination
 const currentPage = ref(1);
-const totalPages = ref(1);
-const total = ref(0);
-const limit = 15;
+
+const { data: forumData, isPending: isForumLoading, error: forumQueryError } = useForum(forumId);
+const { data: threadsResult, isPending: isThreadsLoading, error: threadsQueryError } = useForumThreads(forumId, currentPage);
+
+const threads = computed<ThreadDetail[]>(() => threadsResult.value?.data ?? []);
+const totalPages = computed(() => threadsResult.value?.totalPages ?? 1);
+const total = computed(() => threadsResult.value?.total ?? 0);
+const isLoading = computed(() => isForumLoading.value || isThreadsLoading.value);
+const error = computed(() => {
+  const err = forumQueryError.value || threadsQueryError.value;
+  return err ? (err as Error).message || 'Failed to load threads' : '';
+});
+
+watch(forumData, (f) => {
+  if (f) {
+    setPageMeta({
+      title: f.name,
+      description: f.description ?? `Discussions in ${f.name} on IT.Forum.`,
+    });
+  }
+}, { immediate: true });
 
 // Mark as Read (localStorage-based)
 const READ_STORAGE_KEY = 'forum_read_timestamps';
@@ -60,37 +76,8 @@ const markAllThreadsRead = () => {
 
 const anyUnread = computed(() => threads.value.some(t => isThreadUnread(t)));
 
-const loadData = async (page = 1) => {
-  isLoading.value = true;
-  error.value = '';
-  try {
-    const forumId = props.forum;
-    if (!forumData.value) {
-      forumData.value = await forumsApi.getForumById(forumId);
-      if (forumData.value) {
-        setPageMeta({
-          title: forumData.value.name,
-          description: forumData.value.description ?? `Discussions in ${forumData.value.name} on IT.Forum.`,
-        })
-      }
-    }
-    const result: PaginatedResponse<ThreadDetail> = await threadsApi.getThreadsByForumId(forumId, page, limit);
-    threads.value = result.data;
-    currentPage.value = result.page;
-    totalPages.value = result.totalPages;
-    total.value = result.total;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (err: any) {
-    error.value = err.message || 'Failed to load threads';
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-onMounted(() => loadData());
-
 const goToPage = (page: number) => {
-  if (page >= 1 && page <= totalPages.value) loadData(page);
+  if (page >= 1 && page <= totalPages.value) currentPage.value = page;
 };
 
 const formatTimeAgo = (dateStr: string | null) => {

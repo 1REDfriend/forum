@@ -1,30 +1,20 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { forumsApi } from '../api/index.js';
+import { computed } from 'vue';
 import type { ForumWithStats } from '../api/types.js';
 import { useAuthStore } from '../stores/auth.js';
 import { motion, px } from 'motion-v';
 import { fadeLeft, fadeUp, heroContainer, scaleIn } from '@/components/animations/Animation.ts';
+import { useForums } from '../composables/useForums.js';
 
 const authStore = useAuthStore();
-const forums = ref<ForumWithStats[]>([]);
-const topForums = ref<ForumWithStats[]>([]);
-const isLoading = ref(true);
-
-onMounted(async () => {
-  try {
-    const all = await forumsApi.getAllForums();
-    forums.value = all;
-    // Sort by postCount desc, take top 3
-    topForums.value = [...all]
-      .sort((a, b) => (b.postCount ?? 0) - (a.postCount ?? 0))
-      .slice(0, 3);
-  } catch {
-    // silently fail – non-critical
-  } finally {
-    isLoading.value = false;
-  }
-});
+// Errors are non-critical here (landing page still renders without forum data),
+// so we intentionally don't surface `error` from the query.
+const { data: forumsData, isPending: isLoading } = useForums();
+const forums = computed<ForumWithStats[]>(() => forumsData.value ?? []);
+// Sort by postCount desc, take top 3
+const topForums = computed<ForumWithStats[]>(() =>
+  [...forums.value].sort((a, b) => (b.postCount ?? 0) - (a.postCount ?? 0)).slice(0, 3),
+);
 
 const features = [
   {

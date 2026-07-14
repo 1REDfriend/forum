@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
+import { useQueryClient } from '@tanstack/vue-query';
 import { useAuthStore } from '../stores/auth.js';
 import { setPageMeta } from '../utils/meta.js';
-import { usersApi, uploadApi } from '../api/index.js';
-import type { User, TierDef, Badge, ProfileStats } from '../api/types.js';
+import { uploadApi } from '../api/index.js';
+import type { User, TierDef, Badge, ProfileStats, UpdateUserDTO } from '../api/types.js';
 import { tierStyle } from '../api/types.js';
+import { useMe, usePublicProfile, useUpdateProfile } from '../composables/useUsers.js';
 
 interface ProfileData extends Partial<User> {
     score?: number;
@@ -19,9 +21,7 @@ interface ProfileData extends Partial<User> {
 const props = defineProps<{ id?: string }>();
 
 const authStore = useAuthStore();
-const profileUser = ref<ProfileData | null>(null);
-const isLoading = ref(true);
-const error = ref('');
+const queryClient = useQueryClient();
 const isEditing = ref(false);
 const editName = ref('');
 const editBio = ref('');
@@ -44,32 +44,60 @@ const isOwnProfile = computed(() => {
     return authStore.isAuthenticated;
 });
 
+// Own profile and someone else's profile are two separate queries; only one is
+// ever enabled at a time based on whether an `id` prop was passed in.
+const { data: ownProfileData, isPending: isOwnProfilePending, error: ownProfileError } = useMe(isOwnProfile);
+const { data: otherProfileData, isPending: isOtherProfilePending, error: otherProfileError } =
+    usePublicProfile(computed(() => props.id ?? ''));
+
+const profileUser = computed<ProfileData | null>(() => {
+    const raw = props.id ? otherProfileData.value : ownProfileData.value;
+    return (raw as ProfileData | undefined) ?? null;
+});
+
+const isLoading = computed(() => {
+    if (props.id) return isOtherProfilePending.value;
+    if (isOwnProfile.value) return isOwnProfilePending.value;
+    return false;
+});
+
+const error = computed(() => {
+    const err = props.id ? otherProfileError.value : (isOwnProfile.value ? ownProfileError.value : null);
+    return err ? (err as Error).message || 'Failed to load profile' : '';
+});
+
 const ts = computed(() => tierStyle(profileUser.value?.tier));
 const progressPct = computed(() => Math.round((profileUser.value?.progress ?? 0) * 100));
 const bannerStyle = computed(() =>
     profileUser.value?.banner ? { backgroundImage: `url(${JSON.stringify(profileUser.value.banner)})` } : {},
 );
 
-onMounted(async () => {
-    try {
-        if (props.id) {
-            profileUser.value = await usersApi.getUserById(props.id);
-        } else if (authStore.isAuthenticated) {
-            profileUser.value = await usersApi.getMe();
-        }
-        if (profileUser.value) {
-            setPageMeta({
-                title: profileUser.value.name ?? 'Profile',
-                description: profileUser.value.bio ?? `${profileUser.value.name ?? 'User'}'s profile on IT.Forum.`,
-                image: profileUser.value.banner ?? profileUser.value.avatar ?? undefined,
-            })
-        }
-    } catch (err: any) {
-        error.value = err.message || 'Failed to load profile';
-    } finally {
-        isLoading.value = false;
+watch(profileUser, (p) => {
+    if (p) {
+        setPageMeta({
+            title: p.name ?? 'Profile',
+            description: p.bio ?? `${p.name ?? 'User'}'s profile on IT.Forum.`,
+            image: p.banner ?? p.avatar ?? undefined,
+        });
     }
-});
+}, { immediate: true });
+
+const { mutateAsync: updateProfileMutation } = useUpdateProfile();
+
+// Persist a profile change via the mutation (single API call + automatic ['me']
+// cache invalidation), then keep the app-wide auth store (header/avatar) and the
+// query cache in sync immediately so there's no flash of stale data.
+async function persistProfileUpdate(data: UpdateUserDTO) {
+    const updated = await updateProfileMutation(data);
+    if (isOwnProfile.value) {
+        authStore.user = updated;
+        localStorage.setItem('user', JSON.stringify(updated));
+        queryClient.setQueryData(['me'], (old: unknown) =>
+            old && typeof old === 'object' ? { ...old, ...updated } : updated,
+        );
+    }
+    return updated;
+}
 
 const startEdit = () => {
     editName.value = profileUser.value?.name || '';
@@ -89,8 +117,7 @@ const saveEdit = async () => {
     isSaving.value = true;
     editError.value = '';
     try {
-        await authStore.updateProfile({ name: editName.value, bio: editBio.value });
-        profileUser.value = { ...profileUser.value, name: editName.value, bio: editBio.value };
+        await persistProfileUpdate({ name: editName.value, bio: editBio.value });
         isEditing.value = false;
     } catch (err: any) {
         editError.value = err.message || 'Failed to update profile';
@@ -112,8 +139,7 @@ const onAvatarFileChange = async (event: Event) => {
     avatarUploadError.value = '';
     try {
         const url = await uploadApi.uploadAvatar(file);
-        await authStore.updateProfile({ avatar: url });
-        profileUser.value = { ...profileUser.value, avatar: url };
+        await persistProfileUpdate({ avatar: url });
         avatarPreview.value = null;
     } catch (err: any) {
         avatarUploadError.value = err.message || 'Upload failed. Please try again.';
@@ -133,8 +159,7 @@ const onBannerFileChange = async (event: Event) => {
     bannerUploadError.value = '';
     try {
         const url = await uploadApi.uploadImage(file);
-        await authStore.updateProfile({ banner: url });
-        profileUser.value = { ...profileUser.value, banner: url };
+        await persistProfileUpdate({ banner: url });
     } catch (err: any) {
         bannerUploadError.value = err.message || 'Banner upload failed. Please try again.';
     } finally {

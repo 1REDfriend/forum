@@ -1,43 +1,22 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import { searchApi } from '../api/index.js';
-import type { SearchResponse } from '../api/types.js';
+import { ref, watch, computed } from 'vue';
 import { useRoute } from 'vue-router';
+import { useSearch } from '../composables/useSearch.js';
 
 const route = useRoute();
 const query = ref((route.query.q as string) || '');
-const results = ref<SearchResponse | null>(null);
-const isLoading = ref(false);
-const error = ref('');
+
+// Debounce the query fed into the search composable so we don't fire a
+// request on every keystroke; `query` itself stays immediate for the input/empty-state.
+const debouncedQuery = ref(query.value);
 let debounceTimer: ReturnType<typeof setTimeout>;
-
-const doSearch = async () => {
-    const q = query.value.trim();
-    if (!q) {
-        results.value = null;
-        return;
-    }
-
-    isLoading.value = true;
-    error.value = '';
-    try {
-        results.value = await searchApi.search(q);
-    } catch (err: any) {
-        error.value = err.message || 'Search failed';
-    } finally {
-        isLoading.value = false;
-    }
-};
-
-watch(query, () => {
+watch(query, (q) => {
     clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(doSearch, 300);
+    debounceTimer = setTimeout(() => { debouncedQuery.value = q; }, 300);
 });
 
-// Search on mount if query param exists
-if (query.value) {
-    doSearch();
-}
+const { data: results, isFetching: isLoading, error: searchError } = useSearch(debouncedQuery);
+const error = computed(() => (searchError.value ? (searchError.value as Error).message || 'Search failed' : ''));
 
 const totalResults = () => {
     if (!results.value) return 0;
