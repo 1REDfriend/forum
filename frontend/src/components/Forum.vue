@@ -94,7 +94,7 @@ const formatTimeAgo = (dateStr: string | null) => {
             ✓ Mark All Read
           </button>
           <router-link v-if="authStore.isAuthenticated" to="/forum/create"
-            class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-full shadow-sm text-sm font-medium transition-colors">
+            class="bg-indigo-700 hover:bg-indigo-600 text-white px-4 py-2 rounded-full shadow-sm text-sm font-medium transition-colors">
             + New Forum
           </router-link>
         </div>

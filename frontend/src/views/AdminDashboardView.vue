@@ -1072,7 +1072,9 @@ onUnmounted(() => {
   --admin-accent-strong: var(--color-indigo-800);
   --admin-accent-soft-bg: color-mix(in oklch, var(--admin-accent) 12%, transparent);
   --admin-accent-soft-bg-strong: color-mix(in oklch, var(--admin-accent) 22%, transparent);
-  --admin-amber: #b45309;
+  --admin-amber: var(--color-amber-700);
+  --admin-amber-soft-bg: color-mix(in oklch, var(--admin-amber) 12%, transparent);
+  --admin-amber-soft-bg-strong: color-mix(in oklch, var(--admin-amber) 22%, transparent);
   --admin-btn-bg-hover: var(--color-indigo-600);
 }
 .dark .admin-layout {
@@ -1080,7 +1082,9 @@ onUnmounted(() => {
   --admin-accent-strong: var(--color-indigo-500);
   --admin-accent-soft-bg: color-mix(in oklch, var(--admin-accent) 20%, transparent);
   --admin-accent-soft-bg-strong: color-mix(in oklch, var(--admin-accent) 32%, transparent);
-  --admin-amber: #fcd34d;
+  --admin-amber: var(--color-amber-300);
+  --admin-amber-soft-bg: color-mix(in oklch, var(--admin-amber) 20%, transparent);
+  --admin-amber-soft-bg-strong: color-mix(in oklch, var(--admin-amber) 32%, transparent);
   --admin-btn-bg-hover: var(--color-indigo-500);
 }
 
@@ -1316,8 +1320,8 @@ onUnmounted(() => {
   border: none;
   transition: all 0.15s;
 }
-.role-admin { background: rgba(245, 158, 11, 0.16); color: var(--admin-amber); }
-.role-admin:hover { background: rgba(245, 158, 11, 0.26); }
+.role-admin { background: var(--admin-amber-soft-bg); color: var(--admin-amber); }
+.role-admin:hover { background: var(--admin-amber-soft-bg-strong); }
 .role-user { background: var(--admin-accent-soft-bg); color: var(--admin-accent); }
 .role-user:hover { background: var(--admin-accent-soft-bg-strong); }
 .tier-select {
