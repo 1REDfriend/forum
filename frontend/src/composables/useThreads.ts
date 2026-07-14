@@ -42,7 +42,11 @@ export function useUpdateThread() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateThreadDTO }) =>
       threadsApi.updateThread(id, data),
-    onSuccess: (_res, { id }) => qc.invalidateQueries({ queryKey: ['thread', id] }),
+    onSuccess: (res, { id }) => {
+      qc.invalidateQueries({ queryKey: ['thread', id] });
+      qc.invalidateQueries({ queryKey: ['forum', res.forumId, 'threads'] });
+      qc.invalidateQueries({ queryKey: ['threads'] });
+    },
   });
 }
 
@@ -50,8 +54,9 @@ export function useDeleteThread() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => threadsApi.deleteThread(id),
-    onSuccess: () => {
+    onSuccess: (_res, id) => {
       qc.invalidateQueries({ queryKey: ['threads'] });
+      qc.invalidateQueries({ queryKey: ['thread', id] });
       qc.invalidateQueries({ queryKey: ['forum'] }); // covers all forum thread lists
     },
   });
@@ -61,7 +66,10 @@ export function usePinThread() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => threadsApi.pinThread(id),
-    onSuccess: (_res, id) => qc.invalidateQueries({ queryKey: ['thread', id] }),
+    onSuccess: (_res, id) => {
+      qc.invalidateQueries({ queryKey: ['thread', id] });
+      qc.invalidateQueries({ queryKey: ['forum'] }); // pinned state affects thread list rendering
+    },
   });
 }
 
@@ -69,6 +77,9 @@ export function useLockThread() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => threadsApi.lockThread(id),
-    onSuccess: (_res, id) => qc.invalidateQueries({ queryKey: ['thread', id] }),
+    onSuccess: (_res, id) => {
+      qc.invalidateQueries({ queryKey: ['thread', id] });
+      qc.invalidateQueries({ queryKey: ['forum'] }); // locked state affects thread list rendering
+    },
   });
 }

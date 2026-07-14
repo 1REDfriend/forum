@@ -42,6 +42,9 @@ export function useDeleteForum() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => forumsApi.deleteForum(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['forums'] }),
+    onSuccess: (_res, id) => {
+      qc.invalidateQueries({ queryKey: ['forums'] });
+      qc.invalidateQueries({ queryKey: ['forum', id] });
+    },
   });
 }
