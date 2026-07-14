@@ -245,7 +245,13 @@ const deleteReportTarget = (r: AdminReport) => {
   if (!confirm(`Delete this ${r.targetType} permanently? This cannot be undone.`)) return;
   const onError = (err: unknown) => alert(errorMessage(err) || 'Failed to delete target');
   const onSuccess = () => {
-    resolveReportMutation.mutate({ id: r.id, status: 'reviewed' });
+    resolveReportMutation.mutate(
+      { id: r.id, status: 'reviewed' },
+      {
+        onError: (err: unknown) =>
+          alert(errorMessage(err) || 'Target deleted, but failed to mark the report reviewed'),
+      },
+    );
     invalidateOverview();
   };
   if (r.targetType === 'thread') deleteThreadMutation.mutate(r.targetId, { onSuccess, onError });
