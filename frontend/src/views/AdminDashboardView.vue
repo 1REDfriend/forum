@@ -499,7 +499,7 @@ onUnmounted(() => {
         </div>
         <div v-else-if="stats" class="stat-grid">
           <div class="stat-card">
-            <div class="stat-icon" style="background:rgba(99, 102, 241, 0.18);color:#93c5fd">👥</div>
+            <div class="stat-icon" style="background:#e0e7ff;color:#4f46e5">👥</div>
             <div>
               <p class="stat-label">Total Users</p>
               <p class="stat-value">{{ stats.totalUsers.toLocaleString() }}</p>
@@ -844,7 +844,7 @@ onUnmounted(() => {
           <div style="display:flex; gap:8px; margin-bottom:14px">
             <button v-for="s in ['open', 'reviewed', 'dismissed']" :key="s"
               @click="reportsStatus = s; reportsPage = 1; loadReports()" class="page-btn"
-              :style="reportsStatus === s ? { background: '#2563eb', color: '#fff', borderColor: '#2563eb' } : {}">
+              :style="reportsStatus === s ? { background: 'var(--admin-accent-strong)', color: '#fff', borderColor: 'var(--admin-accent-strong)' } : {}">
               {{ s }}
             </button>
           </div>
@@ -863,7 +863,7 @@ onUnmounted(() => {
                 </td>
                 <td class="text-sm text-muted" style="max-width:240px">{{ truncate(r.reason, 100) }}</td>
                 <td>
-                  <span class="text-sm" :style="{ color: r.status === 'open' ? '#dc2626' : r.status === 'reviewed' ? '#2563eb' : '#6b7280' }">● {{ r.status }}</span>
+                  <span class="text-sm" :style="{ color: r.status === 'open' ? 'var(--color-error)' : r.status === 'reviewed' ? 'var(--admin-accent-strong)' : 'var(--color-text-muted)' }">● {{ r.status }}</span>
                 </td>
                 <td class="text-muted text-sm">{{ formatDateTime(r.createdAt) }}</td>
                 <td>
@@ -1050,7 +1050,7 @@ onUnmounted(() => {
             <textarea v-model="badgeForm.description" maxlength="300" rows="2" class="form-input"
               placeholder="คำอธิบาย badge" />
           </div>
-          <p v-if="badgeError" class="text-sm" style="color:#fca5a5; margin:0 0 12px">{{ badgeError }}</p>
+          <p v-if="badgeError" class="text-sm" style="color:var(--color-error); margin:0 0 12px">{{ badgeError }}</p>
           <div class="modal-actions">
             <button @click="badgeForm = null" class="btn-cancel">Cancel</button>
             <button @click="saveBadge"
@@ -1066,11 +1066,29 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+/* ── Local accent tokens: light defaults, .dark override ─────────────── */
+.admin-layout {
+  --admin-accent: #2563eb;
+  --admin-accent-strong: #1d4ed8;
+  --admin-accent-soft-bg: rgba(37, 99, 235, 0.1);
+  --admin-amber: #b45309;
+  --admin-btn-bg: #4f46e5;
+  --admin-btn-bg-hover: #4338ca;
+}
+.dark .admin-layout {
+  --admin-accent: #93c5fd;
+  --admin-accent-strong: #818cf8;
+  --admin-accent-soft-bg: rgba(99, 102, 241, 0.2);
+  --admin-amber: #fcd34d;
+  --admin-btn-bg: #6366f1;
+  --admin-btn-bg-hover: #4f46e5;
+}
+
 /* ── Layout ─────────────────────────────────────────────────────────── */
 .admin-layout {
   display: flex;
   min-height: 100vh;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--color-background);
   padding-top: 64px; /* navbar height */
   font-family: 'Inter', 'Outfit', sans-serif;
 }
@@ -1079,8 +1097,8 @@ onUnmounted(() => {
 .sidebar {
   width: 220px;
   flex-shrink: 0;
-  background: #1e1e2e;
-  color: #cdd6f4;
+  background: var(--color-background-soft);
+  color: var(--color-text);
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -1099,10 +1117,10 @@ onUnmounted(() => {
   align-items: center;
   gap: 10px;
   padding: 20px 18px 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid var(--color-border);
 }
 .sidebar-icon { font-size: 1.2rem; }
-.sidebar-title { font-weight: 700; font-size: 0.95rem; color: #f1f5f9; }
+.sidebar-title { font-weight: 700; font-size: 0.95rem; color: var(--color-heading); }
 
 .sidebar-nav {
   flex: 1;
@@ -1119,7 +1137,7 @@ onUnmounted(() => {
   border-radius: 10px;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #94a3b8;
+  color: var(--color-text-muted);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -1127,21 +1145,21 @@ onUnmounted(() => {
   text-align: left;
   width: 100%;
 }
-.nav-item:hover { background: rgba(255,255,255,0.06); color: #f1f5f9; }
-.nav-item--active { background: rgba(99,102,241,0.2); color: #818cf8; font-weight: 600; }
+.nav-item:hover { background: var(--color-background-mute); color: var(--color-heading); }
+.nav-item--active { background: var(--admin-accent-soft-bg); color: var(--admin-accent-strong); font-weight: 600; }
 .nav-icon { font-size: 1rem; width: 20px; text-align: center; }
 
 .sidebar-footer {
   padding: 16px 18px;
-  border-top: 1px solid rgba(255,255,255,0.06);
+  border-top: 1px solid var(--color-border);
 }
 .back-link {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--color-text-muted);
   text-decoration: none;
   transition: color 0.15s;
 }
-.back-link:hover { color: #818cf8; }
+.back-link:hover { color: var(--admin-accent-strong); }
 
 /* ── Main ───────────────────────────────────────────────────────────── */
 .admin-main {
@@ -1159,7 +1177,7 @@ onUnmounted(() => {
 .page-title {
   font-size: 1.5rem;
   font-weight: 800;
-  color: #f1f5f9;
+  color: var(--color-heading);
   margin: 0 0 24px;
 }
 
@@ -1181,18 +1199,18 @@ onUnmounted(() => {
 }
 
 .stat-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
   border-radius: 16px;
   padding: 20px;
   display: flex;
   align-items: center;
   gap: 16px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  box-shadow: var(--glass-shadow);
   transition: box-shadow 0.2s;
 }
-.stat-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
-.sk-card { height: 84px; background: rgba(255, 255, 255, 0.08); animation: shimmer 1.5s ease-in-out infinite; }
+.stat-card:hover { box-shadow: var(--shadow-hover); }
+.sk-card { height: 84px; background: var(--color-background-mute); animation: shimmer 1.5s ease-in-out infinite; }
 @keyframes shimmer { 0%,100% { opacity:0.5; } 50% { opacity:1; } }
 
 .stat-icon {
@@ -1201,24 +1219,24 @@ onUnmounted(() => {
   display: flex; align-items: center; justify-content: center;
   font-size: 1.3rem; flex-shrink: 0;
 }
-.stat-label { font-size: 12px; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin: 0; }
-.stat-value { font-size: 1.6rem; font-weight: 800; color: #f1f5f9; margin: 2px 0 0; line-height: 1; }
-.stat-sub { font-size: 11px; color: #22c55e; margin: 4px 0 0; font-weight: 500; }
+.stat-label { font-size: 12px; color: var(--color-text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin: 0; }
+.stat-value { font-size: 1.6rem; font-weight: 800; color: var(--color-heading); margin: 2px 0 0; line-height: 1; }
+.stat-sub { font-size: 11px; color: var(--color-success); margin: 4px 0 0; font-weight: 500; }
 
 /* ── Section Card ───────────────────────────────────────────────────── */
 .section-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  box-shadow: var(--glass-shadow);
 }
 .section-title {
   font-size: 1rem;
   font-weight: 700;
-  color: #f1f5f9;
+  color: var(--color-heading);
   padding: 16px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--color-border);
   margin: 0;
 }
 
@@ -1231,7 +1249,7 @@ onUnmounted(() => {
   padding: 10px 20px;
   transition: background 0.15s;
 }
-.activity-item:hover { background: rgba(255, 255, 255, 0.04); }
+.activity-item:hover { background: var(--color-background-mute); }
 .activity-badge {
   width: 32px; height: 32px; border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
@@ -1240,9 +1258,9 @@ onUnmounted(() => {
 .badge-thread { background: rgba(99, 102, 241, 0.18); }
 .badge-post { background: rgba(236, 72, 153, 0.18); }
 .activity-info { flex: 1; min-width: 0; }
-.activity-text { font-size: 13px; color: #cbd5e1; margin: 0 0 2px; line-height: 1.5; }
-.activity-meta { font-size: 11px; color: #9ca3af; margin: 0; }
-.activity-link { color: #93c5fd; text-decoration: none; font-weight: 600; }
+.activity-text { font-size: 13px; color: var(--color-text); margin: 0 0 2px; line-height: 1.5; }
+.activity-meta { font-size: 11px; color: var(--color-text-muted); margin: 0; }
+.activity-link { color: var(--admin-accent); text-decoration: none; font-weight: 600; }
 .activity-link:hover { text-decoration: underline; }
 .activity-actions { flex-shrink: 0; }
 
@@ -1259,20 +1277,21 @@ onUnmounted(() => {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #94a3b8;
-  background: rgba(255, 255, 255, 0.04);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--color-text-muted);
+  background: var(--color-background-soft);
+  border-bottom: 1px solid var(--color-border);
   white-space: nowrap;
 }
 .data-table td {
   padding: 10px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--color-border);
   vertical-align: middle;
+  color: var(--color-text);
 }
 .data-table tr:last-child td { border-bottom: none; }
-.data-table tr:hover td { background: rgba(255, 255, 255, 0.04); }
+.data-table tr:hover td { background: var(--color-background-mute); }
 .text-center { text-align: center; }
-.text-muted { color: #94a3b8; }
+.text-muted { color: var(--color-text-muted); }
 .text-sm { font-size: 12px; }
 .font-medium { font-weight: 600; }
 
@@ -1297,38 +1316,38 @@ onUnmounted(() => {
   border: none;
   transition: all 0.15s;
 }
-.role-admin { background: rgba(245, 158, 11, 0.16); color: #fcd34d; }
+.role-admin { background: rgba(245, 158, 11, 0.16); color: var(--admin-amber); }
 .role-admin:hover { background: rgba(245, 158, 11, 0.26); }
-.role-user { background: rgba(99, 102, 241, 0.18); color: #93c5fd; }
-.role-user:hover { background: rgba(99, 102, 241, 0.3); }
+.role-user { background: var(--admin-accent-soft-bg); color: var(--admin-accent); }
+.role-user:hover { background: rgba(99, 102, 241, 0.22); }
 .tier-select {
   padding: 3px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   font-size: 12px;
   font-weight: 600;
-  color: #cbd5e1;
-  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-text);
+  background: var(--color-background-soft);
   cursor: pointer;
 }
-.tier-select:focus { outline: none; border-color: #6366f1; }
+.tier-select:focus { outline: none; border-color: var(--admin-accent-strong); }
 .badge-pin, .badge-lock { font-size: 14px; margin: 0 2px; }
 .ban-pill {
   padding: 2px 10px; border-radius: 100px; font-size: 11px; font-weight: 700;
   text-transform: uppercase; letter-spacing: 0.04em;
-  background: rgba(239, 68, 68, 0.16); color: #fca5a5; cursor: default;
+  background: rgba(239, 68, 68, 0.14); color: var(--color-error); cursor: default;
 }
 .active-pill {
   padding: 2px 10px; border-radius: 100px; font-size: 11px; font-weight: 700;
   text-transform: uppercase; letter-spacing: 0.04em;
-  background: rgba(34, 197, 94, 0.16); color: #4ade80;
+  background: rgba(34, 197, 94, 0.14); color: var(--color-success);
 }
 
 /* ── Links ──────────────────────────────────────────────────────────── */
-.link-primary { color: #93c5fd; text-decoration: none; font-weight: 600; }
+.link-primary { color: var(--admin-accent); text-decoration: none; font-weight: 600; }
 .link-primary:hover { text-decoration: underline; }
-.link-muted { color: #94a3b8; text-decoration: none; }
-.link-muted:hover { color: #93c5fd; }
+.link-muted { color: var(--color-text-muted); text-decoration: none; }
+.link-muted:hover { color: var(--admin-accent); }
 
 /* ── Row Actions ────────────────────────────────────────────────────── */
 .row-actions { display: flex; gap: 4px; align-items: center; }
@@ -1336,52 +1355,54 @@ onUnmounted(() => {
   display: flex; align-items: center; justify-content: center;
   width: 28px; height: 28px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.08);
-  color: #cbd5e1;
+  background: var(--color-background-mute);
+  color: var(--color-text);
   text-decoration: none;
   font-size: 13px;
   border: none;
   cursor: pointer;
   transition: all 0.15s;
 }
-.btn-view-sm:hover { background: rgba(99, 102, 241, 0.18); }
+.btn-view-sm:hover { background: var(--admin-accent-soft-bg); }
 .btn-danger-sm {
   width: 28px; height: 28px;
   border-radius: 6px;
-  background: rgba(239, 68, 68, 0.14);
-  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--color-error);
   font-size: 13px;
   border: none;
   cursor: pointer;
   transition: all 0.15s;
   display: flex; align-items: center; justify-content: center;
 }
-.btn-danger-sm:hover { background: rgba(239, 68, 68, 0.24); }
+.btn-danger-sm:hover { background: rgba(239, 68, 68, 0.22); }
 .btn-edit-sm {
   width: 28px; height: 28px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.08);
-  color: #cbd5e1;
+  background: var(--color-background-mute);
+  color: var(--color-text);
   font-size: 13px;
   border: none;
   cursor: pointer;
   transition: all 0.15s;
   display: flex; align-items: center; justify-content: center;
 }
-.btn-edit-sm:hover { background: rgba(99, 102, 241, 0.18); }
+.btn-edit-sm:hover { background: var(--admin-accent-soft-bg); }
 
 /* ── Search ─────────────────────────────────────────────────────────── */
 .search-box { display: flex; align-items: center; }
 .search-input {
   padding: 8px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   font-size: 13px;
   outline: none;
   width: 240px;
+  background: var(--color-background);
+  color: var(--color-text);
   transition: border-color 0.15s;
 }
-.search-input:focus { border-color: #6366f1; }
+.search-input:focus { border-color: var(--admin-accent-strong); }
 
 /* ── Pagination ─────────────────────────────────────────────────────── */
 .pagination {
@@ -1390,27 +1411,28 @@ onUnmounted(() => {
   justify-content: center;
   gap: 12px;
   padding: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--color-border);
 }
 .page-btn {
   padding: 6px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--color-background-soft);
+  color: var(--color-text);
   cursor: pointer;
   font-size: 13px;
   transition: all 0.15s;
 }
-.page-btn:hover:not(:disabled) { border-color: #6366f1; color: #93c5fd; }
+.page-btn:hover:not(:disabled) { border-color: var(--admin-accent-strong); color: var(--admin-accent); }
 .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.page-info { font-size: 12px; color: #94a3b8; }
+.page-info { font-size: 12px; color: var(--color-text-muted); }
 
 /* ── Buttons ────────────────────────────────────────────────────────── */
 .btn-create {
   display: inline-flex;
   align-items: center;
   padding: 8px 18px;
-  background: #93c5fd;
+  background: var(--admin-btn-bg);
   color: white;
   font-size: 13px;
   font-weight: 600;
@@ -1418,16 +1440,16 @@ onUnmounted(() => {
   text-decoration: none;
   transition: background 0.15s;
 }
-.btn-create:hover { background: #4338ca; }
+.btn-create:hover { background: var(--admin-btn-bg-hover); }
 
 /* ── Skeletons ──────────────────────────────────────────────────────── */
 .sk-lines { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
-.sk-line { height: 14px; background: rgba(255, 255, 255, 0.08); border-radius: 6px; animation: shimmer 1.5s ease-in-out infinite; }
+.sk-line { height: 14px; background: var(--color-background-mute); border-radius: 6px; animation: shimmer 1.5s ease-in-out infinite; }
 .sk-line:nth-child(2n) { width: 80%; }
 .sk-line:nth-child(3n) { width: 60%; }
 
 /* ── Empty ──────────────────────────────────────────────────────────── */
-.empty-text { text-align: center; color: #94a3b8; font-size: 14px; padding: 40px 20px; }
+.empty-text { text-align: center; color: var(--color-text-muted); font-size: 14px; padding: 40px 20px; }
 
 /* ── Modal ──────────────────────────────────────────────────────────── */
 .modal-overlay {
@@ -1437,23 +1459,23 @@ onUnmounted(() => {
   backdrop-filter: blur(4px);
 }
 .modal {
-  background: rgba(15, 23, 42, 0.97);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
   border-radius: 16px;
   padding: 28px;
   max-width: 420px;
   width: 90%;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
 }
-.modal-title { font-size: 1.1rem; font-weight: 800; color: #f1f5f9; margin: 0 0 10px; }
-.modal-body { font-size: 14px; color: #cbd5e1; line-height: 1.6; margin: 0 0 24px; }
+.modal-title { font-size: 1.1rem; font-weight: 800; color: var(--color-heading); margin: 0 0 10px; }
+.modal-body { font-size: 14px; color: var(--color-text); line-height: 1.6; margin: 0 0 24px; }
 .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
 .btn-cancel {
-  padding: 8px 18px; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05); font-size: 13px; font-weight: 600; cursor: pointer;
+  padding: 8px 18px; border: 1px solid var(--color-border); border-radius: 8px;
+  background: var(--color-background-soft); color: var(--color-text); font-size: 13px; font-weight: 600; cursor: pointer;
   transition: background 0.15s;
 }
-.btn-cancel:hover { background: rgba(255, 255, 255, 0.04); }
+.btn-cancel:hover { background: var(--color-background-mute); }
 .btn-danger {
   padding: 8px 18px; background: #dc2626; color: white; border: none;
   border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
@@ -1462,31 +1484,31 @@ onUnmounted(() => {
 .btn-danger:hover:not(:disabled) { background: #b91c1c; }
 .btn-danger:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-save {
-  padding: 8px 18px; background: #6366f1; color: white; border: none;
+  padding: 8px 18px; background: var(--admin-btn-bg); color: white; border: none;
   border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
   transition: background 0.15s;
 }
-.btn-save:hover:not(:disabled) { background: #4f46e5; }
+.btn-save:hover:not(:disabled) { background: var(--admin-btn-bg-hover); }
 .btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
 .form-field { margin-bottom: 16px; text-align: left; }
 .form-label {
-  display: block; font-size: 12px; font-weight: 700; color: #94a3b8;
+  display: block; font-size: 12px; font-weight: 700; color: var(--color-text-muted);
   margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.03em;
 }
 .form-input {
   width: 100%; box-sizing: border-box;
   padding: 9px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
-  color: #f1f5f9;
+  background: var(--color-background);
+  color: var(--color-text);
   font-size: 14px;
   font-family: inherit;
   outline: none;
   resize: vertical;
   transition: border-color 0.15s;
 }
-.form-input:focus { border-color: #6366f1; }
+.form-input:focus { border-color: var(--admin-accent-strong); }
 
 /* ── Badge chips (users table) ──────────────────────────────────────── */
 .badge-chips { display: flex; flex-wrap: wrap; gap: 2px; max-width: 120px; }
@@ -1497,38 +1519,38 @@ onUnmounted(() => {
 .btn-toggle-on {
   width: 28px; height: 28px;
   border-radius: 6px;
-  background: rgba(34, 197, 94, 0.22);
-  color: #4ade80;
+  background: rgba(34, 197, 94, 0.18);
+  color: var(--color-success);
   font-size: 13px;
   border: none;
   cursor: pointer;
   transition: all 0.15s;
   display: flex; align-items: center; justify-content: center;
 }
-.btn-toggle-on:hover { background: rgba(34, 197, 94, 0.32); }
+.btn-toggle-on:hover { background: rgba(34, 197, 94, 0.28); }
 
 /* ── Badge manage modal ─────────────────────────────────────────────── */
 .badge-manage-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 20px; max-height: 60vh; overflow-y: auto; }
 .badge-manage-row {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 10px 12px; border-radius: 10px; background: rgba(255, 255, 255, 0.04);
+  padding: 10px 12px; border-radius: 10px; background: var(--color-background-mute);
 }
 .badge-manage-info { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .badge-manage-icon { font-size: 20px; flex-shrink: 0; }
-.badge-manage-label { font-size: 13px; font-weight: 600; color: #f1f5f9; margin: 0; }
-.badge-manage-desc { font-size: 11px; color: #94a3b8; margin: 2px 0 0; }
+.badge-manage-label { font-size: 13px; font-weight: 600; color: var(--color-heading); margin: 0; }
+.badge-manage-desc { font-size: 11px; color: var(--color-text-muted); margin: 2px 0 0; }
 .btn-grant {
-  padding: 5px 14px; border: none; border-radius: 8px; background: #6366f1; color: #fff;
+  padding: 5px 14px; border: none; border-radius: 8px; background: var(--admin-btn-bg); color: #fff;
   font-size: 12px; font-weight: 600; cursor: pointer; flex-shrink: 0; transition: background 0.15s;
 }
-.btn-grant:hover:not(:disabled) { background: #4f46e5; }
+.btn-grant:hover:not(:disabled) { background: var(--admin-btn-bg-hover); }
 .btn-grant:disabled, .btn-revoke:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-revoke {
   padding: 5px 14px; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px;
-  background: rgba(239, 68, 68, 0.14); color: #fca5a5;
+  background: rgba(239, 68, 68, 0.12); color: var(--color-error);
   font-size: 12px; font-weight: 600; cursor: pointer; flex-shrink: 0; transition: background 0.15s;
 }
-.btn-revoke:hover:not(:disabled) { background: rgba(239, 68, 68, 0.24); }
+.btn-revoke:hover:not(:disabled) { background: rgba(239, 68, 68, 0.22); }
 
 /* ── Responsive ─────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
@@ -1536,7 +1558,7 @@ onUnmounted(() => {
   .sidebar {
     transform: translateX(-100%);
     width: 240px;
-    box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.35);
   }
   .sidebar--open { transform: translateX(0); }
 

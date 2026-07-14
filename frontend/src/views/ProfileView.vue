@@ -158,27 +158,27 @@ const formatDate = (dateStr: string | undefined) => {
     <main class="flex justify-center min-h-screen pt-24 pb-12">
         <div class="w-screen max-w-4xl  mx-auto px-4 sm:px-6">
 
-            <div v-if="isLoading" class="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 p-8 animate-pulse">
+            <div v-if="isLoading" class="glass rounded-xl p-8 animate-pulse">
                 <div class="flex items-center gap-6 mb-6">
-                    <div class="w-20 h-20 rounded-full bg-white/10"></div>
+                    <div class="w-20 h-20 rounded-full bg-(--color-background-mute)"></div>
                     <div>
-                        <div class="h-6 bg-white/10 rounded w-40 mb-2"></div>
-                        <div class="h-4 bg-white/10 rounded w-60"></div>
+                        <div class="h-6 bg-(--color-background-mute) rounded w-40 mb-2"></div>
+                        <div class="h-4 bg-(--color-background-mute) rounded w-60"></div>
                     </div>
                 </div>
             </div>
 
-            <div v-else-if="error" class="bg-red-500/10 text-red-300 rounded-xl p-6 border border-red-500/20 text-center">
+            <div v-else-if="error" class="bg-red-500/10 text-(--color-error) rounded-xl p-6 border border-red-500/20 text-center">
                 <p class="font-medium">{{ error }}</p>
-                <router-link to="/" class="text-sky-400 hover:underline text-sm mt-2 inline-block">← Back to
+                <router-link to="/" class="text-sky-600 dark:text-sky-400 hover:underline text-sm mt-2 inline-block">← Back to
                     Home</router-link>
             </div>
 
             <div v-else-if="profileUser" class="flex flex-col space-y-6 gap-6">
                 <!-- Profile Card -->
-                <div class="bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 shadow-sm overflow-hidden">
+                <div class="glass rounded-xl overflow-hidden">
                     <!-- Banner -->
-                    <div class="relative h-32 group bg-white/5">
+                    <div class="relative h-32 group bg-(--color-background-soft)">
                         <div class="absolute inset-0 bg-cover bg-center" :style="bannerStyle"></div>
                         <div v-if="!profileUser.banner"
                             class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600"></div>
@@ -199,12 +199,12 @@ const formatDate = (dateStr: string | undefined) => {
                             <!-- Avatar with upload overlay -->
                             <div class="relative group">
                                 <div v-if="avatarPreview || profileUser.avatar"
-                                    class="w-20 h-20 rounded-full border-4 border-white shadow-md overflow-hidden bg-white">
+                                    class="w-20 h-20 rounded-full border-4 border-(--color-background) shadow-md overflow-hidden bg-(--color-background)">
                                     <img :src="avatarPreview || profileUser.avatar || ''"
                                         class="w-full h-full object-cover" alt="Avatar" />
                                 </div>
                                 <div v-else
-                                    class="w-20 h-20 rounded-full bg-indigo-600 text-white flex items-center justify-center text-2xl font-bold border-4 border-white shadow-md">
+                                    class="w-20 h-20 rounded-full bg-indigo-600 text-white flex items-center justify-center text-2xl font-bold border-4 border-(--color-background) shadow-md">
                                     {{ getInitials(profileUser.name) }}
                                 </div>
                                 <label v-if="isOwnProfile"
@@ -227,21 +227,21 @@ const formatDate = (dateStr: string | undefined) => {
                             </div>
                             <div class="pb-1 flex-1 min-w-0">
                                 <template v-if="!isEditing">
-                                    <h1 class="text-2xl font-bold text-slate-100 truncate">{{ profileUser.name }}</h1>
+                                    <h1 class="text-2xl font-bold text-(--color-heading) truncate">{{ profileUser.name }}</h1>
                                 </template>
                                 <template v-else>
                                     <input v-model="editName"
-                                        class="text-2xl font-bold text-slate-100 bg-white/5 border border-white/15 rounded-md px-2 py-1 focus:outline-none focus:ring-sky-500 focus:border-sky-500 w-full max-w-xs" />
+                                        class="text-2xl font-bold text-(--color-heading) bg-(--color-background) border border-(--color-border) rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-full max-w-xs" />
                                 </template>
-                                <p class="text-sm text-slate-400 truncate" v-if="profileUser.email">{{ profileUser.email }}</p>
+                                <p class="text-sm text-(--color-text-muted) truncate" v-if="profileUser.email">{{ profileUser.email }}</p>
                             </div>
                         </div>
 
                         <p v-if="avatarUploadError"
-                            class="text-sm text-red-300 bg-red-500/10 rounded-lg px-3 py-2 mb-3 border border-red-500/20">{{ avatarUploadError }}</p>
+                            class="text-sm text-(--color-error) bg-red-500/10 rounded-lg px-3 py-2 mb-3 border border-red-500/20">{{ avatarUploadError }}</p>
                         <p v-if="bannerUploadError"
-                            class="text-sm text-red-300 bg-red-500/10 rounded-lg px-3 py-2 mb-3 border border-red-500/20">{{ bannerUploadError }}</p>
-                        <div v-if="editError" class="p-3 bg-red-500/10 text-red-300 border border-red-500/20 rounded-md text-sm mb-4">{{ editError }}</div>
+                            class="text-sm text-(--color-error) bg-red-500/10 rounded-lg px-3 py-2 mb-3 border border-red-500/20">{{ bannerUploadError }}</p>
+                        <div v-if="editError" class="p-3 bg-red-500/10 text-(--color-error) border border-red-500/20 rounded-md text-sm mb-4">{{ editError }}</div>
 
                         <!-- Badges: tier + role -->
                         <div class="flex items-center flex-wrap gap-2 mb-4">
@@ -250,40 +250,40 @@ const formatDate = (dateStr: string | undefined) => {
                                 {{ ts.icon }} {{ ts.label }}
                             </span>
                             <span v-if="profileUser.role === 'admin'"
-                                class="bg-amber-500/15 text-amber-300 px-2.5 py-0.5 rounded-full font-bold text-xs uppercase">
+                                class="bg-amber-500/15 text-amber-700 dark:text-amber-300 px-2.5 py-0.5 rounded-full font-bold text-xs uppercase">
                                 Admin
                             </span>
-                            <span v-if="profileUser.createdAt" class="text-sm text-slate-400 ml-1">📅 Joined {{ formatDate(profileUser.createdAt) }}</span>
+                            <span v-if="profileUser.createdAt" class="text-sm text-(--color-text-muted) ml-1">📅 Joined {{ formatDate(profileUser.createdAt) }}</span>
                         </div>
 
                         <!-- Bio -->
                         <div class="mb-4">
                             <template v-if="!isEditing">
-                                <p v-if="profileUser.bio" class="text-sm text-slate-300 whitespace-pre-line">{{ profileUser.bio }}</p>
-                                <p v-else class="text-sm text-slate-500 italic">No bio yet.</p>
+                                <p v-if="profileUser.bio" class="text-sm text-(--color-text) whitespace-pre-line">{{ profileUser.bio }}</p>
+                                <p v-else class="text-sm text-(--color-text-muted) italic">No bio yet.</p>
                             </template>
                             <template v-else>
-                                <label class="block text-xs font-medium text-slate-400 mb-1">Bio / Description</label>
+                                <label class="block text-xs font-medium text-(--color-text-muted) mb-1">Bio / Description</label>
                                 <textarea v-model="editBio" rows="3" maxlength="500"
                                     placeholder="Tell others about yourself…"
-                                    class="w-full text-sm text-slate-200 bg-white/5 border border-white/15 rounded-md px-3 py-2 focus:outline-none focus:ring-sky-500 focus:border-sky-500 resize-y"></textarea>
-                                <p class="text-xs text-slate-500 mt-1">{{ editBio.length }}/500</p>
+                                    class="w-full text-sm text-(--color-text) bg-(--color-background) border border-(--color-border) rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-y"></textarea>
+                                <p class="text-xs text-(--color-text-muted) mt-1">{{ editBio.length }}/500</p>
                             </template>
                         </div>
 
                         <div v-if="isOwnProfile" class="flex gap-2 flex-wrap">
                             <template v-if="!isEditing">
                                 <button @click="startEdit"
-                                    class="px-4 py-2 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
+                                    class="px-4 py-2 text-sm bg-indigo-700 text-white rounded-md hover:bg-indigo-600 transition-colors">
                                     Edit Profile
                                 </button>
-                                <p class="text-xs text-slate-500 self-center">Hover the avatar or banner to change images</p>
+                                <p class="text-xs text-(--color-text-muted) self-center">Hover the avatar or banner to change images</p>
                             </template>
                             <template v-else>
                                 <button @click="cancelEdit"
-                                    class="px-4 py-2 text-sm text-slate-400 border border-white/15 rounded-md hover:bg-white/10">Cancel</button>
+                                    class="px-4 py-2 text-sm text-(--color-text-muted) border border-(--color-border) rounded-md hover:bg-(--color-background-mute)">Cancel</button>
                                 <button @click="saveEdit" :disabled="isSaving"
-                                    class="px-4 py-2 text-sm text-white bg-indigo-600 hover:bg-indigo-700 rounded-md disabled:opacity-50">
+                                    class="px-4 py-2 text-sm text-white bg-indigo-700 hover:bg-indigo-600 rounded-md disabled:opacity-50">
                                     {{ isSaving ? 'Saving...' : 'Save' }}
                                 </button>
                             </template>
@@ -296,54 +296,54 @@ const formatDate = (dateStr: string | undefined) => {
                     <div class="flex items-center gap-4 mb-4">
                         <div class="text-4xl">{{ ts.icon }}</div>
                         <div class="min-w-0">
-                            <p class="text-xs text-slate-400">ระดับการเดินทาง</p>
+                            <p class="text-xs text-(--color-text-muted)">ระดับการเดินทาง</p>
                             <h2 class="text-xl font-bold" :style="{ color: ts.color }">{{ ts.label }}</h2>
                         </div>
                         <div class="ml-auto text-right">
-                            <p class="text-2xl font-extrabold text-slate-100">{{ profileUser.score ?? 0 }}</p>
-                            <p class="text-xs text-slate-400">คะแนน</p>
+                            <p class="text-2xl font-extrabold text-(--color-heading)">{{ profileUser.score ?? 0 }}</p>
+                            <p class="text-xs text-(--color-text-muted)">คะแนน</p>
                         </div>
                     </div>
-                    <div class="h-3 rounded-full bg-white/10 overflow-hidden">
+                    <div class="h-3 rounded-full bg-(--color-background-mute) overflow-hidden">
                         <div class="h-full rounded-full transition-all"
                             :style="{ width: progressPct + '%', background: `linear-gradient(90deg, ${ts.color}, #38bdf8)` }">
                         </div>
                     </div>
-                    <p v-if="profileUser.nextTier" class="text-xs text-slate-400 mt-2">
-                        อีก <span class="font-bold text-slate-300">{{ profileUser.pointsToNext }}</span> คะแนน ถึง
+                    <p v-if="profileUser.nextTier" class="text-xs text-(--color-text-muted) mt-2">
+                        อีก <span class="font-bold text-(--color-text)">{{ profileUser.pointsToNext }}</span> คะแนน ถึง
                         <span class="font-bold">{{ profileUser.nextTier.icon }} {{ profileUser.nextTier.label }}</span>
                     </p>
-                    <p v-else class="text-xs text-slate-400 mt-2">🎉 ถึงระดับสูงสุดแล้ว!</p>
+                    <p v-else class="text-xs text-(--color-text-muted) mt-2">🎉 ถึงระดับสูงสุดแล้ว!</p>
                 </div>
 
                 <!-- Stats -->
                 <div v-if="profileUser.stats" class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     <div class="glass rounded-2xl p-4 text-center">
-                        <p class="text-2xl font-extrabold text-slate-100">{{ profileUser.stats.threads + profileUser.stats.posts }}</p>
-                        <p class="text-xs text-slate-400 mt-1">📝 โพสต์/กระทู้</p>
+                        <p class="text-2xl font-extrabold text-(--color-heading)">{{ profileUser.stats.threads + profileUser.stats.posts }}</p>
+                        <p class="text-xs text-(--color-text-muted) mt-1">📝 โพสต์/กระทู้</p>
                     </div>
                     <div class="glass rounded-2xl p-4 text-center">
-                        <p class="text-2xl font-extrabold text-slate-100">{{ profileUser.stats.likesReceived }}</p>
-                        <p class="text-xs text-slate-400 mt-1">👍 Like ที่ได้รับ</p>
+                        <p class="text-2xl font-extrabold text-(--color-heading)">{{ profileUser.stats.likesReceived }}</p>
+                        <p class="text-xs text-(--color-text-muted) mt-1">👍 Like ที่ได้รับ</p>
                     </div>
                     <div class="glass rounded-2xl p-4 text-center">
-                        <p class="text-2xl font-extrabold text-slate-100">{{ profileUser.stats.accountAgeDays }}</p>
-                        <p class="text-xs text-slate-400 mt-1">📅 วันกับเรา</p>
+                        <p class="text-2xl font-extrabold text-(--color-heading)">{{ profileUser.stats.accountAgeDays }}</p>
+                        <p class="text-xs text-(--color-text-muted) mt-1">📅 วันกับเรา</p>
                     </div>
                     <div class="glass rounded-2xl p-4 text-center">
-                        <p class="text-2xl font-extrabold text-slate-100">{{ profileUser.stats.loginStreak }} 🔥</p>
-                        <p class="text-xs text-slate-400 mt-1">🎯 Streak</p>
+                        <p class="text-2xl font-extrabold text-(--color-heading)">{{ profileUser.stats.loginStreak }} 🔥</p>
+                        <p class="text-xs text-(--color-text-muted) mt-1">🎯 Streak</p>
                     </div>
                 </div>
 
                 <!-- Badges -->
                 <div v-if="profileUser.badges && profileUser.badges.length" class="glass rounded-2xl p-6">
-                    <h2 class="text-lg font-bold text-slate-100 mb-4">🏅 เหรียญตรา</h2>
+                    <h2 class="text-lg font-bold text-(--color-heading) mb-4">🏅 เหรียญตรา</h2>
                     <div class="flex flex-wrap gap-3">
                         <div v-for="b in profileUser.badges" :key="b.key" :title="b.desc"
-                            class="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2">
+                            class="flex items-center gap-2 bg-(--color-background-mute) border border-(--color-border) rounded-xl px-3 py-2">
                             <span class="text-2xl">{{ b.icon }}</span>
-                            <span class="text-sm font-semibold text-slate-300">{{ b.label }}</span>
+                            <span class="text-sm font-semibold text-(--color-text)">{{ b.label }}</span>
                         </div>
                     </div>
                 </div>
