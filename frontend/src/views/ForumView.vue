@@ -15,9 +15,10 @@ const forumId = computed(() => props.forum);
 
 // Pagination
 const currentPage = ref(1);
+const limit = 15;
 
 const { data: forumData, isPending: isForumLoading, error: forumQueryError } = useForum(forumId);
-const { data: threadsResult, isPending: isThreadsLoading, error: threadsQueryError } = useForumThreads(forumId, currentPage);
+const { data: threadsResult, isPending: isThreadsLoading, error: threadsQueryError } = useForumThreads(forumId, currentPage, limit);
 
 const threads = computed<ThreadDetail[]>(() => threadsResult.value?.data ?? []);
 const totalPages = computed(() => threadsResult.value?.totalPages ?? 1);

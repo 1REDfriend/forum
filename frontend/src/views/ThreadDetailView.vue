@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, nextTick, watch } from 'vue';
+import { ref, reactive, computed, nextTick, watch } from 'vue';
 import type { PostDetail } from '../api/types.js';
 import { useAuthStore } from '../stores/auth.js';
 import { useRouter } from 'vue-router';
@@ -78,7 +78,11 @@ const error = computed(() => {
   return err ? errorMessage(err) ?? 'Something went wrong' : '';
 });
 
-const likingPostId = ref<string | null>(null);
+// Track in-flight post-like requests per post id (not a single ref) so that
+// liking post B while post A's toggle is still in flight doesn't prematurely
+// re-enable A's button (or vice versa) when the other's request settles.
+const likingPostIds = reactive(new Set<string>());
+const isPostLiking = (postId: string) => likingPostIds.has(postId);
 
 const isAdmin = computed(() => authStore.user?.role === 'admin');
 const isThreadOwnerOrAdmin = computed(() =>
@@ -192,10 +196,10 @@ const toggleThreadLike = () => {
 
 // Like post
 const togglePostLike = (post: PostDetail) => {
-  if (!authStore.isAuthenticated || likingPostId.value === post.id) return;
-  likingPostId.value = post.id;
+  if (!authStore.isAuthenticated || likingPostIds.has(post.id)) return;
+  likingPostIds.add(post.id);
   togglePostLikeMutate(post.id, {
-    onSettled: () => { likingPostId.value = null; },
+    onSettled: () => { likingPostIds.delete(post.id); },
   });
 };
 
@@ -350,7 +354,7 @@ const formatDate = (dateStr: string) =>
               <span class="text-(--color-text-muted)">{{ formatDate(post.createdAt) }}</span>
               <!-- Like post button -->
               <button v-if="authStore.isAuthenticated && editingPostId !== post.id" @click="togglePostLike(post)"
-                :disabled="likingPostId === post.id" :class="[
+                :disabled="isPostLiking(post.id)" :class="[
                   'flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium transition-all',
                   post.isLikedByMe
                     ? 'bg-sky-500/15 text-sky-700 dark:text-sky-300'

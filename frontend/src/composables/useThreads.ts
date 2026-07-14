@@ -10,10 +10,10 @@ export function useThreads() {
   });
 }
 
-export function useForumThreads(forumId: MaybeRef<string>, page: MaybeRef<number>) {
+export function useForumThreads(forumId: MaybeRef<string>, page: MaybeRef<number>, limit: MaybeRef<number> = 20) {
   return useQuery({
-    queryKey: ['forum', forumId, 'threads', page],
-    queryFn: () => threadsApi.getThreadsByForumId(unref(forumId), unref(page)),
+    queryKey: ['forum', forumId, 'threads', page, limit],
+    queryFn: () => threadsApi.getThreadsByForumId(unref(forumId), unref(page), unref(limit)),
     enabled: computed(() => !!unref(forumId)),
   });
 }

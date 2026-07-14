@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { authApi, usersApi, ApiError } from '../api/index.js';
-import type { LoginDTO, RegisterDTO, User, UpdateUserDTO } from '../api/types.js';
+import type { LoginDTO, RegisterDTO, User } from '../api/types.js';
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null);
@@ -36,12 +36,6 @@ export const useAuthStore = defineStore('auth', () => {
   const googleAuth = async (idToken: string) => {
     const response = await authApi.googleAuth({ idToken });
     setAuth(response.user, response.token, response.refreshToken);
-  };
-
-  const updateProfile = async (data: UpdateUserDTO) => {
-    const updatedUser = await usersApi.updateMe(data);
-    user.value = updatedUser;
-    localStorage.setItem('user', JSON.stringify(updatedUser));
   };
 
   // Refresh the current user from the API (role/tier/profile may have changed
@@ -92,7 +86,6 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     register,
     googleAuth,
-    updateProfile,
     fetchCurrentUser,
     logout,
     handleUnauthorized,
