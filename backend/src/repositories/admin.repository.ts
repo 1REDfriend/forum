@@ -137,7 +137,7 @@ export class AdminRepository {
     return { data, total: countResult?.total ?? 0 };
   }
 
-  async updateUserRole(id: string, role: 'user' | 'admin') {
+  async updateUserRole(id: string, role: 'user' | 'manager' | 'admin') {
     const [user] = await db
       .update(users)
       .set({ role })

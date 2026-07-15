@@ -48,22 +48,27 @@ export const optionalAuth = createMiddleware<OptionalAuthEnv>(async (c, next) =>
   await next();
 });
 
+/** Require an authenticated user whose DB role is one of `roles`; sets `user: JwtPayload`. */
+export const requireRole = (...roles: string[]) =>
+  createMiddleware<AuthEnv>(async (c, next) => {
+    const user = verifyBearer(c.req.header('authorization'));
+    if (!user) return c.json({ error: 'Unauthorized' }, 401);
+    const row = await userRepository.findById(user.userId);
+    if (!row || !roles.includes(row.role))
+      return c.json({ error: 'Forbidden: Insufficient role' }, 403);
+    if (row.isBanned) {
+      return c.json(
+        {
+          error: 'Account banned',
+          reason: row.banReason || 'No reason provided',
+          bannedAt: row.bannedAt,
+        },
+        403,
+      );
+    }
+    c.set('user', user);
+    await next();
+  });
+
 /** Require an authenticated admin (DB role check); sets `user: JwtPayload`. */
-export const requireAdmin = createMiddleware<AuthEnv>(async (c, next) => {
-  const user = verifyBearer(c.req.header('authorization'));
-  if (!user) return c.json({ error: 'Unauthorized' }, 401);
-  const row = await userRepository.findById(user.userId);
-  if (!row || row.role !== 'admin') return c.json({ error: 'Forbidden: Admin access required' }, 403);
-  if (row.isBanned) {
-    return c.json(
-      {
-        error: 'Account banned',
-        reason: row.banReason || 'No reason provided',
-        bannedAt: row.bannedAt,
-      },
-      403,
-    );
-  }
-  c.set('user', user);
-  await next();
-});
+export const requireAdmin = requireRole('admin');
