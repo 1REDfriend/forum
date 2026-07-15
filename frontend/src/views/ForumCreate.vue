@@ -2,8 +2,14 @@
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCreateForum } from '../composables/useForums.js';
+import { useAuthStore } from '../stores/auth.js';
 
 const router = useRouter();
+const authStore = useAuthStore();
+// Backend enforces this too (403); redirect non-managers away from the form.
+if (!authStore.canManageForums) {
+    router.replace('/forums');
+}
 const name = ref('');
 const description = ref('');
 
