@@ -23,6 +23,11 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => !!token.value);
 
+  // Forum management (create / edit any / delete any) — admin and manager roles.
+  const canManageForums = computed(
+    () => user.value?.role === 'admin' || user.value?.role === 'manager',
+  );
+
   const login = async (data: LoginDTO) => {
     const response = await authApi.login(data);
     setAuth(response.user, response.token, response.refreshToken);
@@ -83,6 +88,7 @@ export const useAuthStore = defineStore('auth', () => {
     user,
     token,
     isAuthenticated,
+    canManageForums,
     login,
     register,
     googleAuth,

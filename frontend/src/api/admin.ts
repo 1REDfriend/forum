@@ -16,7 +16,7 @@ export interface AdminUser {
   id: string;
   name: string;
   email: string;
-  role: 'user' | 'admin';
+  role: 'user' | 'manager' | 'admin';
   tier: string;
   authProvider: 'local' | 'google';
   avatar: string | null;
@@ -128,7 +128,7 @@ export class AdminApi {
     return this.client.get<PaginatedAdminResult<AdminUser>>(`/admin/users?${q}`);
   }
 
-  updateUserRole(id: string, role: 'user' | 'admin'): Promise<AdminUser> {
+  updateUserRole(id: string, role: 'user' | 'manager' | 'admin'): Promise<AdminUser> {
     return this.client.patch<AdminUser>(`/admin/users/${id}/role`, { role });
   }
 

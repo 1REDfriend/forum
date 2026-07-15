@@ -38,6 +38,7 @@ const bannerStyle = computed(() =>
 
       <div class="pcard-badges">
         <span v-if="author.role === 'admin'" class="pcard-badge pcard-role text-amber-700 dark:text-amber-300">ADMIN</span>
+        <span v-else-if="author.role === 'manager'" class="pcard-badge pcard-role text-sky-700 dark:text-sky-300">MANAGER</span>
         <span
           class="pcard-badge pcard-tier"
           :style="{ background: ts.bg, color: ts.color, borderColor: ts.ring }"

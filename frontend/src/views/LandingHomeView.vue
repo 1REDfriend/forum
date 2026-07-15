@@ -271,7 +271,7 @@ const formatCount = (n: number) => {
         <!-- Empty -->
         <div v-else class="top-forums-empty">
           <p>ยังไม่มีฟอรัม — เป็นคนแรกที่สร้างฟอรัม!</p>
-          <router-link v-if="authStore.isAuthenticated" to="/forum/create" class="btn-primary" style="margin-top:16px">
+          <router-link v-if="authStore.canManageForums" to="/forum/create" class="btn-primary" style="margin-top:16px">
             + สร้างฟอรัมแรก
           </router-link>
         </div>

@@ -83,7 +83,7 @@ const formatTimeAgo = (dateStr: string | null) => {
             class="text-xs text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-medium border border-sky-500/30 hover:border-sky-500/50 px-3 py-1.5 rounded-full transition-colors">
             ✓ Mark All Read
           </button>
-          <router-link v-if="authStore.isAuthenticated" to="/forum/create"
+          <router-link v-if="authStore.canManageForums" to="/forum/create"
             class="bg-indigo-700 hover:bg-indigo-600 text-white px-4 py-2 rounded-full shadow-sm text-sm font-medium transition-colors">
             + New Forum
           </router-link>

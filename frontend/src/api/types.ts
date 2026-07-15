@@ -8,7 +8,7 @@ export interface User {
   email: string;
   googleId: string | null;
   authProvider: 'local' | 'google';
-  role: 'user' | 'admin';
+  role: 'user' | 'manager' | 'admin';
   tier: string;
   avatar: string | null;
   banner: string | null;
@@ -23,7 +23,7 @@ export interface PostAuthor {
   avatar: string | null;
   banner: string | null;
   bio: string | null;
-  role: 'user' | 'admin';
+  role: 'user' | 'manager' | 'admin';
   tier: string;
 }
 

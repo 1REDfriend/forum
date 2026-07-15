@@ -288,10 +288,10 @@ const setPostsPage = (p: number) => { postsPage.value = p; };
 // ─── Actions ──────────────────────────────────────────────────────────────────
 
 const updateUserRoleMutation = useUpdateUserRole();
-const toggleUserRole = (user: AdminUser) => {
-  const newRole = user.role === 'admin' ? 'user' : 'admin';
+const setUserRole = (user: AdminUser, role: 'user' | 'manager' | 'admin') => {
+  if (role === user.role) return;
   updateUserRoleMutation.mutate(
-    { id: user.id, role: newRole },
+    { id: user.id, role },
     { onError: (err: unknown) => alert(errorMessage(err) || 'Failed to update role') },
   );
 };
@@ -560,11 +560,16 @@ onUnmounted(() => {
                 </td>
                 <td class="text-muted text-sm">{{ user.email }}</td>
                 <td>
-                  <button
-                    @click="toggleUserRole(user)"
-                    :class="['role-badge', user.role === 'admin' ? 'role-admin' : 'role-user']"
-                    :title="`Click to ${user.role === 'admin' ? 'demote to user' : 'promote to admin'}`"
-                  >{{ user.role }}</button>
+                  <select
+                    :value="user.role"
+                    @change="setUserRole(user, ($event.target as HTMLSelectElement).value as 'user' | 'manager' | 'admin')"
+                    class="tier-select"
+                    title="Set role"
+                  >
+                    <option value="user">user</option>
+                    <option value="manager">manager</option>
+                    <option value="admin">admin</option>
+                  </select>
                 </td>
                 <td>
                   <select
@@ -1260,20 +1265,6 @@ onUnmounted(() => {
 }
 
 /* ── Badges ─────────────────────────────────────────────────────────── */
-.role-badge {
-  padding: 2px 10px;
-  border-radius: 100px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  cursor: pointer;
-  border: none;
-  transition: all 0.15s;
-}
-.role-admin { background: var(--admin-amber-soft-bg); color: var(--admin-amber); }
-.role-admin:hover { background: var(--admin-amber-soft-bg-strong); }
-.role-user { background: var(--admin-accent-soft-bg); color: var(--admin-accent); }
-.role-user:hover { background: var(--admin-accent-soft-bg-strong); }
 .tier-select {
   padding: 3px 8px;
   border: 1px solid var(--color-border);

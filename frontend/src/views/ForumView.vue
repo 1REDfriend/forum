@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import type { ThreadDetail } from '../api/types.js';
 import { useAuthStore } from '../stores/auth.js'
 import { setPageMeta } from '../utils/meta.js';
-import { useForum } from '../composables/useForums.js';
+import { useForum, useUpdateForum, useDeleteForum } from '../composables/useForums.js';
 import { useForumThreads } from '../composables/useThreads.js';
 
 const props = defineProps<{
@@ -11,6 +12,7 @@ const props = defineProps<{
 }>();
 
 const authStore = useAuthStore();
+const router = useRouter();
 const forumId = computed(() => props.forum);
 
 // Pagination
@@ -19,6 +21,46 @@ const limit = 15;
 
 const { data: forumData, isPending: isForumLoading, error: forumQueryError } = useForum(forumId);
 const { data: threadsResult, isPending: isThreadsLoading, error: threadsQueryError } = useForumThreads(forumId, currentPage, limit);
+
+// Owner, admin, or manager may edit/delete this forum (backend enforces the same policy).
+const canManageForum = computed(
+  () =>
+    authStore.canManageForums ||
+    (!!authStore.user && !!forumData.value && forumData.value.createdBy === authStore.user.id),
+);
+
+const isEditingForum = ref(false);
+const editName = ref('');
+const editDescription = ref('');
+const { mutate: updateForumMutate, isPending: isSavingForum } = useUpdateForum();
+const { mutate: deleteForumMutate, isPending: isDeletingForum } = useDeleteForum();
+
+const startEditForum = () => {
+  if (!forumData.value) return;
+  editName.value = forumData.value.name;
+  editDescription.value = forumData.value.description ?? '';
+  isEditingForum.value = true;
+};
+
+const saveForumEdit = () => {
+  if (!forumData.value || !editName.value.trim()) return;
+  updateForumMutate(
+    { id: forumData.value.id, data: { name: editName.value.trim(), description: editDescription.value } },
+    {
+      onSuccess: () => { isEditingForum.value = false; },
+      onError: (err: unknown) => alert(err instanceof Error ? err.message : 'Failed to update forum'),
+    },
+  );
+};
+
+const confirmDeleteForum = () => {
+  if (!forumData.value) return;
+  if (!confirm(`Delete forum "${forumData.value.name}"? All threads and posts in it will be permanently removed.`)) return;
+  deleteForumMutate(forumData.value.id, {
+    onSuccess: () => router.push('/forums'),
+    onError: (err: unknown) => alert(err instanceof Error ? err.message : 'Failed to delete forum'),
+  });
+};
 
 const threads = computed<ThreadDetail[]>(() => threadsResult.value?.data ?? []);
 const totalPages = computed(() => threadsResult.value?.totalPages ?? 1);
@@ -110,15 +152,42 @@ const formatTimeAgo = (dateStr: string | null) => {
 
       <!-- Header -->
       <div class="flex justify-between items-start pb-6 gap-4 flex-wrap">
-        <div>
-          <h1 class="text-2xl font-extrabold text-(--color-heading)" v-if="forumData">{{ forumData.name }}</h1>
-          <h1 class="text-2xl font-extrabold text-(--color-heading)" v-else>Loading...</h1>
-          <p class="text-(--color-text-muted) mt-1 text-sm" v-if="forumData?.description">{{ forumData.description }}</p>
+        <div class="min-w-0 flex-1">
+          <template v-if="!isEditingForum">
+            <h1 class="text-2xl font-extrabold text-(--color-heading)" v-if="forumData">{{ forumData.name }}</h1>
+            <h1 class="text-2xl font-extrabold text-(--color-heading)" v-else>Loading...</h1>
+            <p class="text-(--color-text-muted) mt-1 text-sm" v-if="forumData?.description">{{ forumData.description }}</p>
+          </template>
+          <!-- Inline forum edit form (owner / manager / admin) -->
+          <div v-else class="space-y-2 max-w-xl">
+            <input v-model="editName" type="text" placeholder="Forum name"
+              class="block w-full px-3 py-2 border border-(--color-border) bg-(--color-background) text-(--color-heading) rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <textarea v-model="editDescription" rows="2" placeholder="Description (optional)"
+              class="block w-full px-3 py-2 border border-(--color-border) bg-(--color-background) text-(--color-heading) rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            <div class="flex gap-2">
+              <button @click="saveForumEdit" :disabled="isSavingForum || !editName.trim()"
+                class="bg-indigo-700 hover:bg-indigo-600 text-white px-4 py-1.5 rounded-full text-sm font-medium transition-colors disabled:opacity-50">
+                {{ isSavingForum ? 'Saving...' : 'Save' }}
+              </button>
+              <button @click="isEditingForum = false"
+                class="border border-(--color-border) text-(--color-heading) px-4 py-1.5 rounded-full text-sm font-medium hover:bg-(--color-background-mute) transition-colors">
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
         <div class="flex items-center gap-3 flex-wrap">
           <button v-if="anyUnread" @click="markAllThreadsRead"
             class="text-xs text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-medium border border-sky-500/30 hover:border-sky-500/50 px-3 py-1.5 rounded-full transition-colors">
             ✓ Mark All Read
+          </button>
+          <button v-if="canManageForum && forumData && !isEditingForum" @click="startEditForum" title="Edit forum"
+            class="text-xs text-(--color-text-muted) hover:text-(--color-heading) font-medium border border-(--color-border) hover:border-(--color-text-muted) px-3 py-1.5 rounded-full transition-colors">
+            ✏️ Edit
+          </button>
+          <button v-if="canManageForum && forumData" @click="confirmDeleteForum" :disabled="isDeletingForum" title="Delete forum"
+            class="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium border border-red-500/30 hover:border-red-500/50 px-3 py-1.5 rounded-full transition-colors disabled:opacity-50">
+            {{ isDeletingForum ? 'Deleting...' : '🗑 Delete' }}
           </button>
           <router-link v-if="authStore.isAuthenticated && forumData" :to="`/forum/${forumData.id}/create-thread`"
             class="bg-indigo-700 hover:bg-indigo-600 text-white px-4 py-2 rounded-full shadow-sm text-sm font-medium transition-colors whitespace-nowrap">

@@ -101,7 +101,7 @@ export function useBadgeCatalog() {
 export function useUpdateUserRole() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, role }: { id: string; role: 'user' | 'admin' }) =>
+    mutationFn: ({ id, role }: { id: string; role: 'user' | 'manager' | 'admin' }) =>
       adminApi.updateUserRole(id, role),
     onSuccess: (_res, { id }) => {
       qc.invalidateQueries({ queryKey: ['admin', 'users'] });

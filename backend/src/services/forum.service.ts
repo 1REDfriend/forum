@@ -2,6 +2,7 @@ import { forumRepository } from '../repositories/forum.repository.js';
 import { userRepository } from '../repositories/user.repository.js';
 import { NotFoundError, ForbiddenError } from '../utils/errors.js';
 import type { CreateForumDTO, UpdateForumDTO } from '../types/index.js';
+import { canModifyForum } from '../domain/forum-policy.js';
 
 export class ForumService {
   async getAllForums() {
@@ -30,9 +31,9 @@ export class ForumService {
       throw NotFoundError('Forum not found');
     }
 
-    // Check ownership or admin
+    // Owner, or a forum-manager role (admin/manager)
     const user = await userRepository.findById(userId);
-    if (forum.createdBy !== userId && user?.role !== 'admin') {
+    if (!canModifyForum(userId, user?.role, forum.createdBy)) {
       throw ForbiddenError('You do not have permission to edit this forum');
     }
 
@@ -50,7 +51,7 @@ export class ForumService {
     }
 
     const user = await userRepository.findById(userId);
-    if (forum.createdBy !== userId && user?.role !== 'admin') {
+    if (!canModifyForum(userId, user?.role, forum.createdBy)) {
       throw ForbiddenError('You do not have permission to delete this forum');
     }
 

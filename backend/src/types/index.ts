@@ -100,7 +100,7 @@ export const UpdateUserTierDTO = z.object({
 export type UpdateUserTierDTO = z.infer<typeof UpdateUserTierDTO>;
 
 export const UpdateUserRoleDTO = z.object({
-  role: z.enum(['user', 'admin']),
+  role: z.enum(['user', 'manager', 'admin']),
 });
 export type UpdateUserRoleDTO = z.infer<typeof UpdateUserRoleDTO>;
 

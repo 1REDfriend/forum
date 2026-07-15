@@ -8,7 +8,7 @@ export const users = pgTable("users", {
   passwordHash: text("password_hash"),
   googleId: text("google_id"),
   authProvider: text("auth_provider").notNull().default("local"), // 'local' or 'google'
-  role: text("role").notNull().default("user"), // 'user' or 'admin' — set by admin
+  role: text("role").notNull().default("user"), // 'user' | 'manager' | 'admin' — set by admin
   tier: text("tier").notNull().default("wanderer"), // journey tier — auto-computed, monotonic; admin can override
   score: integer("score").notNull().default(0), // latest computed score snapshot
   lastLoginDate: date("last_login_date"), // for login streak

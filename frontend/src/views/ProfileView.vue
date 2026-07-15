@@ -278,6 +278,10 @@ const formatDate = (dateStr: string | undefined) => {
                                 class="bg-amber-500/15 text-amber-700 dark:text-amber-300 px-2.5 py-0.5 rounded-full font-bold text-xs uppercase">
                                 Admin
                             </span>
+                            <span v-else-if="profileUser.role === 'manager'"
+                                class="bg-sky-500/15 text-sky-700 dark:text-sky-300 px-2.5 py-0.5 rounded-full font-bold text-xs uppercase">
+                                Manager
+                            </span>
                             <span v-if="profileUser.createdAt" class="text-sm text-(--color-text-muted) ml-1">📅 Joined {{ formatDate(profileUser.createdAt) }}</span>
                         </div>
 
