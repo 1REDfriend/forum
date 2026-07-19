@@ -220,7 +220,7 @@ const formatDate = (dateStr: string) =>
 
 <template>
   <main class="flex items-center w-screen flex-col min-h-screen py-8 sm:px-6 lg:px-8 pt-24">
-    <div v-if="isLoading" class="sm:mx-auto sm:w-full sm:max-w-4xl space-y-4">
+    <div v-if="isLoading" class="w-full sm:mx-auto sm:max-w-4xl space-y-4">
       <div class="glass rounded-xl p-6 animate-pulse">
         <div class="h-6 bg-(--color-background-mute) rounded w-2/3 mb-4"></div>
         <div class="h-4 bg-(--color-background-mute) rounded w-1/4 mb-6"></div>
@@ -235,7 +235,7 @@ const formatDate = (dateStr: string) =>
       </div>
     </div>
 
-    <div v-else-if="thread" class="sm:mx-auto sm:w-full sm:max-w-4xl space-y-6">
+    <div v-else-if="thread" class="w-full sm:mx-auto sm:max-w-4xl space-y-6">
 
       <!-- Breadcrumbs -->
       <nav class="text-sm text-(--color-text-muted) mb-4 flex items-center gap-1 flex-wrap">
