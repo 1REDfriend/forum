@@ -65,9 +65,7 @@ export const shareService = {
       description: `${snippet(thread.content, 160)}${inForum}${by}`,
       url: `${FRONTEND_URL}/thread/${id}`,
       type: 'article',
-      // Author avatars are small/square; prefer the author banner if set,
-      // else fall back to the default site card.
-      image: thread.author?.banner ?? undefined,
+      // Always use the default site OG card for thread shares.
     });
   },
 
