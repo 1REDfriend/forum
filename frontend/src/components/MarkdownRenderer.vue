@@ -46,6 +46,11 @@ const renderedHtml = computed(() => {
 .prose-content :deep(h2) { font-size: 1.25em; }
 .prose-content :deep(h3) { font-size: 1.1em; }
 
+.prose-content {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .prose-content :deep(p) {
   margin: 0.6em 0;
   line-height: 1.7;
@@ -69,6 +74,7 @@ const renderedHtml = computed(() => {
   border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 1em 1.2em;
+  max-width: 100%;
   overflow-x: auto;
   margin: 0.8em 0;
 }
@@ -113,8 +119,11 @@ const renderedHtml = computed(() => {
 }
 
 .prose-content :deep(table) {
+  display: block;
   border-collapse: collapse;
   width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
   margin: 0.8em 0;
 }
 .prose-content :deep(th),
