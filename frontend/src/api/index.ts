@@ -7,6 +7,10 @@ import { UsersApi, SearchApi } from './users.js';
 import { LikesApi, UploadApi } from './likes.js';
 import { AdminApi } from './admin.js';
 import { ReportsApi } from './reports.js';
+import { ActivityApi } from './activity.js';
+import { NotificationsApi } from './notifications.js';
+import { LeaderboardApi } from './leaderboard.js';
+import { ExtrasApi } from './extras.js';
 
 const BASE_URL = (import.meta.env.VITE_API_URL as string) || 'http://localhost:3636';
 
@@ -75,6 +79,10 @@ export const likesApi = new LikesApi(apiClient);
 export const uploadApi = new UploadApi(apiClient);
 export const adminApi = new AdminApi(apiClient);
 export const reportsApi = new ReportsApi(apiClient);
+export const activityApi = new ActivityApi(apiClient);
+export const notificationsApi = new NotificationsApi(apiClient);
+export const leaderboardApi = new LeaderboardApi(apiClient);
+export const extrasApi = new ExtrasApi(apiClient);
 
 export * from './client.js';
 export * from './types.js';
@@ -88,5 +96,9 @@ export default {
   search: searchApi,
   likes: likesApi,
   upload: uploadApi,
+  activity: activityApi,
+  notifications: notificationsApi,
+  leaderboard: leaderboardApi,
+  extras: extrasApi,
 };
 export type { AuthResponse } from './types.js';

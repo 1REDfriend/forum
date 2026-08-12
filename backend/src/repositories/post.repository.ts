@@ -16,6 +16,8 @@ export class PostRepository {
     return await db.select({
       id: posts.id,
       content: posts.content,
+      replyToPostId: posts.replyToPostId,
+      isAccepted: posts.isAccepted,
       createdAt: posts.createdAt,
       updatedAt: posts.updatedAt,
       author: {
@@ -61,6 +63,10 @@ export class PostRepository {
 
   async delete(id: string): Promise<void> {
     await db.delete(posts).where(eq(posts.id, id));
+  }
+
+  async clearAcceptedInThread(threadId: string): Promise<void> {
+    await db.update(posts).set({ isAccepted: false }).where(eq(posts.threadId, threadId));
   }
 }
 

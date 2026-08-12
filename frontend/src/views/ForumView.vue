@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, nextTick } from 'vue';
+// watch used for sort/filter reset
 import { useRouter } from 'vue-router';
 import type { ThreadDetail } from '../api/types.js';
 import { useAuthStore } from '../stores/auth.js'
 import { setPageMeta } from '../utils/meta.js';
 import { useForum, useUpdateForum, useDeleteForum } from '../composables/useForums.js';
 import { useForumThreads } from '../composables/useThreads.js';
+import PaginationBar from '../components/PaginationBar.vue';
 
 const props = defineProps<{
   forum: string
@@ -15,12 +17,24 @@ const authStore = useAuthStore();
 const router = useRouter();
 const forumId = computed(() => props.forum);
 
-// Pagination
+// Pagination + discovery controls (Phase E)
 const currentPage = ref(1);
-const limit = 15;
+const limit = 10;
+const sort = ref('newest');
+const filter = ref('all');
+const shouldScrollToTopics = ref(false);
 
 const { data: forumData, isPending: isForumLoading, error: forumQueryError } = useForum(forumId);
-const { data: threadsResult, isPending: isThreadsLoading, error: threadsQueryError } = useForumThreads(forumId, currentPage, limit);
+const {
+  data: threadsResult,
+  isPending: isThreadsLoading,
+  isFetching: isThreadsFetching,
+  error: threadsQueryError,
+} = useForumThreads(forumId, currentPage, limit, sort, filter);
+
+watch([sort, filter], () => {
+  currentPage.value = 1;
+});
 
 // Owner, admin, or manager may edit/delete this forum (backend enforces the same policy).
 const canManageForum = computed(
@@ -92,9 +106,14 @@ const getReadTimestamps = (): Record<string, number> => {
 const readTimestamps = ref<Record<string, number>>(getReadTimestamps());
 
 const isThreadUnread = (thread: ThreadDetail): boolean => {
+  // Prefer server-side isUnread when authenticated (Phase C).
+  if (authStore.isAuthenticated && typeof thread.isUnread === 'boolean') {
+    return thread.isUnread;
+  }
+  // Guest / fallback: localStorage heuristic
   const activity = thread.lastPostAt || thread.createdAt;
   const readAt = readTimestamps.value[`thread_${thread.id}`];
-  if (!readAt) return true;
+  if (!readAt) return !!activity;
   return new Date(activity).getTime() > readAt;
 };
 
@@ -120,8 +139,19 @@ const markAllThreadsRead = () => {
 const anyUnread = computed(() => threads.value.some(t => isThreadUnread(t)));
 
 const goToPage = (page: number) => {
-  if (page >= 1 && page <= totalPages.value) currentPage.value = page;
+  if (page >= 1 && page <= totalPages.value && page !== currentPage.value) {
+    shouldScrollToTopics.value = true;
+    currentPage.value = page;
+  }
 };
+
+watch(isThreadsFetching, async (fetching, prev) => {
+  if (prev && !fetching && shouldScrollToTopics.value) {
+    shouldScrollToTopics.value = false;
+    await nextTick();
+    document.getElementById('topics-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+});
 
 const formatTimeAgo = (dateStr: string | null) => {
   if (!dateStr) return '—';
@@ -177,6 +207,25 @@ const formatTimeAgo = (dateStr: string | null) => {
           </div>
         </div>
         <div class="flex items-center gap-3 flex-wrap">
+          <select
+            v-model="sort"
+            class="text-xs border border-(--color-border) bg-(--color-background) text-(--color-heading) rounded-full px-3 py-1.5"
+            aria-label="Sort threads"
+          >
+            <option value="newest">Newest</option>
+            <option value="recent_activity">Recent activity</option>
+            <option value="most_liked">Most liked</option>
+            <option value="unanswered">Unanswered</option>
+          </select>
+          <select
+            v-model="filter"
+            class="text-xs border border-(--color-border) bg-(--color-background) text-(--color-heading) rounded-full px-3 py-1.5"
+            aria-label="Filter threads"
+          >
+            <option value="all">All</option>
+            <option value="pinned">Pinned</option>
+            <option v-if="authStore.isAuthenticated" value="mine">Mine</option>
+          </select>
           <button v-if="anyUnread" @click="markAllThreadsRead"
             class="text-xs text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-medium border border-sky-500/30 hover:border-sky-500/50 px-3 py-1.5 rounded-full transition-colors">
             ✓ Mark All Read
@@ -195,6 +244,16 @@ const formatTimeAgo = (dateStr: string | null) => {
           </router-link>
         </div>
       </div>
+
+      <div id="topics-section" class="scroll-mt-24">
+      <PaginationBar
+        v-if="!isLoading && !error"
+        :page="currentPage"
+        :total-pages="totalPages"
+        :total="total"
+        item-label="topics"
+        @change="goToPage"
+      />
 
       <!-- Loading -->
       <div v-if="isLoading" class="space-y-3">
@@ -323,30 +382,16 @@ const formatTimeAgo = (dateStr: string | null) => {
         </div>
       </div>
 
-      <!-- Pagination -->
-      <div v-if="!isLoading && !error && totalPages > 1" class="flex items-center justify-between mt-6">
-        <p class="text-sm text-(--color-text-muted)">
-          Page {{ currentPage }} of {{ totalPages }} <span class="text-(--color-text-muted)">({{ total }} threads)</span>
-        </p>
-        <div class="flex gap-2">
-          <button @click="goToPage(currentPage - 1)" :disabled="currentPage <= 1"
-            class="px-3 py-2 text-sm rounded-lg border border-(--color-border) hover:bg-(--color-background-mute) disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-            ← Prev
-          </button>
-          <button v-for="page in totalPages" :key="page" @click="goToPage(page)" :class="[
-            'px-3 py-2 text-sm rounded-lg border transition-colors',
-            page === currentPage
-              ? 'bg-indigo-700 text-white border-indigo-700'
-              : 'border-(--color-border) hover:bg-(--color-background-mute)'
-          ]">
-            {{ page }}
-          </button>
-          <button @click="goToPage(currentPage + 1)" :disabled="currentPage >= totalPages"
-            class="px-3 py-2 text-sm rounded-lg border border-(--color-border) hover:bg-(--color-background-mute) disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-            Next →
-          </button>
-        </div>
-      </div>
+      <PaginationBar
+        v-if="!isLoading && !error"
+        class="mt-4"
+        :page="currentPage"
+        :total-pages="totalPages"
+        :total="total"
+        item-label="topics"
+        @change="goToPage"
+      />
+      </div><!-- /topics-section -->
 
     </div>
   </main>

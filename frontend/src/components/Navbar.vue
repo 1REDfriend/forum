@@ -9,12 +9,21 @@ import MenuIcon from './icons/MenuIcon.vue';
 import MoonIcon from './icons/MoonIcon.vue';
 import SearchIcon from './icons/SearchIcon.vue';
 import SunIcon from './icons/SunIcon.vue';
+import TrophyIcon from './icons/TrophyIcon.vue';
+import MessageIcon from './icons/MessageIcon.vue';
 import UserDropdown from './UserDropdown.vue';
 import { useUiStore } from '../stores/ui';
+import { useAuthStore } from '../stores/auth';
+import { useUnreadNotificationCount } from '../composables/useNotifications.js';
 
 const route = useRoute();
 const ui = useUiStore();
+const auth = useAuthStore();
 const isAdmin = computed(() => route.path === '/admin');
+const { count: unreadCount } = useUnreadNotificationCount();
+const badgeLabel = computed(() =>
+  unreadCount.value > 99 ? '99+' : String(unreadCount.value),
+);
 </script>
 
 <template>
@@ -41,6 +50,18 @@ const isAdmin = computed(() => route.path === '/admin');
       <router-link to="/forums" class="hover:text-sky-600 transition-colors" title="Forums">
         <ForumIcon />
       </router-link>
+      <router-link to="/leaderboard" class="hover:text-sky-600 transition-colors" title="Leaderboard">
+        <TrophyIcon />
+      </router-link>
+      <router-link
+        v-if="auth.isAuthenticated"
+        to="/messages"
+        class="hover:text-sky-600 transition-colors"
+        title="Messages (DM)"
+      >
+        <MessageIcon />
+      </router-link>
+      <!-- Search sits rightmost in the primary nav -->
       <router-link to="/search" class="hover:text-sky-600 transition-colors" title="Search">
         <SearchIcon />
       </router-link>
@@ -62,6 +83,29 @@ const isAdmin = computed(() => route.path === '/admin');
 
     <!-- Right-side controls -->
     <div class="flex items-center gap-4">
+      <router-link
+        v-if="auth.isAuthenticated"
+        to="/notifications"
+        class="relative p-2 rounded-lg text-(--color-text-muted) hover:text-(--color-heading) hover:bg-(--color-background-mute) transition-colors"
+        title="Notifications"
+        aria-label="Notifications"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.8"
+            d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0a3 3 0 11-6 0m6 0H9"
+          />
+        </svg>
+        <!-- Unread badge: orange pill with count (realtime via SSE + short poll) -->
+        <span
+          v-if="unreadCount > 0"
+          class="absolute -top-0.5 -right-0.5 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-orange-500 text-white text-[10px] font-bold flex items-center justify-center leading-none ring-2 ring-(--color-background)"
+        >
+          {{ badgeLabel }}
+        </span>
+      </router-link>
       <button
         type="button"
         class="p-2 rounded-lg text-(--color-text-muted) hover:text-(--color-heading) hover:bg-(--color-background-mute)"

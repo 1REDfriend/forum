@@ -24,14 +24,44 @@ import { adminRoutes } from './routes/admin.routes.js';
 import { reportRoutes } from './routes/report.routes.js';
 import { shareRoutes } from './routes/share.routes.js';
 import { badgeRoutes } from './routes/badge.routes.js';
+import { activityRoutes, statsRoutes } from './routes/activity.routes.js';
+import { notificationRoutes } from './routes/notification.routes.js';
+import { leaderboardRoutes } from './routes/leaderboard.routes.js';
+import { tagRoutes } from './routes/tag.routes.js';
+import { reactionRoutes } from './routes/reaction.routes.js';
+import { pollRoutes } from './routes/poll.routes.js';
+import { dmRoutes } from './routes/dm.routes.js';
+import { eventRoutes } from './routes/event.routes.js';
+import { sseRoutes } from './routes/sse.routes.js';
+import { moderatorRoutes } from './routes/moderator.routes.js';
+import { digestRoutes } from './routes/digest.routes.js';
 
 const port = Number(process.env.PORT) || 3636;
 
 // CORS — FRONTEND_URL may be a comma-separated list of origins; trailing slashes are tolerated.
-const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173')
-  .split(',')
-  .map((o) => o.trim().replace(/\/+$/, ''))
-  .filter(Boolean);
+// Also accept the 127.0.0.1 twin of any localhost origin (browsers treat them as different).
+const allowedOrigins = [
+  ...new Set(
+    (process.env.FRONTEND_URL || 'http://localhost:5173,http://127.0.0.1:5173')
+      .split(',')
+      .map((o) => o.trim().replace(/\/+$/, ''))
+      .filter(Boolean)
+      .flatMap((o) => {
+        const twins: string[] = [o];
+        try {
+          const u = new URL(o);
+          if (u.hostname === 'localhost') {
+            twins.push(`${u.protocol}//127.0.0.1${u.port ? `:${u.port}` : ''}`);
+          } else if (u.hostname === '127.0.0.1') {
+            twins.push(`${u.protocol}//localhost${u.port ? `:${u.port}` : ''}`);
+          }
+        } catch {
+          /* keep as-is */
+        }
+        return twins;
+      }),
+  ),
+];
 
 // Uploaded files live on disk under ./uploads and are served at /uploads.
 const uploadsDir = path.join(process.cwd(), 'uploads');
@@ -82,6 +112,18 @@ app.route('/admin', adminRoutes);
 app.route('/reports', reportRoutes);
 app.route('/share', shareRoutes);
 app.route('/badges', badgeRoutes);
+app.route('/activity', activityRoutes);
+app.route('/stats', statsRoutes);
+app.route('/notifications', notificationRoutes);
+app.route('/leaderboard', leaderboardRoutes);
+app.route('/tags', tagRoutes);
+app.route('/reactions', reactionRoutes);
+app.route('/polls', pollRoutes);
+app.route('/dm', dmRoutes);
+app.route('/events', eventRoutes);
+app.route('/sse', sseRoutes);
+app.route('/moderators', moderatorRoutes);
+app.route('/digest', digestRoutes);
 
 // Central error handler — preserves the `{ error: "..." }` contract the frontend expects.
 app.onError((err, c) => {

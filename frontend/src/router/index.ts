@@ -64,6 +64,38 @@ const router = createRouter({
       component: () => import("../views/SearchView.vue"),
     },
     {
+      path: '/notifications',
+      name: 'notifications',
+      component: () => import("../views/NotificationsView.vue"),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/leaderboard',
+      name: 'leaderboard',
+      component: () => import("../views/LeaderboardView.vue"),
+    },
+    {
+      path: '/rules',
+      name: 'rules',
+      component: () => import("../views/RulesView.vue"),
+    },
+    {
+      path: '/help',
+      name: 'help',
+      component: () => import("../views/HelpView.vue"),
+    },
+    {
+      path: '/messages/:id?',
+      name: 'messages',
+      component: () => import("../views/MessagesView.vue"),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/calendar',
+      name: 'calendar',
+      component: () => import("../views/CalendarView.vue"),
+    },
+    {
       path: '/login',
       name: 'login',
       component: () => import("../views/LoginView.vue"),
@@ -111,6 +143,12 @@ const ROUTE_META: Record<string, { title: string; description: string }> = {
   landing: { title: 'Home', description: 'A community for developers — ask, share, and grow.' },
   home: { title: 'Forums', description: 'Browse all developer forums on IT.Forum.' },
   search: { title: 'Search', description: 'Search threads and posts across IT.Forum.' },
+  notifications: { title: 'Notifications', description: 'Your recent forum notifications.' },
+  leaderboard: { title: 'Leaderboard', description: 'Top members by activity and score.' },
+  rules: { title: 'Rules', description: 'Community rules for IT.Forum.' },
+  help: { title: 'Help', description: 'How to use IT.Forum.' },
+  messages: { title: 'Messages', description: 'Direct messages.' },
+  calendar: { title: 'Calendar', description: 'Community events.' },
   login: { title: 'Log in', description: 'Log in to IT.Forum.' },
   register: { title: 'Register', description: 'Create your IT.Forum account.' },
 }

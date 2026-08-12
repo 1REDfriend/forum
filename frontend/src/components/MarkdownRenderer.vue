@@ -15,7 +15,12 @@ marked.setOptions({
 });
 
 const renderedHtml = computed(() => {
-  const raw = marked.parse(props.content) as string;
+  // Stable mention form → SPA profile links before markdown parse
+  const withMentions = props.content.replace(
+    /\[@([^\]]+)\]\(user:([a-z0-9]+)\)/gi,
+    '[@$1](/user/$2)',
+  );
+  const raw = marked.parse(withMentions) as string;
   return DOMPurify.sanitize(raw, {
     ALLOWED_TAGS: [
       'p', 'br', 'strong', 'em', 'u', 's', 'code', 'pre',

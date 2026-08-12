@@ -50,3 +50,35 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string): Prom
     html,
   });
 }
+
+export async function sendDigestEmail(
+  to: string,
+  name: string,
+  opts: { unread: number; siteUrl: string },
+): Promise<void> {
+  const subject = `IT.FORUM — Weekly digest (${opts.unread} unread)`;
+  const html = `
+    <div style="font-family: sans-serif; max-width: 480px; margin: auto; padding: 24px; border: 1px solid #e5e7eb; border-radius: 12px;">
+      <h2 style="color: #4f46e5;">สวัสดี ${name}</h2>
+      <p>คุณมีการแจ้งเตือนที่ยังไม่อ่าน <strong>${opts.unread}</strong> รายการในสัปดาห์นี้</p>
+      <div style="text-align: center; margin: 28px 0;">
+        <a href="${opts.siteUrl}/notifications" style="background:#4f46e5;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
+          เปิดการแจ้งเตือน
+        </a>
+      </div>
+      <p style="color:#9ca3af;font-size:12px;">IT.FORUM weekly digest</p>
+    </div>
+  `;
+
+  if (!transporter) {
+    logger.warn('SMTP not configured — digest logged', { to, unread: opts.unread });
+    return;
+  }
+
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM || process.env.SMTP_USER,
+    to,
+    subject,
+    html,
+  });
+}

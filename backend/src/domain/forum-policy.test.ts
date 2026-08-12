@@ -1,5 +1,5 @@
 import { test, expect } from 'bun:test';
-import { FORUM_MANAGER_ROLES, canModifyForum } from './forum-policy.js';
+import { FORUM_MANAGER_ROLES, canModifyForum, canPostInForum } from './forum-policy.js';
 
 test('manager roles list contains exactly admin and manager', () => {
   expect([...FORUM_MANAGER_ROLES].sort()).toEqual(['admin', 'manager']);
@@ -27,4 +27,15 @@ test('missing role cannot modify a forum they do not own', () => {
 
 test('null createdBy is not treated as owned', () => {
   expect(canModifyForum('u1', 'user', null)).toBe(false);
+});
+
+test('null postRoleMin allows any role', () => {
+  expect(canPostInForum('user', null)).toBe(true);
+  expect(canPostInForum('user', undefined)).toBe(true);
+});
+
+test('manager-only forum rejects user', () => {
+  expect(canPostInForum('user', 'manager')).toBe(false);
+  expect(canPostInForum('manager', 'manager')).toBe(true);
+  expect(canPostInForum('admin', 'manager')).toBe(true);
 });

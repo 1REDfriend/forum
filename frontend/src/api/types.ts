@@ -40,7 +40,66 @@ export interface ForumWithStats extends Forum {
   postCount: number;
   lastPostAt: string | null;
   lastPostAuthor: string | null;
+  lastThreadId?: string | null;
+  lastThreadTitle?: string | null;
 }
+
+export interface PublicStats {
+  members: number;
+  threads: number;
+  posts: number;
+  forums: number;
+}
+
+export interface ActivityItem {
+  kind: 'post' | 'thread';
+  id: string;
+  threadId: string;
+  threadTitle: string;
+  forumId: string;
+  forumName: string;
+  author: { id: string; name: string; avatar: string | null };
+  snippet: string;
+  createdAt: string;
+}
+
+export interface ActivityFeed {
+  items: ActivityItem[];
+}
+
+export interface NotificationActor {
+  id: string;
+  name: string;
+  avatar: string | null;
+}
+
+export interface AppNotification {
+  id: string;
+  type: string;
+  entityType: string | null;
+  entityId: string | null;
+  threadId: string | null;
+  payload: Record<string, unknown> | null;
+  readAt: string | null;
+  createdAt: string;
+  actor: NotificationActor | null;
+}
+
+export interface NotificationListResponse {
+  data: AppNotification[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface UnreadCountResponse {
+  count: number;
+}
+
+export type MarkNotificationsReadDTO =
+  | { all: true }
+  | { ids: string[] };
 
 // Thread representation returned by queries (includes author and forum info)
 export interface ThreadDetail {
@@ -51,6 +110,8 @@ export interface ThreadDetail {
   isLocked: boolean;
   likeCount: number;
   isLikedByMe: boolean;
+  /** Present when the list request was authenticated (Phase C). */
+  isUnread?: boolean;
   replyCount: number;
   lastPostAt: string | null;
   lastPostAuthor: string | null;
@@ -176,6 +237,9 @@ export interface CreateThreadDTO {
   title: string;
   content: string;
   forumId: string;
+  tags?: string[];
+  isQa?: boolean;
+  poll?: { question: string; options: string[]; closesAt?: string };
 }
 
 export interface UpdateThreadDTO {
@@ -186,6 +250,30 @@ export interface UpdateThreadDTO {
 export interface CreatePostDTO {
   content: string;
   threadId: string;
+  replyToPostId?: string;
+}
+
+export interface UserSuggestItem {
+  id: string;
+  name: string;
+  avatar: string | null;
+  tier: string;
+}
+
+export interface LeaderboardItem {
+  rank: number;
+  id: string;
+  name: string;
+  avatar: string | null;
+  tier: string;
+  score: number;
+  activity: number;
+  stat: number;
+}
+
+export interface LeaderboardResponse {
+  period: 'week' | 'all';
+  items: LeaderboardItem[];
 }
 
 export interface UpdatePostDTO {

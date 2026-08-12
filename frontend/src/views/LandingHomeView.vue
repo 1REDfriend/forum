@@ -5,11 +5,13 @@ import { useAuthStore } from '../stores/auth.js';
 import { motion, px } from 'motion-v';
 import { fadeLeft, fadeUp, heroContainer, scaleIn } from '@/components/animations/Animation.ts';
 import { useForums } from '../composables/useForums.js';
+import { usePublicStats } from '../composables/useActivity.js';
 
 const authStore = useAuthStore();
 // Errors are non-critical here (landing page still renders without forum data),
 // so we intentionally don't surface `error` from the query.
 const { data: forumsData, isPending: isLoading } = useForums();
+const { data: publicStats, isPending: statsLoading } = usePublicStats();
 const forums = computed<ForumWithStats[]>(() => forumsData.value ?? []);
 // Sort by postCount desc, take top 3
 const topForums = computed<ForumWithStats[]>(() =>
@@ -49,14 +51,9 @@ const features = [
   },
 ];
 
-const stats = [
-  { value: forums.value.length || '∞', label: 'ฟอรัม' },
-  { value: '24/7', label: 'เปิดให้บริการ' },
-  { value: '100%', label: 'ฟรี' },
-];
-
-const formatCount = (n: number) => {
-  if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
+const formatCount = (n: number | undefined) => {
+  if (n === undefined || n === null) return '—';
+  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
   return String(n);
 };
 </script>
@@ -99,21 +96,21 @@ const formatCount = (n: number) => {
             เข้าสู่ระบบ
           </router-link>
         </div>
-        <!-- Stats bar -->
+        <!-- Stats bar (live public counts) -->
         <div class="hero-stats">
           <motion.div class="stat-item" :variants="fadeUp">
-            <span class="stat-val">{{ isLoading ? '…' : forums.length }}</span>
+            <span class="stat-val">{{ statsLoading ? '…' : formatCount(publicStats?.members) }}</span>
+            <span class="stat-label">สมาชิก</span>
+          </motion.div>
+          <div class="stat-divider" />
+          <motion.div class="stat-item" :variants="fadeUp">
+            <span class="stat-val">{{ statsLoading ? '…' : formatCount(publicStats?.threads) }}</span>
+            <span class="stat-label">กระทู้</span>
+          </motion.div>
+          <div class="stat-divider" />
+          <motion.div class="stat-item" :variants="fadeUp">
+            <span class="stat-val">{{ statsLoading || isLoading ? '…' : formatCount(publicStats?.forums ?? forums.length) }}</span>
             <span class="stat-label">ฟอรัม</span>
-          </motion.div>
-          <div class="stat-divider" />
-          <motion.div class="stat-item" :variants="fadeUp">
-            <span class="stat-val">24h</span>
-            <span class="stat-label">เปิดให้บริการ</span>
-          </motion.div>
-          <div class="stat-divider" />
-          <motion.div class="stat-item" :variants="fadeUp">
-            <span class="stat-val">99%</span>
-            <span class="stat-label">ฟรี</span>
           </motion.div>
         </div>
       </div>

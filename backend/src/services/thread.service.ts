@@ -1,10 +1,36 @@
-import { threadRepository } from '../repositories/thread.repository.js';
+import { threadRepository, type FindByForumOptions, type ThreadListFilter, type ThreadListSort } from '../repositories/thread.repository.js';
 import { userRepository } from '../repositories/user.repository.js';
 import { likeRepository } from '../repositories/like.repository.js';
+import { threadReadRepository } from '../repositories/threadRead.repository.js';
+import { forumRepository } from '../repositories/forum.repository.js';
+import { tagRepository } from '../repositories/tag.repository.js';
+import { moderatorRepository } from '../repositories/moderator.repository.js';
+import { pollRepository } from '../repositories/poll.repository.js';
+import { watchRepository } from '../repositories/watch.repository.js';
 import { tierService } from './tier.service.js';
 import { badgeService } from './badge.service.js';
-import { NotFoundError, ForbiddenError } from '../utils/errors.js';
+import { notificationService } from './notification.service.js';
+import { makeSnippet } from '../domain/snippet.js';
+import { parseMentionUserIds } from '../domain/mentions.js';
+import { canPostInForum, canModerateForumContent } from '../domain/forum-policy.js';
+import { NotFoundError, ForbiddenError, UnauthorizedError } from '../utils/errors.js';
 import type { CreateThreadDTO, UpdateThreadDTO } from '../types/index.js';
+
+function lastActivityAt(t: { createdAt: Date | string; lastPostAt?: string | Date | null }): Date {
+  const created = new Date(t.createdAt);
+  if (!t.lastPostAt) return created;
+  const lastPost = new Date(t.lastPostAt);
+  return lastPost > created ? lastPost : created;
+}
+
+function isUnreadFor(
+  t: { createdAt: Date | string; lastPostAt?: string | Date | null },
+  lastReadAt: Date | undefined,
+): boolean {
+  const activity = lastActivityAt(t).getTime();
+  if (!lastReadAt) return true;
+  return activity > lastReadAt.getTime();
+}
 
 export class ThreadService {
   async getAllThreads() {
@@ -23,24 +49,55 @@ export class ThreadService {
     return { ...thread, likeCount, isLikedByMe };
   }
 
-  async getThreadsByForumId(forumId: string, page: number, limit: number, userId?: string) {
+  async markRead(userId: string, threadId: string, at?: Date) {
+    const thread = await threadRepository.findRawById(threadId);
+    if (!thread) throw NotFoundError('Thread not found');
+    await threadReadRepository.upsert(userId, threadId, at ?? new Date());
+    return { ok: true as const };
+  }
+
+  async getThreadsByForumId(
+    forumId: string,
+    page: number,
+    limit: number,
+    userId?: string,
+    sort: ThreadListSort = 'newest',
+    filter: ThreadListFilter = 'all',
+  ) {
+    if (filter === 'mine' && !userId) {
+      throw UnauthorizedError('Authentication required for filter=mine');
+    }
+
+    const opts: FindByForumOptions = {
+      sort,
+      filter,
+      authorId: filter === 'mine' ? userId : undefined,
+    };
+
     const [data, total] = await Promise.all([
-      threadRepository.findByForumId(forumId, page, limit),
-      threadRepository.countByForumId(forumId),
+      threadRepository.findByForumId(forumId, page, limit, opts),
+      threadRepository.countByForumId(forumId, opts),
     ]);
 
-    // Batch fetch like counts and user liked set
     const threadIds = data.map((t) => t.id);
-    const [likeCounts, userLikedSet] = await Promise.all([
+    const [likeCounts, userLikedSet, lastReadMap] = await Promise.all([
       likeRepository.getThreadLikeCounts(threadIds),
       userId ? likeRepository.getThreadLikesForUser(userId, threadIds) : Promise.resolve(new Set<string>()),
+      userId ? threadReadRepository.getLastReadMap(userId, threadIds) : Promise.resolve(new Map<string, Date>()),
     ]);
+
+    const tagsMap = await tagRepository.listForThreads(threadIds);
 
     const enriched = data.map((t) => ({
       ...t,
       likeCount: likeCounts.get(t.id) ?? 0,
       isLikedByMe: userLikedSet.has(t.id),
+      isUnread: userId ? isUnreadFor(t, lastReadMap.get(t.id)) : false,
+      tags: tagsMap.get(t.id) ?? [],
     }));
+
+    // Optional tag filter
+    // (applied post-query if ?tag=slug passed via filter extension — handled in route)
 
     return {
       data: enriched,
@@ -52,16 +109,60 @@ export class ThreadService {
   }
 
   async createThread(userId: string, data: CreateThreadDTO) {
+    const forum = await forumRepository.findById(data.forumId);
+    if (!forum) throw NotFoundError('Forum not found');
+
+    const actor = await userRepository.findById(userId);
+    if (!canPostInForum(actor?.role, forum.postRoleMin)) {
+      throw ForbiddenError('You do not have permission to post in this forum');
+    }
+
     const created = await threadRepository.create({
       title: data.title,
       content: data.content,
       forumId: data.forumId,
       authorId: userId,
+      isQa: data.isQa === true,
     });
+
+    // Author auto-watches own thread
+    await watchRepository.watch(userId, created.id).catch(() => {});
+
+    if (data.tags?.length) {
+      await tagRepository.setThreadTags(created.id, data.tags);
+    }
+
+    if (data.poll) {
+      await pollRepository.create(
+        created.id,
+        data.poll.question,
+        data.poll.options,
+        data.poll.closesAt ? new Date(data.poll.closesAt) : null,
+      );
+    }
+
+    // Mentions in OP body
+    for (const mentionedId of parseMentionUserIds(data.content, 20)) {
+      if (mentionedId === userId) continue;
+      const exists = await userRepository.findById(mentionedId);
+      if (!exists) continue;
+      await notificationService.create({
+        userId: mentionedId,
+        type: 'mention',
+        actorId: userId,
+        entityType: 'thread',
+        entityId: created.id,
+        threadId: created.id,
+        payload: {
+          snippet: makeSnippet(data.content, 120),
+          threadTitle: data.title,
+        },
+      });
+    }
+
     return { ...created, newlyAwardedBadges: await this.awardBadges(userId) };
   }
 
-  /** Sync auto badges after content creation; never let it break the create. */
   private async awardBadges(userId: string) {
     try {
       const s = await tierService.computeStats(userId);
@@ -107,24 +208,38 @@ export class ThreadService {
     await threadRepository.delete(threadId);
   }
 
-  async pinThread(userId: string, threadId: string) {
+  private async assertCanModerate(userId: string, forumId: string) {
     const user = await userRepository.findById(userId);
-    if (user?.role !== 'admin') {
-      throw ForbiddenError('Only admins can pin threads');
+    const isBoardMod = await moderatorRepository.isModerator(forumId, userId);
+    if (!canModerateForumContent(user?.role, isBoardMod)) {
+      throw ForbiddenError('You do not have permission to moderate this forum');
     }
+  }
+
+  async pinThread(userId: string, threadId: string) {
     const thread = await threadRepository.findRawById(threadId);
     if (!thread) throw NotFoundError('Thread not found');
+    await this.assertCanModerate(userId, thread.forumId);
     return await threadRepository.update(threadId, { isPinned: !thread.isPinned });
   }
 
   async lockThread(userId: string, threadId: string) {
-    const user = await userRepository.findById(userId);
-    if (user?.role !== 'admin') {
-      throw ForbiddenError('Only admins can lock threads');
-    }
     const thread = await threadRepository.findRawById(threadId);
     if (!thread) throw NotFoundError('Thread not found');
+    await this.assertCanModerate(userId, thread.forumId);
     return await threadRepository.update(threadId, { isLocked: !thread.isLocked });
+  }
+
+  async setWatch(userId: string, threadId: string, watch: boolean) {
+    const thread = await threadRepository.findRawById(threadId);
+    if (!thread) throw NotFoundError('Thread not found');
+    if (watch) await watchRepository.watch(userId, threadId);
+    else await watchRepository.unwatch(userId, threadId);
+    return { watching: watch };
+  }
+
+  async isWatching(userId: string, threadId: string) {
+    return { watching: await watchRepository.isWatching(userId, threadId) };
   }
 }
 

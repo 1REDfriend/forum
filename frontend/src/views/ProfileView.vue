@@ -55,6 +55,15 @@ const profileUser = computed<ProfileData | null>(() => {
     return (raw as ProfileData | undefined) ?? null;
 });
 
+/** Can open a DM with this profile (other user, while logged in). */
+const canMessageProfile = computed(
+    () =>
+        authStore.isAuthenticated &&
+        !!props.id &&
+        !!profileUser.value?.id &&
+        props.id !== authStore.user?.id,
+);
+
 const isLoading = computed(() => {
     if (props.id) return isOtherProfilePending.value;
     if (isOwnProfile.value) return isOwnProfilePending.value;
@@ -316,6 +325,14 @@ const formatDate = (dateStr: string | undefined) => {
                                     {{ isSaving ? 'Saving...' : 'Save' }}
                                 </button>
                             </template>
+                        </div>
+                        <div v-else-if="canMessageProfile" class="flex gap-2 flex-wrap">
+                            <router-link
+                                :to="`/messages?user=${profileUser!.id}`"
+                                class="inline-flex items-center gap-2 px-4 py-2 text-sm bg-indigo-700 text-white rounded-md hover:bg-indigo-600 transition-colors"
+                            >
+                                💬 Message
+                            </router-link>
                         </div>
                     </div>
                 </div>

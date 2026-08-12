@@ -3,6 +3,7 @@ import { postService } from '../services/post.service.js';
 import { requireAuth, optionalAuth, type OptionalAuthEnv } from '../http/auth.js';
 import { validate } from '../http/validate.js';
 import { CreatePostDTO, UpdatePostDTO, Pagination } from '../types/index.js';
+import { createPostRateLimit } from '../http/rateLimit.js';
 
 export const postRoutes = new Hono<OptionalAuthEnv>()
   // Get posts for a thread — optional auth so isLikedByMe is populated for logged-in users
@@ -13,7 +14,7 @@ export const postRoutes = new Hono<OptionalAuthEnv>()
     );
   })
   // Protected routes
-  .post('/', requireAuth, validate('json', CreatePostDTO), async (c) =>
+  .post('/', requireAuth, createPostRateLimit, validate('json', CreatePostDTO), async (c) =>
     c.json(await postService.createPost(c.get('user').userId, c.req.valid('json')), 201),
   )
   .put('/:id', requireAuth, validate('json', UpdatePostDTO), async (c) =>
@@ -22,4 +23,7 @@ export const postRoutes = new Hono<OptionalAuthEnv>()
   .delete('/:id', requireAuth, async (c) => {
     await postService.deletePost(c.get('user').userId, c.req.param('id'));
     return c.body(null, 204);
-  });
+  })
+  .post('/:id/accept', requireAuth, async (c) =>
+    c.json(await postService.acceptAnswer(c.get('user').userId, c.req.param('id'))),
+  );

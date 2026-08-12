@@ -36,6 +36,10 @@ export class UserService {
     return this.withProgression(this.sanitizeUser(user), user.id, user.tier);
   }
 
+  async suggest(q: string, limit = 8) {
+    return userRepository.suggestByName(q, Math.min(8, Math.max(1, limit)));
+  }
+
   async getPublicProfile(userId: string) {
     const user = await userRepository.findById(userId);
     if (!user) {

@@ -13,10 +13,19 @@ const error = ref('');
 const isLoading = ref(false);
 
 const handleRegister = async () => {
-    isLoading.value = true;
     error.value = '';
+    const normalizedEmail = email.value.trim().toLowerCase();
+    if (!normalizedEmail.endsWith('@gmail.com')) {
+        error.value = 'สมัครแบบอีเมล/รหัสผ่านใช้ได้เฉพาะที่อยู่ @gmail.com เท่านั้น (หรือใช้ Google ด้านล่าง)';
+        return;
+    }
+    isLoading.value = true;
     try {
-        await authStore.register({ name: name.value, email: email.value, password: password.value });
+        await authStore.register({
+            name: name.value,
+            email: normalizedEmail,
+            password: password.value,
+        });
         router.push('/');
     } catch (err: any) {
         error.value = err.message || 'Registration failed';
@@ -51,6 +60,10 @@ const handleGoogleCallback = async (response: any) => {
                     sign in to your existing account
                 </router-link>
             </p>
+            <p class="mt-2 text-center text-xs text-(--color-text-muted)">
+                By registering you agree to the
+                <router-link to="/rules" class="text-sky-600 dark:text-sky-400 hover:underline">community rules</router-link>
+            </p>
         </div>
 
         <div class="mt-8 w-full max-w-md mx-auto">
@@ -71,9 +84,20 @@ const handleGoogleCallback = async (response: any) => {
                     <div>
                         <label for="email" class="block text-sm font-medium text-(--color-heading)"> Email address </label>
                         <div class="mt-1">
-                            <input id="email" name="email" type="email" autocomplete="email" required v-model="email"
-                                class="appearance-none block w-full px-3 py-2 border border-(--color-border) bg-(--color-background) text-(--color-heading) rounded-md shadow-sm placeholder-(--color-text-muted) focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                            <input
+                                id="email"
+                                name="email"
+                                type="email"
+                                autocomplete="email"
+                                required
+                                v-model="email"
+                                placeholder="you@gmail.com"
+                                class="appearance-none block w-full px-3 py-2 border border-(--color-border) bg-(--color-background) text-(--color-heading) rounded-md shadow-sm placeholder-(--color-text-muted) focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            />
                         </div>
+                        <p class="mt-1 text-xs text-(--color-text-muted)">
+                            สมัครด้วยอีเมล/รหัสผ่านใช้ได้เฉพาะ <strong>@gmail.com</strong> — Google Sign-in ไม่จำกัด
+                        </p>
                     </div>
 
                     <div>

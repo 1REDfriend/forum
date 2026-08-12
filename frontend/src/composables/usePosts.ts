@@ -3,10 +3,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query';
 import { postsApi } from '../api/index.js';
 import type { CreatePostDTO, UpdatePostDTO } from '../api/types.js';
 
-export function useThreadPosts(threadId: MaybeRef<string>, page: MaybeRef<number>) {
+export function useThreadPosts(
+  threadId: MaybeRef<string>,
+  page: MaybeRef<number>,
+  limit: MaybeRef<number> = 10,
+) {
   return useQuery({
-    queryKey: ['thread', threadId, 'posts', page],
-    queryFn: () => postsApi.getPostsByThreadId(unref(threadId), unref(page)),
+    queryKey: ['thread', threadId, 'posts', page, limit],
+    queryFn: () => postsApi.getPostsByThreadId(unref(threadId), unref(page), unref(limit)),
     enabled: computed(() => !!unref(threadId)),
   });
 }

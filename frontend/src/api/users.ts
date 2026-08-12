@@ -1,5 +1,5 @@
 import type { ApiClient } from './client.js';
-import type { User, UpdateUserDTO, SearchResponse } from './types.js';
+import type { User, UpdateUserDTO, SearchResponse, UserSuggestItem } from './types.js';
 
 export class UsersApi {
   private client: ApiClient;
@@ -27,6 +27,13 @@ export class UsersApi {
    */
   public getUserById(id: string): Promise<User> {
     return this.client.get<User>(`/users/${id}`);
+  }
+
+  /** Typeahead for @mentions (auth required). */
+  public suggest(q: string, limit = 8): Promise<{ users: UserSuggestItem[] }> {
+    return this.client.get<{ users: UserSuggestItem[] }>(
+      `/users/suggest?q=${encodeURIComponent(q)}&limit=${limit}`,
+    );
   }
 }
 

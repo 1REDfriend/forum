@@ -10,18 +10,64 @@ import ReportButton from '../components/ReportButton.vue';
 import ShareButton from '../components/ShareButton.vue';
 import { threadShareUrl, postShareUrl } from '../utils/share.js'
 import { setPageMeta } from '../utils/meta.js';
-import { useThread, useUpdateThread, useDeleteThread, usePinThread, useLockThread } from '../composables/useThreads.js';
+import { useThread, useUpdateThread, useDeleteThread, usePinThread, useLockThread, useMarkThreadRead } from '../composables/useThreads.js';
 import { useThreadPosts, useCreatePost, useUpdatePost, useDeletePost } from '../composables/usePosts.js';
 import { useToggleThreadLike, useTogglePostLike } from '../composables/useLikes.js';
+import { extrasApi } from '../api/index.js';
+import { useQuery, useQueryClient } from '@tanstack/vue-query';
+import PaginationBar from '../components/PaginationBar.vue';
 
 const props = defineProps<{ id: string }>();
 
 const router = useRouter();
 const authStore = useAuthStore();
 const threadId = computed(() => props.id);
+const { mutate: markThreadReadMutate } = useMarkThreadRead();
+const qc = useQueryClient();
+const REACTIONS = ['❤️', '🔥', '😂', '🎉', '👀', '💡'];
+
+const { data: watchData, refetch: refetchWatch } = useQuery({
+  queryKey: computed(() => ['thread', threadId.value, 'watch']),
+  queryFn: () => extrasApi.getWatch(threadId.value),
+  enabled: computed(() => authStore.isAuthenticated && !!threadId.value),
+});
+const watching = computed(() => !!watchData.value?.watching);
+
+const { data: pollData, refetch: refetchPoll } = useQuery({
+  queryKey: computed(() => ['thread', threadId.value, 'poll']),
+  queryFn: () => extrasApi.getPoll(threadId.value),
+  enabled: computed(() => !!threadId.value),
+});
+
+const toggleWatch = async () => {
+  if (!thread.value) return;
+  if (watching.value) await extrasApi.unwatch(thread.value.id);
+  else await extrasApi.watch(thread.value.id);
+  await refetchWatch();
+};
+
+const reactThread = async (emoji: string) => {
+  if (!thread.value) return;
+  await extrasApi.toggleReaction({ emoji, threadId: thread.value.id });
+};
+
+const reactPost = async (postId: string, emoji: string) => {
+  await extrasApi.toggleReaction({ emoji, postId });
+};
+
+const votePoll = async (pollId: string, optionId: string) => {
+  await extrasApi.votePoll(pollId, optionId);
+  await refetchPoll();
+};
+
+const acceptAnswer = async (postId: string) => {
+  await extrasApi.acceptPost(postId);
+  await qc.invalidateQueries({ queryKey: ['thread', threadId.value, 'posts'] });
+};
 
 // Reply
 const replyContent = ref('');
+const replyToPostId = ref<string | null>(null);
 
 // Edit thread
 const isEditingThread = ref(false);
@@ -36,12 +82,20 @@ const editPostContent = ref('');
 const confirmDeleteType = ref<'thread' | 'post' | null>(null);
 const confirmDeleteId = ref<string | null>(null);
 
-// Pagination
+// Pagination — fewer replies per page for easier scanning
 const currentPage = ref(1);
+const postsPerPage = 8;
+const shouldScrollToReplies = ref(false);
+const repliesHighlight = ref(false);
 
 // Data
 const { data: thread, isPending: isThreadLoading, error: threadQueryError } = useThread(threadId);
-const { data: postsResult, isPending: isPostsLoading, error: postsQueryError } = useThreadPosts(threadId, currentPage);
+const {
+  data: postsResult,
+  isPending: isPostsLoading,
+  isFetching: isPostsFetching,
+  error: postsQueryError,
+} = useThreadPosts(threadId, currentPage, postsPerPage);
 
 const posts = computed<PostDetail[]>(() => postsResult.value?.data ?? []);
 const totalPages = computed(() => postsResult.value?.totalPages ?? 1);
@@ -116,19 +170,80 @@ watch(thread, (t) => {
       title: t.title,
       description: t.content.replace(/\s+/g, ' ').trim().slice(0, 200),
     });
+    // Server last-read cursor (Phase C) — guests skip; failures are non-blocking
+    if (authStore.isAuthenticated) {
+      markThreadReadMutate(t.id);
+    }
   }
 }, { immediate: true });
 
 const goToPage = (page: number) => {
-  if (page >= 1 && page <= totalPages.value) currentPage.value = page;
+  if (page >= 1 && page <= totalPages.value && page !== currentPage.value) {
+    shouldScrollToReplies.value = true;
+    currentPage.value = page;
+  }
+};
+
+// After replies page loads: scroll to section top + flash highlight
+watch(isPostsFetching, async (fetching, prev) => {
+  if (prev && !fetching && shouldScrollToReplies.value) {
+    shouldScrollToReplies.value = false;
+    await nextTick();
+    const el = document.getElementById('replies-section');
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    repliesHighlight.value = true;
+    window.setTimeout(() => {
+      repliesHighlight.value = false;
+    }, 1400);
+  }
+});
+
+const quotePost = (post: PostDetail) => {
+  const lines = post.content
+    .split('\n')
+    .map((l) => `> ${l}`)
+    .join('\n');
+  const header = `> @${post.author.name} ([post](/thread/${props.id}#post-${post.id})):\n`;
+  const block = `${header}${lines}\n\n`;
+  replyContent.value = replyContent.value ? `${replyContent.value}\n\n${block}` : block;
+  replyToPostId.value = post.id;
+  // Scroll to composer
+  requestAnimationFrame(() => {
+    document.getElementById('reply-composer')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+};
+
+const quoteThreadOp = () => {
+  if (!thread.value) return;
+  const lines = thread.value.content
+    .split('\n')
+    .map((l) => `> ${l}`)
+    .join('\n');
+  const header = `> @${thread.value.author.name} ([post](/thread/${props.id})):\n`;
+  replyContent.value = `${header}${lines}\n\n`;
+  replyToPostId.value = null;
+  requestAnimationFrame(() => {
+    document.getElementById('reply-composer')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
 };
 
 // Reply
 const submitReply = () => {
   if (!replyContent.value.trim()) return;
-  createPostMutate({ content: replyContent.value, threadId: props.id }, {
-    onSuccess: () => { replyContent.value = ''; },
-  });
+  createPostMutate(
+    {
+      content: replyContent.value,
+      threadId: props.id,
+      ...(replyToPostId.value ? { replyToPostId: replyToPostId.value } : {}),
+    },
+    {
+      onSuccess: () => {
+        replyContent.value = '';
+        replyToPostId.value = null;
+      },
+    },
+  );
 };
 
 // Edit thread
@@ -252,7 +367,37 @@ const formatDate = (dateStr: string) =>
         <span v-if="thread.isLocked"
           class="ml-1 inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-semibold bg-red-500/15 text-red-700 dark:text-red-300">🔒
           Locked</span>
+        <span v-if="(thread as any).isQa"
+          class="ml-1 inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">✓
+          Q&amp;A</span>
+        <button
+          v-if="authStore.isAuthenticated"
+          type="button"
+          class="ml-auto text-xs border border-(--color-border) rounded-full px-3 py-1 hover:bg-(--color-background-mute)"
+          @click="toggleWatch"
+        >
+          {{ watching ? '★ Watching' : '☆ Watch' }}
+        </button>
       </nav>
+
+      <!-- Poll -->
+      <div v-if="pollData && pollData.id" class="glass p-4 sm:rounded-xl">
+        <p class="font-semibold text-(--color-heading) mb-2">📊 {{ pollData.question }}</p>
+        <div class="space-y-2">
+          <button
+            v-for="opt in pollData.options"
+            :key="opt.id"
+            type="button"
+            class="w-full text-left px-3 py-2 rounded-lg border border-(--color-border) text-sm hover:bg-(--color-background-mute)"
+            :class="pollData.myOptionId === opt.id ? 'border-sky-500 bg-sky-500/10' : ''"
+            :disabled="pollData.closed || !authStore.isAuthenticated"
+            @click="votePoll(pollData.id, opt.id)"
+          >
+            {{ opt.label }}
+            <span class="text-(--color-text-muted) float-right">{{ opt.votes }}</span>
+          </button>
+        </div>
+      </div>
 
       <!-- Main Thread Post -->
       <div class="flex flex-col sm:flex-row gap-4 items-start">
@@ -299,6 +444,24 @@ const formatDate = (dateStr: string) =>
                   <button @click="showDeleteConfirm('thread', thread.id)"
                     class="text-sm text-(--color-text-muted) hover:text-(--color-error) transition-colors px-2 py-1">Delete</button>
                 </template>
+                <button
+                  v-if="authStore.isAuthenticated && !thread.isLocked"
+                  type="button"
+                  class="text-sm text-(--color-text-muted) hover:text-sky-600 dark:hover:text-sky-400 transition-colors px-2 py-1"
+                  @click="quoteThreadOp"
+                >
+                  Quote
+                </button>
+                <div v-if="authStore.isAuthenticated" class="flex gap-1">
+                  <button
+                    v-for="e in REACTIONS"
+                    :key="e"
+                    type="button"
+                    class="text-sm hover:scale-110"
+                    :title="e"
+                    @click="reactThread(e)"
+                  >{{ e }}</button>
+                </div>
                 <ShareButton :url="threadShareUrl(thread.id)" :title="thread.title" />
                 <ReportButton v-if="!isThreadOwnerOrAdmin" target-type="thread" :target-id="thread.id" />
               </div>
@@ -335,15 +498,39 @@ const formatDate = (dateStr: string) =>
       <div v-if="error && thread" class="p-3 bg-red-500/10 text-(--color-error) border border-red-500/20 rounded-md text-sm">{{ error }}</div>
 
       <!-- Replies list -->
-      <div class="space-y-4 pb-5">
-        <h3 class="text-lg font-semibold text-(--color-heading) pl-2">Replies ({{ total }})</h3>
+      <div
+        id="replies-section"
+        class="space-y-4 pb-5 scroll-mt-24"
+      >
+        <div class="flex flex-wrap items-center justify-between gap-2 pl-2">
+          <h3 class="text-lg font-semibold text-(--color-heading)">
+            Replies ({{ total }})
+            <span v-if="totalPages > 1" class="text-sm font-normal text-(--color-text-muted)">
+              · page {{ currentPage }}/{{ totalPages }}
+            </span>
+          </h3>
+        </div>
+
+        <PaginationBar
+          :page="currentPage"
+          :total-pages="totalPages"
+          :total="total"
+          item-label="replies"
+          @change="goToPage"
+        />
 
         <div v-if="posts.length === 0"
           class="glass sm:rounded-xl p-8 text-center text-(--color-text-muted)">
           <p>No replies yet. Be the first to respond!</p>
         </div>
 
-        <div v-for="post in posts" :key="post.id" :id="'post-' + post.id" class="flex flex-col sm:flex-row gap-4 pb-4 items-start">
+        <div
+          v-for="(post, idx) in posts"
+          :key="post.id"
+          :id="'post-' + post.id"
+          class="flex flex-col sm:flex-row gap-4 pb-4 items-start"
+          :class="repliesHighlight && idx === 0 ? 'replies-first-flash' : ''"
+        >
           <div class="w-full sm:w-52 sm:flex-shrink-0">
             <ProfileCard :author="post.author" />
           </div>
@@ -372,12 +559,38 @@ const formatDate = (dateStr: string) =>
                 <button @click="showDeleteConfirm('post', post.id)"
                   class="text-(--color-text-muted) hover:text-(--color-error) transition-colors">Delete</button>
               </template>
+              <button
+                v-if="authStore.isAuthenticated && thread && !thread.isLocked && editingPostId !== post.id"
+                type="button"
+                class="text-(--color-text-muted) hover:text-sky-600 dark:hover:text-sky-400 transition-colors text-sm"
+                @click="quotePost(post)"
+              >
+                Quote
+              </button>
+              <button
+                v-if="authStore.isAuthenticated && (thread as any).isQa && isThreadOwnerOrAdmin && editingPostId !== post.id"
+                type="button"
+                class="text-xs text-emerald-600 border border-emerald-500/30 px-2 py-0.5 rounded-full"
+                @click="acceptAnswer(post.id)"
+              >
+                {{ (post as any).isAccepted ? '✓ Accepted' : 'Accept' }}
+              </button>
+              <div v-if="authStore.isAuthenticated && editingPostId !== post.id" class="flex gap-0.5">
+                <button
+                  v-for="e in REACTIONS.slice(0, 4)"
+                  :key="e"
+                  type="button"
+                  class="text-xs"
+                  @click="reactPost(post.id, e)"
+                >{{ e }}</button>
+              </div>
               <ShareButton :url="postShareUrl(props.id, post.id)" :title="thread?.title" />
               <ReportButton v-if="!isPostOwnerOrAdmin(post) && editingPostId !== post.id" target-type="post" :target-id="post.id" />
             </div>
           </div>
           <!-- Post View Mode -->
-          <div v-if="editingPostId !== post.id" class="p-6">
+          <div v-if="editingPostId !== post.id" class="p-6" :class="(post as any).isAccepted ? 'ring-2 ring-emerald-500/40' : ''">
+            <p v-if="(post as any).isAccepted" class="text-xs font-semibold text-emerald-600 mb-2">✓ Accepted answer</p>
             <MarkdownRenderer :content="post.content" />
           </div>
           <!-- Post Edit Mode -->
@@ -398,27 +611,38 @@ const formatDate = (dateStr: string) =>
         </div>
       </div>
 
-      <!-- Pagination -->
-      <div v-if="totalPages > 1" class="flex items-center justify-center gap-2 mt-4">
-        <button @click="goToPage(currentPage - 1)" :disabled="currentPage <= 1"
-          class="px-3 py-2 text-sm rounded-lg border border-(--color-border) hover:bg-(--color-background-mute) disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-          ← Prev
-        </button>
-        <span class="text-sm text-(--color-text-muted) px-2">Page {{ currentPage }} / {{ totalPages }}</span>
-        <button @click="goToPage(currentPage + 1)" :disabled="currentPage >= totalPages"
-          class="px-3 py-2 text-sm rounded-lg border border-(--color-border) hover:bg-(--color-background-mute) disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-          Next →
-        </button>
-      </div>
+      <PaginationBar
+        :page="currentPage"
+        :total-pages="totalPages"
+        :total="total"
+        item-label="replies"
+        @change="goToPage"
+      />
 
       <!-- Reply Box -->
-      <div v-if="authStore.isAuthenticated && !thread.isLocked"
-        class="glass sm:rounded-xl p-6 mt-8">
-        <h3 class="text-lg font-medium text-(--color-heading) mb-4">Post a Reply</h3>
+      <div
+        id="reply-composer"
+        v-if="authStore.isAuthenticated && !thread.isLocked"
+        class="glass sm:rounded-xl p-6 mt-8"
+      >
+        <div class="flex items-center justify-between mb-4 gap-2">
+          <h3 class="text-lg font-medium text-(--color-heading)">Post a Reply</h3>
+          <button
+            v-if="replyToPostId"
+            type="button"
+            class="text-xs text-(--color-text-muted) hover:text-(--color-heading)"
+            @click="replyToPostId = null"
+          >
+            Clear quote target
+          </button>
+        </div>
         <form @submit.prevent="submitReply">
           <div v-if="replyError" class="p-3 bg-red-500/10 text-(--color-error) border border-red-500/20 rounded-md text-sm mb-3">{{ replyError }}</div>
-          <MarkdownEditor v-model="replyContent" placeholder="Write your reply here... Markdown is supported."
-            :rows="5" />
+          <MarkdownEditor
+            v-model="replyContent"
+            placeholder="Write your reply here... Markdown + @mention supported."
+            :rows="5"
+          />
           <div class="mt-4 flex justify-end">
             <button type="submit" :disabled="isReplying || !replyContent.trim()"
               class="py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-700 hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50">
@@ -474,5 +698,22 @@ const formatDate = (dateStr: string) =>
 @keyframes post-flash {
   0% { background-color: rgba(56, 189, 248, 0.25); }
   100% { background-color: transparent; }
+}
+
+.replies-first-flash {
+  animation: replies-first-pulse 1.4s ease-out;
+  border-radius: 0.75rem;
+}
+@keyframes replies-first-pulse {
+  0% {
+    outline: 2px solid rgba(14, 165, 233, 0.85);
+    outline-offset: 4px;
+    background-color: rgba(14, 165, 233, 0.12);
+  }
+  100% {
+    outline: 2px solid transparent;
+    outline-offset: 4px;
+    background-color: transparent;
+  }
 }
 </style>

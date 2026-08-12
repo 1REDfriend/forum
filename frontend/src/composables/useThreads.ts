@@ -10,10 +10,20 @@ export function useThreads() {
   });
 }
 
-export function useForumThreads(forumId: MaybeRef<string>, page: MaybeRef<number>, limit: MaybeRef<number> = 20) {
+export function useForumThreads(
+  forumId: MaybeRef<string>,
+  page: MaybeRef<number>,
+  limit: MaybeRef<number> = 20,
+  sort: MaybeRef<string> = 'newest',
+  filter: MaybeRef<string> = 'all',
+) {
   return useQuery({
-    queryKey: ['forum', forumId, 'threads', page, limit],
-    queryFn: () => threadsApi.getThreadsByForumId(unref(forumId), unref(page), unref(limit)),
+    queryKey: ['forum', forumId, 'threads', page, limit, sort, filter],
+    queryFn: () =>
+      threadsApi.getThreadsByForumId(unref(forumId), unref(page), unref(limit), {
+        sort: unref(sort),
+        filter: unref(filter),
+      }),
     enabled: computed(() => !!unref(forumId)),
   });
 }
@@ -69,6 +79,17 @@ export function usePinThread() {
     onSuccess: (_res, id) => {
       qc.invalidateQueries({ queryKey: ['thread', id] });
       qc.invalidateQueries({ queryKey: ['forum'] }); // pinned state affects thread list rendering
+    },
+  });
+}
+
+export function useMarkThreadRead() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => threadsApi.markRead(id),
+    onSuccess: (_res, id) => {
+      qc.invalidateQueries({ queryKey: ['forum'] });
+      qc.invalidateQueries({ queryKey: ['thread', id] });
     },
   });
 }

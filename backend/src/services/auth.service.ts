@@ -17,7 +17,13 @@ const ACCESS_TOKEN_TTL = '1h';
 
 export class AuthService {
   async register(data: RegisterDTO) {
-    const existingUser = await userRepository.findByEmail(data.email);
+    // Local register only: @gmail.com. Google OAuth path is unrestricted.
+    const email = data.email.trim().toLowerCase();
+    if (!email.endsWith('@gmail.com')) {
+      throw BadRequestError('Registration is only allowed with a @gmail.com address');
+    }
+
+    const existingUser = await userRepository.findByEmail(email);
     if (existingUser) {
       throw ConflictError('Email already in use');
     }
@@ -27,7 +33,7 @@ export class AuthService {
 
     const user = await userRepository.create({
       name: data.name,
-      email: data.email,
+      email,
       passwordHash,
       authProvider: 'local',
     });

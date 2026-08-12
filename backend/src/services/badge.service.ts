@@ -1,6 +1,7 @@
 import { earnedAutoBadgeKeys, type BadgeStats, type BadgeDef } from '../domain/badges.js';
 import { userBadgeRepository } from '../repositories/userBadge.repository.js';
 import { badgeRepository } from '../repositories/badge.repository.js';
+import { notificationService } from './notification.service.js';
 
 export interface AwardedBadge {
   key: string;
@@ -43,10 +44,21 @@ export class BadgeService {
   async awardNewAuto(userId: string, stats: BadgeStats): Promise<AwardedBadge[]> {
     const map = await this.defMap();
     const newKeys = await userBadgeRepository.award(userId, earnedAutoBadgeKeys(stats, new Set(map.keys())));
-    return newKeys.flatMap((key) => {
+    const awarded = newKeys.flatMap((key) => {
       const def = map.get(key);
       return def ? [{ key: def.key, label: def.label, desc: def.desc, icon: def.icon, awardedAt: new Date() }] : [];
     });
+    for (const b of awarded) {
+      await notificationService.create({
+        userId,
+        type: 'badge_awarded',
+        actorId: null,
+        entityType: 'badge',
+        entityId: b.key,
+        payload: { badgeKey: b.key, label: b.label, icon: b.icon },
+      });
+    }
+    return awarded;
   }
 
   /** Full badge catalog (single source of truth for admin + public UIs). */
@@ -78,6 +90,19 @@ export class BadgeService {
     if (!(await badgeRepository.exists(badgeKey))) return { ok: false, reason: 'unknown' };
     if (await userBadgeRepository.has(userId, badgeKey)) return { ok: false, reason: 'already_has' };
     await userBadgeRepository.award(userId, [badgeKey]);
+    const def = (await this.defMap()).get(badgeKey);
+    await notificationService.create({
+      userId,
+      type: 'badge_awarded',
+      actorId: null,
+      entityType: 'badge',
+      entityId: badgeKey,
+      payload: {
+        badgeKey,
+        label: def?.label ?? badgeKey,
+        icon: def?.icon ?? '🏅',
+      },
+    });
     return { ok: true };
   }
 

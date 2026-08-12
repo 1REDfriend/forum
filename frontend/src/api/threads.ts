@@ -18,8 +18,21 @@ export class ThreadsApi {
   /**
    * Retrieve threads by forum ID with pagination.
    */
-  public getThreadsByForumId(forumId: string, page = 1, limit = 20): Promise<PaginatedResponse<ThreadDetail>> {
-    return this.client.get<PaginatedResponse<ThreadDetail>>(`/threads/forum/${forumId}?page=${page}&limit=${limit}`);
+  public getThreadsByForumId(
+    forumId: string,
+    page = 1,
+    limit = 20,
+    opts: { sort?: string; filter?: string } = {},
+  ): Promise<PaginatedResponse<ThreadDetail>> {
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: String(limit),
+    });
+    if (opts.sort) params.set('sort', opts.sort);
+    if (opts.filter) params.set('filter', opts.filter);
+    return this.client.get<PaginatedResponse<ThreadDetail>>(
+      `/threads/forum/${forumId}?${params.toString()}`,
+    );
   }
 
   /**
@@ -62,5 +75,12 @@ export class ThreadsApi {
    */
   public lockThread(id: string): Promise<{ isLocked: boolean }> {
     return this.client.patch<{ isLocked: boolean }>(`/threads/${id}/lock`);
+  }
+
+  /**
+   * Mark a thread as read for the current user (Authenticated).
+   */
+  public markRead(id: string, at?: string): Promise<{ ok: true }> {
+    return this.client.post<{ ok: true }>(`/threads/${id}/read`, at ? { at } : {});
   }
 }

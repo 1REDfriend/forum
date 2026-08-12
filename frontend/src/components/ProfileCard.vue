@@ -2,8 +2,13 @@
 import { computed } from 'vue';
 import type { PostAuthor } from '../api/types.js';
 import { tierStyle } from '../api/types.js';
+import { useAuthStore } from '../stores/auth.js';
 
 const props = defineProps<{ author: PostAuthor }>();
+const auth = useAuthStore();
+const canMessage = computed(
+  () => auth.isAuthenticated && auth.user?.id !== props.author.id,
+);
 
 const initials = computed(() =>
   (props.author.name || '?')
@@ -46,11 +51,26 @@ const bannerStyle = computed(() =>
       </div>
 
       <p v-if="author.bio" class="pcard-bio">{{ author.bio }}</p>
+      <router-link
+        v-if="canMessage"
+        :to="`/messages?user=${author.id}`"
+        class="pcard-msg"
+      >Message</router-link>
     </div>
   </aside>
 </template>
 
 <style scoped>
+.pcard-msg {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-indigo-600, #4f46e5);
+  text-decoration: none;
+}
+.pcard-msg:hover { text-decoration: underline; }
+
 .pcard {
   width: 100%;
   background: var(--glass-bg);

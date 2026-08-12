@@ -2,9 +2,10 @@
 import { computed, ref, watch } from 'vue';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
-import { uploadApi } from '../api/index.js';
+import { uploadApi, usersApi } from '../api/index.js';
 import { UploadCancelledError } from '../api/upload-chunked.js';
 import { useAuthStore } from '../stores/auth.js';
+import type { UserSuggestItem } from '../api/types.js';
 
 const props = defineProps<{
   modelValue: string;
@@ -182,6 +183,65 @@ const uploadAttachmentFile = async (file: File) => {
 
 const cancelAttachment = () => activeUpload?.cancel();
 
+// ─── @mention typeahead ─────────────────────────────────────────────────────
+const mentionOpen = ref(false);
+const mentionQuery = ref('');
+const mentionStart = ref(-1);
+const mentionSuggestions = ref<UserSuggestItem[]>([]);
+const mentionLoading = ref(false);
+let mentionTimer: ReturnType<typeof setTimeout> | null = null;
+
+const detectMention = () => {
+  const ta = textareaRef.value;
+  if (!ta || !authStore.isAuthenticated) {
+    mentionOpen.value = false;
+    return;
+  }
+  const pos = ta.selectionStart ?? 0;
+  const before = ta.value.slice(0, pos);
+  const m = before.match(/(^|[\s(])@([^\s@[]{0,32})$/);
+  if (!m) {
+    mentionOpen.value = false;
+    return;
+  }
+  mentionStart.value = pos - (m[2]?.length ?? 0) - 1; // index of @
+  mentionQuery.value = m[2] ?? '';
+  mentionOpen.value = true;
+  if (mentionTimer) clearTimeout(mentionTimer);
+  mentionTimer = setTimeout(async () => {
+    if (!mentionQuery.value.trim()) {
+      mentionSuggestions.value = [];
+      return;
+    }
+    mentionLoading.value = true;
+    try {
+      const res = await usersApi.suggest(mentionQuery.value, 8);
+      mentionSuggestions.value = res.users;
+    } catch {
+      mentionSuggestions.value = [];
+    } finally {
+      mentionLoading.value = false;
+    }
+  }, 200);
+};
+
+const pickMention = (u: UserSuggestItem) => {
+  const ta = textareaRef.value;
+  if (!ta || mentionStart.value < 0) return;
+  const pos = ta.selectionStart ?? 0;
+  const token = `[@${u.name}](user:${u.id})`;
+  const next =
+    props.modelValue.slice(0, mentionStart.value) + token + props.modelValue.slice(pos);
+  emit('update:modelValue', next);
+  mentionOpen.value = false;
+  requestAnimationFrame(() => {
+    const caret = mentionStart.value + token.length;
+    ta.focus();
+    ta.selectionStart = caret;
+    ta.selectionEnd = caret;
+  });
+};
+
 // ─── Paste handler ───────────────────────────────────────────────────────────
 
 const handlePaste = async (event: ClipboardEvent) => {
@@ -283,11 +343,34 @@ const handleAttachInputChange = async (event: Event) => {
     <div v-if="uploadError" class="upload-error">⚠ {{ uploadError }}</div>
 
     <!-- Editor / Preview -->
-    <div v-if="!showPreview" class="editor-wrap">
+    <div v-if="!showPreview" class="editor-wrap relative">
+      <div
+        v-if="mentionOpen && authStore.isAuthenticated"
+        class="mention-menu"
+      >
+        <div v-if="mentionLoading" class="mention-item muted">Searching…</div>
+        <div v-else-if="mentionSuggestions.length === 0" class="mention-item muted">
+          {{ mentionQuery ? 'No users' : 'Type a name…' }}
+        </div>
+        <button
+          v-for="u in mentionSuggestions"
+          :key="u.id"
+          type="button"
+          class="mention-item"
+          @mousedown.prevent="pickMention(u)"
+        >
+          <span class="font-semibold">@{{ u.name }}</span>
+          <span class="muted">{{ u.tier }}</span>
+        </button>
+      </div>
       <textarea
         ref="textareaRef"
         :value="modelValue"
-        @input="emit('update:modelValue', ($event.target as HTMLTextAreaElement).value)"
+        @input="
+          emit('update:modelValue', ($event.target as HTMLTextAreaElement).value);
+          detectMention();
+        "
+        @keyup="detectMention"
         @paste="handlePaste"
         @drop.prevent="handleDrop"
         @dragover.prevent
@@ -374,6 +457,45 @@ const handleAttachInputChange = async (event: Event) => {
 
 .editor-wrap {
   position: relative;
+}
+
+.mention-menu {
+  position: absolute;
+  z-index: 20;
+  left: 12px;
+  top: 8px;
+  min-width: 12rem;
+  max-width: 18rem;
+  max-height: 12rem;
+  overflow-y: auto;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.mention-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.8125rem;
+  text-align: left;
+  color: var(--color-heading);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+.mention-item:hover {
+  background: var(--color-background-mute);
+}
+.mention-item.muted,
+.mention-item .muted {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  cursor: default;
 }
 
 .editor-area {

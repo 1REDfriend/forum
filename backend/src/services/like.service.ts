@@ -1,6 +1,8 @@
 import { likeRepository } from '../repositories/like.repository.js';
 import { threadRepository } from '../repositories/thread.repository.js';
 import { postRepository } from '../repositories/post.repository.js';
+import { notificationService } from './notification.service.js';
+import { makeSnippet } from '../domain/snippet.js';
 import { NotFoundError } from '../utils/errors.js';
 
 export class LikeService {
@@ -16,6 +18,15 @@ export class LikeService {
     } else {
       await likeRepository.addThreadLike(userId, threadId);
       const likeCount = await likeRepository.countThreadLikes(threadId);
+      await notificationService.create({
+        userId: thread.authorId,
+        type: 'like_thread',
+        actorId: userId,
+        entityType: 'thread',
+        entityId: threadId,
+        threadId,
+        payload: { threadTitle: thread.title },
+      });
       return { liked: true, likeCount };
     }
   }
@@ -32,6 +43,15 @@ export class LikeService {
     } else {
       await likeRepository.addPostLike(userId, postId);
       const likeCount = await likeRepository.countPostLikes(postId);
+      await notificationService.create({
+        userId: post.authorId,
+        type: 'like_post',
+        actorId: userId,
+        entityType: 'post',
+        entityId: postId,
+        threadId: post.threadId,
+        payload: { snippet: makeSnippet(post.content, 80) },
+      });
       return { liked: true, likeCount };
     }
   }

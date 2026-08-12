@@ -30,3 +30,14 @@ app.use(vue3GoogleLogin, {
 })
 
 app.mount('#app')
+
+// PWA: register service worker when available
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {
+      /* ignore SW failures */
+    })
+  })
+}
+
+// Realtime SSE is started from App.vue via useRealtime() so it follows login/logout.

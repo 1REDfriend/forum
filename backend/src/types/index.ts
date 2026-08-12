@@ -2,9 +2,15 @@ import { z } from 'zod';
 import { TIERS as TIER_DEFS } from '../domain/tiers.js';
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
+/** Local email/password sign-up only — must be a @gmail.com address. Google OAuth is unrestricted. */
 export const RegisterDTO = z.object({
   name: z.string().min(2).max(100),
-  email: z.email().max(254),
+  email: z
+    .email()
+    .max(254)
+    .refine((v) => v.trim().toLowerCase().endsWith('@gmail.com'), {
+      message: 'Registration is only allowed with a @gmail.com address',
+    }),
   password: z.string().min(8).max(100),
 });
 export type RegisterDTO = z.infer<typeof RegisterDTO>;
@@ -60,6 +66,15 @@ export const CreateThreadDTO = z.object({
   title: z.string().min(1).max(200),
   content: z.string().min(1).max(50000),
   forumId: z.string().min(1),
+  tags: z.array(z.string().min(1).max(40)).max(5).optional(),
+  isQa: z.boolean().optional(),
+  poll: z
+    .object({
+      question: z.string().min(1).max(300),
+      options: z.array(z.string().min(1).max(100)).min(2).max(8),
+      closesAt: z.string().datetime().optional(),
+    })
+    .optional(),
 });
 export type CreateThreadDTO = z.infer<typeof CreateThreadDTO>;
 
@@ -73,6 +88,7 @@ export type UpdateThreadDTO = z.infer<typeof UpdateThreadDTO>;
 export const CreatePostDTO = z.object({
   content: z.string().min(1).max(50000),
   threadId: z.string().min(1),
+  replyToPostId: z.string().min(1).optional(),
 });
 export type CreatePostDTO = z.infer<typeof CreatePostDTO>;
 

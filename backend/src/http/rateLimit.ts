@@ -84,3 +84,56 @@ export const globalRateLimit = async (c: Context, next: Next) => {
   if (path.startsWith('/uploads')) return next();
   return globalLimiter(c, next);
 };
+
+/**
+ * Per-authenticated-user fixed window. Keyed by `c.get('user').userId` when present,
+ * else falls back to IP (should only be used after requireAuth).
+ */
+export function makeUserLimiter({ windowMs, max, message }: LimitOptions) {
+  const hits = new Map<string, { count: number; reset: number }>();
+
+  return async (c: Context, next: Next) => {
+    let key = 'unknown';
+    try {
+      const user = c.get('user') as { userId?: string } | undefined;
+      if (user?.userId) key = `u:${user.userId}`;
+      else key = `ip:${getConnInfo(c).remote.address ?? 'unknown'}`;
+    } catch {
+      /* keep unknown */
+    }
+    const now = Date.now();
+    const rec = hits.get(key);
+
+    if (!rec || rec.reset <= now) {
+      hits.set(key, { count: 1, reset: now + windowMs });
+      return next();
+    }
+
+    rec.count += 1;
+    if (rec.count > max) {
+      return c.json({ error: message }, 429);
+    }
+    return next();
+  };
+}
+
+/** 10 new threads per hour per user */
+export const createThreadRateLimit = makeUserLimiter({
+  windowMs: 60 * 60 * 1000,
+  max: 10,
+  message: 'Too many threads created. Please try again in an hour.',
+});
+
+/** 30 posts (replies) per hour per user */
+export const createPostRateLimit = makeUserLimiter({
+  windowMs: 60 * 60 * 1000,
+  max: 30,
+  message: 'Too many posts. Please try again in an hour.',
+});
+
+/** Suggest users typeahead */
+export const suggestUsersRateLimit = makeUserLimiter({
+  windowMs: 60 * 1000,
+  max: 30,
+  message: 'Too many suggest requests. Slow down.',
+});

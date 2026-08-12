@@ -21,8 +21,10 @@ declare module 'vue' {
     MarkdownEditor: typeof import('./src/components/MarkdownEditor.vue')['default']
     MarkdownRenderer: typeof import('./src/components/MarkdownRenderer.vue')['default']
     MenuIcon: typeof import('./src/components/icons/MenuIcon.vue')['default']
+    MessageIcon: typeof import('./src/components/icons/MessageIcon.vue')['default']
     MoonIcon: typeof import('./src/components/icons/MoonIcon.vue')['default']
     Navbar: typeof import('./src/components/Navbar.vue')['default']
+    PaginationBar: typeof import('./src/components/PaginationBar.vue')['default']
     ProfileCard: typeof import('./src/components/ProfileCard.vue')['default']
     ReportButton: typeof import('./src/components/ReportButton.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
@@ -30,6 +32,7 @@ declare module 'vue' {
     SearchIcon: typeof import('./src/components/icons/SearchIcon.vue')['default']
     ShareButton: typeof import('./src/components/ShareButton.vue')['default']
     SunIcon: typeof import('./src/components/icons/SunIcon.vue')['default']
+    TrophyIcon: typeof import('./src/components/icons/TrophyIcon.vue')['default']
     UserDropdown: typeof import('./src/components/UserDropdown.vue')['default']
   }
 }
@@ -45,8 +48,10 @@ declare global {
   const MarkdownEditor: typeof import('./src/components/MarkdownEditor.vue')['default']
   const MarkdownRenderer: typeof import('./src/components/MarkdownRenderer.vue')['default']
   const MenuIcon: typeof import('./src/components/icons/MenuIcon.vue')['default']
+  const MessageIcon: typeof import('./src/components/icons/MessageIcon.vue')['default']
   const MoonIcon: typeof import('./src/components/icons/MoonIcon.vue')['default']
   const Navbar: typeof import('./src/components/Navbar.vue')['default']
+  const PaginationBar: typeof import('./src/components/PaginationBar.vue')['default']
   const ProfileCard: typeof import('./src/components/ProfileCard.vue')['default']
   const ReportButton: typeof import('./src/components/ReportButton.vue')['default']
   const RouterLink: typeof import('vue-router')['RouterLink']
@@ -54,5 +59,6 @@ declare global {
   const SearchIcon: typeof import('./src/components/icons/SearchIcon.vue')['default']
   const ShareButton: typeof import('./src/components/ShareButton.vue')['default']
   const SunIcon: typeof import('./src/components/icons/SunIcon.vue')['default']
+  const TrophyIcon: typeof import('./src/components/icons/TrophyIcon.vue')['default']
   const UserDropdown: typeof import('./src/components/UserDropdown.vue')['default']
 }
