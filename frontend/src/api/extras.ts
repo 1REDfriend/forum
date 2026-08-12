@@ -56,6 +56,39 @@ export class ExtrasApi {
     return this.client.post(`/dm/${conversationId}/messages`, { body });
   }
 
+  // E2EE key bundles (server stores public + wrapped private only)
+  getMyCryptoKeys() {
+    return this.client.get<{
+      keys: {
+        userId: string;
+        salt: string;
+        identityPublicKey: string;
+        agreementPublicKey: string;
+        wrappedPrivateKeys: string;
+        wrapIv: string;
+        updatedAt?: string;
+      } | null;
+    }>('/crypto/keys/me');
+  }
+  putMyCryptoKeys(body: {
+    salt: string;
+    identityPublicKey: string;
+    agreementPublicKey: string;
+    wrappedPrivateKeys: string;
+    wrapIv: string;
+  }) {
+    return this.client.put<{ keys: unknown }>('/crypto/keys/me', body);
+  }
+  getPublicCryptoKeys(userId: string) {
+    return this.client.get<{
+      keys: {
+        userId: string;
+        identityPublicKey: string;
+        agreementPublicKey: string;
+      } | null;
+    }>(`/crypto/keys/${userId}`);
+  }
+
   // Events
   listEvents(from?: string, to?: string) {
     const q = new URLSearchParams();

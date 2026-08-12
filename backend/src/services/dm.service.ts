@@ -63,7 +63,7 @@ export class DmService {
   async send(userId: string, conversationId: string, body: string) {
     const text = body.trim();
     if (!text) throw BadRequestError('Empty message');
-    if (text.length > 5000) throw BadRequestError('Message too long');
+    if (text.length > 16_000) throw BadRequestError('Message too long');
     const conv = await dmRepository.findConversation(conversationId);
     if (!conv) throw NotFoundError('Conversation not found');
     if (conv.userAId !== userId && conv.userBId !== userId) {
@@ -71,13 +71,16 @@ export class DmService {
     }
     const msg = await dmRepository.sendMessage(conversationId, userId, text);
     const otherId = conv.userAId === userId ? conv.userBId : conv.userAId;
+    // Never put E2EE ciphertext or plaintext secrets into notifications.
+    const isE2ee = text.startsWith('{') && text.includes('"e2ee"');
+    const snippet = isE2ee ? '[ข้อความเข้ารหัส]' : text.slice(0, 120);
     await notificationService.create({
       userId: otherId,
       type: 'mention', // reuse type surface; payload marks dm
       actorId: userId,
       entityType: 'dm',
       entityId: msg.id,
-      payload: { dm: true, conversationId, snippet: text.slice(0, 120) },
+      payload: { dm: true, conversationId, snippet, e2ee: isE2ee },
     });
     realtimeService.publish(otherId, {
       type: 'dm',

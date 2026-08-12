@@ -279,6 +279,7 @@ export const directMessages = pgTable("direct_messages", {
   id: text("id").primaryKey().$defaultFn(newId),
   conversationId: text("conversation_id").references(() => conversations.id, { onDelete: 'cascade' }).notNull(),
   senderId: text("sender_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  /** Plaintext (legacy) or E2EE envelope JSON — server never decrypts. */
   body: text("body").notNull(),
   readAt: timestamp("read_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -286,6 +287,27 @@ export const directMessages = pgTable("direct_messages", {
   index("direct_messages_conversation_id_idx").on(table.conversationId),
   index("direct_messages_sender_id_idx").on(table.senderId),
 ]));
+
+/**
+ * Client-side E2EE key bundle for DMs.
+ * Private keys are encrypted on the client with a key derived from email+password;
+ * the server only stores public keys + the wrapped private blob.
+ */
+export const userCryptoKeys = pgTable("user_crypto_keys", {
+  userId: text("user_id").primaryKey().references(() => users.id, { onDelete: 'cascade' }),
+  /** PBKDF2 salt (base64) */
+  salt: text("salt").notNull(),
+  /** ECDSA P-256 public key (JWK JSON) — message signatures */
+  identityPublicKey: text("identity_public_key").notNull(),
+  /** ECDH P-256 public key (JWK JSON) — key agreement */
+  agreementPublicKey: text("agreement_public_key").notNull(),
+  /** AES-GCM ciphertext of private JWK bundle (base64) */
+  wrappedPrivateKeys: text("wrapped_private_keys").notNull(),
+  /** AES-GCM IV for wrappedPrivateKeys (base64) */
+  wrapIv: text("wrap_iv").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
 
 /** Optional calendar events (community events). */
 export const events = pgTable("events", {

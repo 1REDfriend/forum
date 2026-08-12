@@ -1,6 +1,7 @@
 import { postRepository } from '../repositories/post.repository.js';
 import { userRepository } from '../repositories/user.repository.js';
 import { likeRepository } from '../repositories/like.repository.js';
+import { reactionRepository } from '../repositories/reaction.repository.js';
 import { threadRepository } from '../repositories/thread.repository.js';
 import { forumRepository } from '../repositories/forum.repository.js';
 import { watchRepository } from '../repositories/watch.repository.js';
@@ -34,9 +35,13 @@ export class PostService {
 
     const postIds = rawData.map((p) => p.id);
 
-    const [likeCounts, userLikedSet] = await Promise.all([
+    const [likeCounts, userLikedSet, reactionCounts, userReactions] = await Promise.all([
       likeRepository.getPostLikeCounts(postIds),
       userId ? likeRepository.getPostLikesForUser(userId, postIds) : Promise.resolve(new Set<string>()),
+      reactionRepository.countsForPosts(postIds),
+      userId
+        ? reactionRepository.userEmojisForPosts(userId, postIds)
+        : Promise.resolve(new Map<string, string[]>()),
     ]);
 
     const data = rawData.map((p) =>
@@ -44,6 +49,8 @@ export class PostService {
         ...p,
         likeCount: likeCounts.get(p.id) ?? 0,
         isLikedByMe: userLikedSet.has(p.id),
+        reactions: reactionCounts.get(p.id) ?? [],
+        myReactions: userReactions.get(p.id) ?? [],
       }),
     );
 
@@ -175,8 +182,14 @@ export class PostService {
     if (thread.authorId !== userId && !isMod) {
       throw ForbiddenError('Only the thread author or a moderator can accept an answer');
     }
+    // Toggle: click Accepted again → unaccept; otherwise accept this (and clear others).
+    if (post.isAccepted) {
+      const updated = await postRepository.update(postId, { isAccepted: false });
+      return presentPost({ ...updated!, isAccepted: false });
+    }
     await postRepository.clearAcceptedInThread(post.threadId);
-    return postRepository.update(postId, { isAccepted: true });
+    const updated = await postRepository.update(postId, { isAccepted: true });
+    return presentPost({ ...updated!, isAccepted: true });
   }
 
   private async notifyMentions(

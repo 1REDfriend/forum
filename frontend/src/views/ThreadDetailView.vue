@@ -24,7 +24,10 @@ const authStore = useAuthStore();
 const threadId = computed(() => props.id);
 const { mutate: markThreadReadMutate } = useMarkThreadRead();
 const qc = useQueryClient();
-const REACTIONS = ['❤️', '🔥', '😂', '🎉', '👀', '💡'];
+const REACTIONS = ['❤️', '🔥', '😂', '🎉', '👀', '👍', '💡'];
+const reacting = ref(false);
+const acceptingId = ref<string | null>(null);
+const actionError = ref('');
 
 const { data: watchData, refetch: refetchWatch } = useQuery({
   queryKey: computed(() => ['thread', threadId.value, 'watch']),
@@ -46,13 +49,40 @@ const toggleWatch = async () => {
   await refetchWatch();
 };
 
+const reactionCount = (
+  list: { emoji: string; count: number }[] | undefined,
+  emoji: string,
+) => list?.find((r) => r.emoji === emoji)?.count ?? 0;
+
+const hasMyReaction = (mine: string[] | undefined, emoji: string) =>
+  !!mine?.includes(emoji);
+
 const reactThread = async (emoji: string) => {
-  if (!thread.value) return;
-  await extrasApi.toggleReaction({ emoji, threadId: thread.value.id });
+  if (!thread.value || reacting.value) return;
+  reacting.value = true;
+  actionError.value = '';
+  try {
+    await extrasApi.toggleReaction({ emoji, threadId: thread.value.id });
+    await qc.invalidateQueries({ queryKey: ['thread', threadId.value] });
+  } catch (e: unknown) {
+    actionError.value = e instanceof Error ? e.message : 'Reaction failed';
+  } finally {
+    reacting.value = false;
+  }
 };
 
 const reactPost = async (postId: string, emoji: string) => {
-  await extrasApi.toggleReaction({ emoji, postId });
+  if (reacting.value) return;
+  reacting.value = true;
+  actionError.value = '';
+  try {
+    await extrasApi.toggleReaction({ emoji, postId });
+    await qc.invalidateQueries({ queryKey: ['thread', threadId.value, 'posts'] });
+  } catch (e: unknown) {
+    actionError.value = e instanceof Error ? e.message : 'Reaction failed';
+  } finally {
+    reacting.value = false;
+  }
 };
 
 const votePoll = async (pollId: string, optionId: string) => {
@@ -60,9 +90,19 @@ const votePoll = async (pollId: string, optionId: string) => {
   await refetchPoll();
 };
 
+/** Toggle accept / unaccept answer on Q&A threads. */
 const acceptAnswer = async (postId: string) => {
-  await extrasApi.acceptPost(postId);
-  await qc.invalidateQueries({ queryKey: ['thread', threadId.value, 'posts'] });
+  if (acceptingId.value) return;
+  acceptingId.value = postId;
+  actionError.value = '';
+  try {
+    await extrasApi.acceptPost(postId);
+    await qc.invalidateQueries({ queryKey: ['thread', threadId.value, 'posts'] });
+  } catch (e: unknown) {
+    actionError.value = e instanceof Error ? e.message : 'Could not update accepted answer';
+  } finally {
+    acceptingId.value = null;
+  }
 };
 
 // Reply
@@ -120,8 +160,9 @@ const errorMessage = (err: unknown) => (err instanceof Error ? err.message : und
 const replyError = computed(() => errorMessage(createPostMutationError.value) ?? '');
 const editThreadError = computed(() => errorMessage(updateThreadMutationError.value) ?? '');
 const editPostError = computed(() => errorMessage(updatePostMutationError.value) ?? '');
-// General banner: load failures + delete/pin/lock failures (mirrors the old shared `error` ref).
+// General banner: load failures + delete/pin/lock failures + reaction/accept actions.
 const error = computed(() => {
+  if (actionError.value) return actionError.value;
   const err =
     threadQueryError.value ||
     postsQueryError.value ||
@@ -140,8 +181,11 @@ const isPostLiking = (postId: string) => likingPostIds.has(postId);
 
 const isAdmin = computed(() => authStore.user?.role === 'admin');
 const isThreadOwnerOrAdmin = computed(() =>
-  authStore.user && thread.value &&
-  (authStore.user.id === thread.value.author.id || authStore.user.role === 'admin')
+  authStore.user &&
+  thread.value &&
+  (authStore.user.id === thread.value.author.id ||
+    authStore.user.role === 'admin' ||
+    authStore.user.role === 'manager'),
 );
 
 const isPostOwnerOrAdmin = (post: PostDetail) =>
@@ -452,19 +496,36 @@ const formatDate = (dateStr: string) =>
                 >
                   Quote
                 </button>
-                <div v-if="authStore.isAuthenticated" class="flex gap-1">
-                  <button
-                    v-for="e in REACTIONS"
-                    :key="e"
-                    type="button"
-                    class="text-sm hover:scale-110"
-                    :title="e"
-                    @click="reactThread(e)"
-                  >{{ e }}</button>
-                </div>
                 <ShareButton :url="threadShareUrl(thread.id)" :title="thread.title" />
                 <ReportButton v-if="!isThreadOwnerOrAdmin" target-type="thread" :target-id="thread.id" />
               </div>
+            </div>
+            <!-- Thread reactions: always visible row so they are clickable -->
+            <div
+              v-if="authStore.isAuthenticated || (thread.reactions && thread.reactions.length)"
+              class="flex flex-wrap items-center gap-1.5 mt-3"
+            >
+              <button
+                v-for="e in REACTIONS"
+                :key="'t-' + e"
+                type="button"
+                :disabled="!authStore.isAuthenticated || reacting"
+                :class="[
+                  'inline-flex items-center gap-1 px-2 py-1 rounded-full text-sm border transition-all',
+                  hasMyReaction(thread.myReactions, e)
+                    ? 'bg-sky-500/20 border-sky-500/40 text-(--color-heading) scale-105'
+                    : 'bg-(--color-background-mute) border-(--color-border) text-(--color-text-muted) hover:border-sky-500/40 hover:bg-sky-500/10',
+                  (!authStore.isAuthenticated || reacting) ? 'opacity-60 cursor-default' : 'cursor-pointer',
+                ]"
+                :title="authStore.isAuthenticated ? `React ${e}` : 'Login to react'"
+                @click.stop="reactThread(e)"
+              >
+                <span>{{ e }}</span>
+                <span
+                  v-if="reactionCount(thread.reactions, e) > 0"
+                  class="text-xs tabular-nums font-medium"
+                >{{ reactionCount(thread.reactions, e) }}</span>
+              </button>
             </div>
           </template>
           <!-- Edit Mode -->
@@ -568,30 +629,56 @@ const formatDate = (dateStr: string) =>
                 Quote
               </button>
               <button
-                v-if="authStore.isAuthenticated && (thread as any).isQa && isThreadOwnerOrAdmin && editingPostId !== post.id"
+                v-if="authStore.isAuthenticated && thread?.isQa && isThreadOwnerOrAdmin && editingPostId !== post.id"
                 type="button"
-                class="text-xs text-emerald-600 border border-emerald-500/30 px-2 py-0.5 rounded-full"
-                @click="acceptAnswer(post.id)"
+                :disabled="acceptingId === post.id"
+                :class="[
+                  'text-xs border px-2 py-0.5 rounded-full transition-colors disabled:opacity-50',
+                  post.isAccepted
+                    ? 'text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 border-emerald-500/40 hover:bg-red-500/10 hover:border-red-500/40 hover:text-red-700'
+                    : 'text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/10',
+                ]"
+                :title="post.isAccepted ? 'Click to unaccept' : 'Mark as accepted answer'"
+                @click.stop="acceptAnswer(post.id)"
               >
-                {{ (post as any).isAccepted ? '✓ Accepted' : 'Accept' }}
+                <template v-if="acceptingId === post.id">…</template>
+                <template v-else-if="post.isAccepted">✓ Accepted · Unaccept</template>
+                <template v-else>Accept answer</template>
               </button>
-              <div v-if="authStore.isAuthenticated && editingPostId !== post.id" class="flex gap-0.5">
-                <button
-                  v-for="e in REACTIONS.slice(0, 4)"
-                  :key="e"
-                  type="button"
-                  class="text-xs"
-                  @click="reactPost(post.id, e)"
-                >{{ e }}</button>
-              </div>
               <ShareButton :url="postShareUrl(props.id, post.id)" :title="thread?.title" />
               <ReportButton v-if="!isPostOwnerOrAdmin(post) && editingPostId !== post.id" target-type="post" :target-id="post.id" />
             </div>
           </div>
           <!-- Post View Mode -->
-          <div v-if="editingPostId !== post.id" class="p-6" :class="(post as any).isAccepted ? 'ring-2 ring-emerald-500/40' : ''">
-            <p v-if="(post as any).isAccepted" class="text-xs font-semibold text-emerald-600 mb-2">✓ Accepted answer</p>
+          <div v-if="editingPostId !== post.id" class="p-6" :class="post.isAccepted ? 'ring-2 ring-emerald-500/40' : ''">
+            <p v-if="post.isAccepted" class="text-xs font-semibold text-emerald-600 mb-2">✓ Accepted answer</p>
             <MarkdownRenderer :content="post.content" />
+            <!-- Post reactions row -->
+            <div
+              v-if="authStore.isAuthenticated || (post.reactions && post.reactions.length)"
+              class="flex flex-wrap items-center gap-1.5 mt-4 pt-3 border-t border-(--color-border)"
+            >
+              <button
+                v-for="e in REACTIONS"
+                :key="post.id + e"
+                type="button"
+                :disabled="!authStore.isAuthenticated || reacting"
+                :class="[
+                  'inline-flex items-center gap-1 px-2 py-1 rounded-full text-sm border transition-all',
+                  hasMyReaction(post.myReactions, e)
+                    ? 'bg-sky-500/20 border-sky-500/40 text-(--color-heading)'
+                    : 'bg-(--color-background-mute) border-(--color-border) text-(--color-text-muted) hover:border-sky-500/40 hover:bg-sky-500/10',
+                  (!authStore.isAuthenticated || reacting) ? 'opacity-60 cursor-default' : 'cursor-pointer',
+                ]"
+                @click.stop="reactPost(post.id, e)"
+              >
+                <span>{{ e }}</span>
+                <span
+                  v-if="reactionCount(post.reactions, e) > 0"
+                  class="text-xs tabular-nums font-medium"
+                >{{ reactionCount(post.reactions, e) }}</span>
+              </button>
+            </div>
           </div>
           <!-- Post Edit Mode -->
           <div v-else class="p-6">

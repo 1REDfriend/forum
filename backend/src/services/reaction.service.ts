@@ -46,7 +46,13 @@ export class ReactionService {
           payload: { emoji: body.emoji, reaction: true },
         });
       }
-      return r;
+      const counts = await reactionRepository.countsForPosts([body.postId]);
+      const mine = await reactionRepository.userEmojisForPosts(userId, [body.postId]);
+      return {
+        ...r,
+        counts: counts.get(body.postId) ?? [],
+        mine: mine.get(body.postId) ?? [],
+      };
     }
     throw BadRequestError('threadId or postId required');
   }

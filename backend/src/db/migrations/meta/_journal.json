@@ -92,6 +92,13 @@
       "when": 1786500003000,
       "tag": "0012_phase_g_completeness",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1786500004000,
+      "tag": "0013_user_crypto_keys",
+      "breakpoints": true
     }
   ]
 }

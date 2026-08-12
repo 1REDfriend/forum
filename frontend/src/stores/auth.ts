@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { authApi, usersApi, ApiError } from '../api/index.js';
 import type { LoginDTO, RegisterDTO, User } from '../api/types.js';
+import { useCryptoStore } from './crypto.js';
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null);
@@ -31,16 +32,29 @@ export const useAuthStore = defineStore('auth', () => {
   const login = async (data: LoginDTO) => {
     const response = await authApi.login(data);
     setAuth(response.user, response.token, response.refreshToken);
+    // Unlock E2EE from the same email+password (no second prompt in Messages).
+    try {
+      await useCryptoStore().ensureKeys(data.email, data.password);
+    } catch (e) {
+      console.error('[e2ee] unlock after login failed', e);
+    }
   };
 
   const register = async (data: RegisterDTO) => {
     const response = await authApi.register(data);
     setAuth(response.user, response.token, response.refreshToken);
+    try {
+      await useCryptoStore().ensureKeys(data.email, data.password);
+    } catch (e) {
+      console.error('[e2ee] unlock after register failed', e);
+    }
   };
 
   const googleAuth = async (idToken: string) => {
     const response = await authApi.googleAuth({ idToken });
     setAuth(response.user, response.token, response.refreshToken);
+    // No password from Google — try existing session keys only.
+    await useCryptoStore().hydrateFromSession();
   };
 
   // Refresh the current user from the API (role/tier/profile may have changed
@@ -51,6 +65,8 @@ export const useAuthStore = defineStore('auth', () => {
       const me = await usersApi.getMe();
       user.value = me;
       localStorage.setItem('user', JSON.stringify(me));
+      // Re-unlock from session password saved at login, or restore private keys.
+      await useCryptoStore().hydrateFromSession();
     } catch (error) {
       // 401 → the apiClient already cleared the session; mirror that locally.
       if (error instanceof ApiError && error.status === 401) {
@@ -64,6 +80,7 @@ export const useAuthStore = defineStore('auth', () => {
     // Revoke the refresh token server-side (fire-and-forget) before clearing.
     const rt = localStorage.getItem('refreshToken');
     if (rt) void authApi.logout(rt).catch(() => {});
+    useCryptoStore().lock();
     user.value = null;
     token.value = null;
     localStorage.removeItem('token');

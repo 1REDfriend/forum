@@ -5,7 +5,8 @@ import { validate } from '../http/validate.js';
 import { dmService } from '../services/dm.service.js';
 
 const OpenDTO = z.object({ userId: z.string().min(1) });
-const SendDTO = z.object({ body: z.string().min(1).max(5000) });
+// E2EE envelopes are base64 JSON; allow more room than plain text.
+const SendDTO = z.object({ body: z.string().min(1).max(16000) });
 
 export const dmRoutes = new Hono<AuthEnv>()
   .use('*', requireAuth)

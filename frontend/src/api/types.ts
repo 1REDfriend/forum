@@ -102,6 +102,11 @@ export type MarkNotificationsReadDTO =
   | { ids: string[] };
 
 // Thread representation returned by queries (includes author and forum info)
+export interface ReactionCount {
+  emoji: string;
+  count: number;
+}
+
 export interface ThreadDetail {
   id: string;
   title: string;
@@ -121,6 +126,9 @@ export interface ThreadDetail {
     id: string;
     name: string;
   };
+  isQa?: boolean;
+  reactions?: ReactionCount[];
+  myReactions?: string[];
 }
 
 // Simple Thread representation returned upon creation
@@ -145,6 +153,10 @@ export interface PostDetail {
   likeCount: number;
   isLikedByMe: boolean;
   author: PostAuthor;
+  isAccepted?: boolean;
+  replyToPostId?: string | null;
+  reactions?: ReactionCount[];
+  myReactions?: string[];
 }
 
 // Simple Post representation returned upon creation

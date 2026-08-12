@@ -1,6 +1,7 @@
 import { threadRepository, type FindByForumOptions, type ThreadListFilter, type ThreadListSort } from '../repositories/thread.repository.js';
 import { userRepository } from '../repositories/user.repository.js';
 import { likeRepository } from '../repositories/like.repository.js';
+import { reactionRepository } from '../repositories/reaction.repository.js';
 import { threadReadRepository } from '../repositories/threadRead.repository.js';
 import { forumRepository } from '../repositories/forum.repository.js';
 import { tagRepository } from '../repositories/tag.repository.js';
@@ -53,11 +54,13 @@ export class ThreadService {
     if (!thread) {
       throw NotFoundError('Thread not found');
     }
-    const [likeCount, isLikedByMe] = await Promise.all([
+    const [likeCount, isLikedByMe, reactions, myReactions] = await Promise.all([
       likeRepository.countThreadLikes(id),
-      userId ? likeRepository.findThreadLike(userId, id).then(r => !!r) : Promise.resolve(false),
+      userId ? likeRepository.findThreadLike(userId, id).then((r) => !!r) : Promise.resolve(false),
+      reactionRepository.countsForThread(id),
+      userId ? reactionRepository.userEmojisForThread(userId, id) : Promise.resolve([] as string[]),
     ]);
-    return presentThread({ ...thread, likeCount, isLikedByMe });
+    return presentThread({ ...thread, likeCount, isLikedByMe, reactions, myReactions });
   }
 
   async markRead(userId: string, threadId: string, at?: Date) {
