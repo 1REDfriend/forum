@@ -3,6 +3,8 @@
  * the browser only ever talks to the forum backend. Each part is bounded
  * (≤ the chunk size the client uses), so memory stays flat even for a 10GB file.
  */
+import { toPublicMediaUrl } from '../domain/media-url.js';
+
 const baseUrl = () => {
   const url = process.env.CDN_BASE_URL;
   if (!url) throw new Error('CDN_BASE_URL is not configured');
@@ -89,7 +91,10 @@ export const cdnMultipart = {
         parts: input.parts,
       }),
     });
-    return asJson<CompleteResult>(r);
+    const result = await asJson<CompleteResult>(r);
+    // Prefer CDN_PUBLIC_URL so clients embed the public edge host, not whatever
+    // PUBLIC_URL the CDN container happened to have when it completed the upload.
+    return { ...result, url: toPublicMediaUrl(result.url) };
   },
 
   async abort(input: { objectKey: string; uploadId: string }): Promise<{ ok: boolean }> {

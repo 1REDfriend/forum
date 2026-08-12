@@ -2,6 +2,7 @@ import { threadRepository } from '../repositories/thread.repository.js';
 import { postRepository } from '../repositories/post.repository.js';
 import { forumRepository } from '../repositories/forum.repository.js';
 import { userRepository } from '../repositories/user.repository.js';
+import { toPublicMediaUrl } from '../domain/media-url.js';
 
 // FRONTEND_URL may be a comma-separated list of origins; use the first, no trailing slash.
 const FRONTEND_URL = (process.env.FRONTEND_URL ?? 'http://localhost:5173')
@@ -101,7 +102,7 @@ export const shareService = {
       description: user.bio ? snippet(user.bio) : `${user.name}'s profile on IT.Forum.`,
       url: `${FRONTEND_URL}/user/${id}`,
       type: 'profile',
-      image: user.banner ?? user.avatar ?? undefined,
+      image: toPublicMediaUrl(user.banner) ?? toPublicMediaUrl(user.avatar) ?? undefined,
     });
   },
 };

@@ -775,5 +775,5 @@ git commit -m "docs(share): verification notes for social metadata"
 ## Notes / Out of Scope (YAGNI)
 
 - **Per-thread generated images** (rendering the thread title onto a card) — deferred; the default card + dynamic title/description already give a good preview. Revisit if engagement data justifies it.
-- **`og:image` via the Axite CDN** — user avatars/banners may live on `cdn.supakorn.xyz`; those URLs are passed through as-is. The default card is served from the frontend origin. No CDN work needed here.
+- **`og:image` via the Axite CDN** — user avatars/banners may live on `cdn.supaxit.com`; those URLs are passed through as-is. The default card is served from the frontend origin. No CDN work needed here.
 - **Sitemap / structured data (JSON-LD)** — separate SEO concern, not part of share previews.

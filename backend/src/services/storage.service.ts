@@ -1,6 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import { extForMime, sniffImageType } from '../domain/upload.js';
+import { toPublicMediaUrl } from '../domain/media-url.js';
 
 export interface UploadInput {
   buffer: Buffer;
@@ -80,7 +81,8 @@ const cdnDriver: StorageDriver = {
     if (!data.url) {
       throw new Error('CDN upload succeeded but the response did not include a "url" field');
     }
-    return { url: data.url };
+    // Prefer CDN_PUBLIC_URL so stored + returned URLs always match the public edge host.
+    return { url: toPublicMediaUrl(data.url) };
   },
 };
 

@@ -971,7 +971,7 @@ git push -u origin feat/cuid-ids-and-sharing
 
 > SSH: `ssh radxa@192.168.1.104` (password supplied ad hoc). Repo: `~/github/forum`.
 > Services: `forum-backend` :3636, `forum-db` :5843→5432, `forum-frontend` :8080.
-> Public: site `https://forum.supakorn.xyz`, API `https://forum-api.supakorn.xyz`.
+> Public: site `https://forum.supaxit.com`, API `https://forum-api.supaxit.com`.
 
 - [ ] **Step 1: Pull the branch on the Radxa**
 
@@ -1015,9 +1015,9 @@ Expected: migration commits OK; containers healthy (`docker compose ps`).
 
 - [ ] **Step 5: Verify prod**
 
-- `https://forum.supakorn.xyz` loads; open a thread — URL shows a cuid.
+- `https://forum.supaxit.com` loads; open a thread — URL shows a cuid.
 - Create a reply; share a post link; confirm `#post-<id>` scroll works.
-- `curl -s -A "Twitterbot/1.0" https://forum.supakorn.xyz/thread/<cuid> | grep og:title`.
+- `curl -s -A "Twitterbot/1.0" https://forum.supaxit.com/thread/<cuid> | grep og:title`.
 - Run a link through a social card validator against the public URL.
 
 - [ ] **Step 6: On failure — rollback**

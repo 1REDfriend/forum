@@ -7,6 +7,7 @@ import { threadRepository } from '../repositories/thread.repository.js';
 import { postRepository } from '../repositories/post.repository.js';
 import { reportService } from '../services/report.service.js';
 import { badgeService } from '../services/badge.service.js';
+import { toPublicMediaUrl } from '../domain/media-url.js';
 import {
   AdminPagination,
   UpdateUserRoleDTO,
@@ -28,7 +29,11 @@ export const adminRoutes = new Hono<AuthEnv>()
   .get('/users', validate('query', AdminPagination), async (c) => {
     const { page, limit, search } = c.req.valid('query');
     const result = await adminRepository.getAllUsers(page, limit, search);
-    return c.json({ ...result, page, limit, totalPages: Math.ceil(result.total / limit) });
+    const data = result.data.map((u: any) => ({
+      ...u,
+      avatar: toPublicMediaUrl(u.avatar),
+    }));
+    return c.json({ ...result, data, page, limit, totalPages: Math.ceil(result.total / limit) });
   })
   .patch('/users/:id/role', validate('json', UpdateUserRoleDTO), async (c) => {
     // Prevent self-demotion

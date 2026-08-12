@@ -15,6 +15,16 @@ import { parseMentionUserIds } from '../domain/mentions.js';
 import { canPostInForum, canModerateForumContent } from '../domain/forum-policy.js';
 import { NotFoundError, ForbiddenError, UnauthorizedError } from '../utils/errors.js';
 import type { CreateThreadDTO, UpdateThreadDTO } from '../types/index.js';
+import { mapUserMediaFields, rewriteMediaUrlsInText } from '../domain/media-url.js';
+
+/** Rewrite CDN hosts in thread body + nested author media for API responses. */
+function presentThread<T extends { content?: string | null; author?: any }>(t: T): T {
+  return {
+    ...t,
+    ...(t.content !== undefined ? { content: rewriteMediaUrlsInText(t.content as any) } : {}),
+    ...(t.author ? { author: mapUserMediaFields(t.author) } : {}),
+  };
+}
 
 function lastActivityAt(t: { createdAt: Date | string; lastPostAt?: string | Date | null }): Date {
   const created = new Date(t.createdAt);
@@ -34,7 +44,8 @@ function isUnreadFor(
 
 export class ThreadService {
   async getAllThreads() {
-    return await threadRepository.findAll();
+    const rows = await threadRepository.findAll();
+    return rows.map(presentThread);
   }
 
   async getThreadById(id: string, userId?: string) {
@@ -46,7 +57,7 @@ export class ThreadService {
       likeRepository.countThreadLikes(id),
       userId ? likeRepository.findThreadLike(userId, id).then(r => !!r) : Promise.resolve(false),
     ]);
-    return { ...thread, likeCount, isLikedByMe };
+    return presentThread({ ...thread, likeCount, isLikedByMe });
   }
 
   async markRead(userId: string, threadId: string, at?: Date) {
@@ -88,13 +99,15 @@ export class ThreadService {
 
     const tagsMap = await tagRepository.listForThreads(threadIds);
 
-    const enriched = data.map((t) => ({
-      ...t,
-      likeCount: likeCounts.get(t.id) ?? 0,
-      isLikedByMe: userLikedSet.has(t.id),
-      isUnread: userId ? isUnreadFor(t, lastReadMap.get(t.id)) : false,
-      tags: tagsMap.get(t.id) ?? [],
-    }));
+    const enriched = data.map((t) =>
+      presentThread({
+        ...t,
+        likeCount: likeCounts.get(t.id) ?? 0,
+        isLikedByMe: userLikedSet.has(t.id),
+        isUnread: userId ? isUnreadFor(t, lastReadMap.get(t.id)) : false,
+        tags: tagsMap.get(t.id) ?? [],
+      }),
+    );
 
     // Optional tag filter
     // (applied post-query if ?tag=slug passed via filter extension — handled in route)
@@ -160,7 +173,7 @@ export class ThreadService {
       });
     }
 
-    return { ...created, newlyAwardedBadges: await this.awardBadges(userId) };
+    return { ...presentThread(created), newlyAwardedBadges: await this.awardBadges(userId) };
   }
 
   private async awardBadges(userId: string) {
@@ -191,7 +204,8 @@ export class ThreadService {
     const updateData: Record<string, any> = {};
     if (data.title !== undefined) updateData.title = data.title;
     if (data.content !== undefined) updateData.content = data.content;
-    return await threadRepository.update(threadId, updateData);
+    const updated = await threadRepository.update(threadId, updateData);
+    return updated ? presentThread(updated) : updated;
   }
 
   async deleteThread(userId: string, threadId: string) {

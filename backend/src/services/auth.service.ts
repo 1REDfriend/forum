@@ -9,6 +9,7 @@ import type { RegisterDTO, LoginDTO, GoogleAuthDTO, ForgotPasswordDTO, ResetPass
 import { ConflictError, UnauthorizedError, NotFoundError, BadRequestError } from '../utils/errors.js';
 import { sendPasswordResetEmail } from '../utils/mailer.js';
 import { jwtSecret } from '../config/jwt.js';
+import { mapUserMediaFields } from '../domain/media-url.js';
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || 'dummy-client-id');
 
@@ -179,7 +180,7 @@ export class AuthService {
 
   private sanitizeUser(user: any) {
     const { passwordHash, ...sanitized } = user;
-    return sanitized;
+    return mapUserMediaFields(sanitized);
   }
 }
 

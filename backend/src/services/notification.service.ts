@@ -1,6 +1,7 @@
 import { notificationRepository } from '../repositories/notification.repository.js';
 import { logger } from '../utils/logger.js';
 import { realtimeService } from './realtime.service.js';
+import { toPublicMediaUrl } from '../domain/media-url.js';
 
 export type NotificationType =
   | 'thread_reply'
@@ -74,7 +75,7 @@ export class NotificationService {
           ? {
               id: row.actor.id,
               name: row.actor.name,
-              avatar: row.actor.avatar,
+              avatar: toPublicMediaUrl(row.actor.avatar),
             }
           : null,
       })),

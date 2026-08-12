@@ -15,7 +15,7 @@ Markdown editor used by "Create New Thread" (and replies — the editor is share
 
 Two hard limits shape everything:
 
-1. **Cloudflare body cap.** `cdn.supakorn.xyz`, `forum-api.supakorn.xyz`, and `forum.supakorn.xyz`
+1. **Cloudflare body cap.** `cdn.supaxit.com`, `forum-api.supaxit.com`, and `forum.supaxit.com`
    are all served through a Cloudflare Tunnel. Cloudflare's proxy enforces a request-body limit per
    plan (Free/Pro 100 MB, Business 200 MB, Enterprise ≤500 MB). **Verified empirically 2026-06-30:**
    a 150 MB `POST /v1/upload` returned `HTTP 413 Payload Too Large` from Cloudflare (cut off at

@@ -3,6 +3,7 @@ import { userRepository } from '../repositories/user.repository.js';
 import { notificationService } from './notification.service.js';
 import { realtimeService } from './realtime.service.js';
 import { BadRequestError, ForbiddenError, NotFoundError } from '../utils/errors.js';
+import { toPublicMediaUrl } from '../domain/media-url.js';
 
 function publicPeer(other: {
   id: string;
@@ -16,8 +17,8 @@ function publicPeer(other: {
   return {
     id: other.id,
     name: other.name,
-    avatar: other.avatar,
-    banner: other.banner ?? null,
+    avatar: toPublicMediaUrl(other.avatar),
+    banner: toPublicMediaUrl(other.banner ?? null),
     bio: other.bio ?? null,
     role: other.role,
     tier: other.tier,

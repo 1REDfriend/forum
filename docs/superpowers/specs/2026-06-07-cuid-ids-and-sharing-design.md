@@ -170,7 +170,7 @@ SSH to the Radxa (`ssh radxa@192.168.1.104`, password supplied ad hoc), repo at
    against it, confirm the validation gate passes. Do NOT touch the live DB yet.
 4. **Cutover** (maintenance window): stop backend, run migration on the live DB,
    `docker compose build backend frontend && docker compose up -d`, smoke test
-   against `https://forum.supakorn.xyz`.
+   against `https://forum.supaxit.com`.
 5. Verify CUID URLs, sharing, and OG preview work in prod.
 
 ### Rollback

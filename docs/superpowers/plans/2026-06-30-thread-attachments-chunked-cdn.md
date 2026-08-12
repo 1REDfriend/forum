@@ -545,7 +545,7 @@ On Radxa: rebuild/restart the `axite-elysia` service per the cdn-axite deploy me
 
 - [ ] **Step 2: Verify a >100 MB chunked upload succeeds end-to-end through Cloudflare**
 
-This is the proof the Cloudflare cap is bypassed. From the dev machine, run a small script that creates a ~250 MB file, slices it into 95 MB chunks, and drives the 4-call flow against `https://cdn.supakorn.xyz` with the CDN bearer key:
+This is the proof the Cloudflare cap is bypassed. From the dev machine, run a small script that creates a ~250 MB file, slices it into 95 MB chunks, and drives the 4-call flow against `https://cdn.supaxit.com` with the CDN bearer key:
 ```bash
 # pseudocode the implementer fills in with curl or a bun script:
 # 1) POST /v1/upload/multipart/create  {filename:"big.bin",mime:"application/octet-stream",size:262144000}
@@ -557,7 +557,7 @@ This is the proof the Cloudflare cap is bypassed. From the dev machine, run a sm
 #    -> capture url
 # 4) GET the url -> 200, Content-Disposition: attachment, full size_bytes match
 ```
-Expected: complete returns a `https://cdn.supakorn.xyz/files/...` URL; `curl -I` on it returns `200`, `content-disposition: attachment`, and `content-length` ≈ 250 MB. No `413` at any step.
+Expected: complete returns a `https://cdn.supaxit.com/files/...` URL; `curl -I` on it returns `200`, `content-disposition: attachment`, and `content-length` ≈ 250 MB. No `413` at any step.
 
 - [ ] **Step 3: Verify the security control**
 
@@ -1191,7 +1191,7 @@ Update the editor hint text to mention files: `Paste, drop, or attach any file (
 - [ ] **Step 3: Verify in the preview (no manual asking)**
 
 Start the preview (`preview_start`), open a forum's Create Thread page, and use `preview_*` tools to:
-- paste/drop a small `.txt` or `.zip` → editor shows `[name](https://cdn.supakorn.xyz/files/...)`.
+- paste/drop a small `.txt` or `.zip` → editor shows `[name](https://cdn.supaxit.com/files/...)`.
 - check `preview_console_logs` / `preview_network` for the create/part/complete calls returning 201.
 - click the rendered link in Preview tab → file downloads (not rendered inline).
 - screenshot the progress state for the record.

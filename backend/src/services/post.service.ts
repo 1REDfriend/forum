@@ -14,6 +14,16 @@ import { parseMentionUserIds } from '../domain/mentions.js';
 import { canPostInForum } from '../domain/forum-policy.js';
 import { NotFoundError, ForbiddenError, BadRequestError } from '../utils/errors.js';
 import type { CreatePostDTO, UpdatePostDTO } from '../types/index.js';
+import { mapUserMediaFields, rewriteMediaUrlsInText } from '../domain/media-url.js';
+
+/** Rewrite CDN hosts in post body + nested author media for API responses. */
+function presentPost<T extends { content?: string | null; author?: any }>(p: T): T {
+  return {
+    ...p,
+    ...(p.content !== undefined ? { content: rewriteMediaUrlsInText(p.content as any) } : {}),
+    ...(p.author ? { author: mapUserMediaFields(p.author) } : {}),
+  };
+}
 
 export class PostService {
   async getPostsByThreadId(threadId: string, page: number = 1, limit: number = 20, userId?: string) {
@@ -29,11 +39,13 @@ export class PostService {
       userId ? likeRepository.getPostLikesForUser(userId, postIds) : Promise.resolve(new Set<string>()),
     ]);
 
-    const data = rawData.map((p) => ({
-      ...p,
-      likeCount: likeCounts.get(p.id) ?? 0,
-      isLikedByMe: userLikedSet.has(p.id),
-    }));
+    const data = rawData.map((p) =>
+      presentPost({
+        ...p,
+        likeCount: likeCounts.get(p.id) ?? 0,
+        isLikedByMe: userLikedSet.has(p.id),
+      }),
+    );
 
     return {
       data,
@@ -146,7 +158,7 @@ export class PostService {
       { type: 'thread_post', payload: { threadId: thread.id, postId: created.id } },
     );
 
-    return { ...created, newlyAwardedBadges: await this.awardBadges(userId) };
+    return { ...presentPost(created), newlyAwardedBadges: await this.awardBadges(userId) };
   }
 
   async acceptAnswer(userId: string, postId: string) {
@@ -230,7 +242,7 @@ export class PostService {
     if (thread) {
       await this.notifyMentions(userId, data.content, postId, thread.id, thread.title);
     }
-    return updated;
+    return updated ? presentPost(updated) : updated;
   }
 
   async deletePost(userId: string, postId: string) {

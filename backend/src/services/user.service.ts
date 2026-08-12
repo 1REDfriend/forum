@@ -1,6 +1,6 @@
 import { userRepository } from '../repositories/user.repository.js';
 import { NotFoundError, BadRequestError } from '../utils/errors.js';
-import { isSafeMediaUrl } from '../domain/media-url.js';
+import { isSafeMediaUrl, mapUserMediaFields, toPublicMediaUrl } from '../domain/media-url.js';
 import type { UpdateUserDTO } from '../types/index.js';
 import { tierService } from './tier.service.js';
 import { badgeService } from './badge.service.js';
@@ -48,8 +48,8 @@ export class UserService {
     const base = {
       id: user.id,
       name: user.name,
-      avatar: user.avatar,
-      banner: user.banner,
+      avatar: toPublicMediaUrl(user.avatar),
+      banner: toPublicMediaUrl(user.banner),
       bio: user.bio,
       role: user.role,
       tier: user.tier,
@@ -81,7 +81,7 @@ export class UserService {
 
   private sanitizeUser(user: any) {
     const { passwordHash, ...sanitized } = user;
-    return sanitized;
+    return mapUserMediaFields(sanitized);
   }
 }
 

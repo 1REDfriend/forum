@@ -1,5 +1,6 @@
 import { activityRepository } from '../repositories/activity.repository.js';
 import { makeSnippet } from '../domain/snippet.js';
+import { toPublicMediaUrl } from '../domain/media-url.js';
 
 export type ActivityItem = {
   kind: 'post' | 'thread';
@@ -38,7 +39,7 @@ export class ActivityService {
         author: {
           id: r.authorId,
           name: r.authorName,
-          avatar: r.authorAvatar,
+          avatar: toPublicMediaUrl(r.authorAvatar),
         },
         snippet: makeSnippet(r.body, 160),
         createdAt: toIso(r.createdAt),
