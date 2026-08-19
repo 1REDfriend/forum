@@ -1,6 +1,6 @@
 @import "tailwindcss";
-@import "@fontsource-variable/inter";
-@import "@fontsource-variable/inter/wght-italic.css";
+@import "@fontsource-variable/ibm-plex-sans";
+@import "@fontsource-variable/ibm-plex-sans/wght-italic.css";
 @import "@fontsource/ibm-plex-sans-thai/400.css";
 @import "@fontsource/ibm-plex-sans-thai/500.css";
 @import "@fontsource/ibm-plex-sans-thai/600.css";
@@ -15,7 +15,7 @@
    orange accent (photo.creasy.club), light default with .dark override.
    ============================================================================ */
 @theme {
-  --font-sans: "Inter Variable", "IBM Plex Sans Thai", system-ui, sans-serif;
+  --font-sans: "IBM Plex Sans Variable", "IBM Plex Sans Thai", system-ui, sans-serif;
 
   --radius: 0.625rem;
 
